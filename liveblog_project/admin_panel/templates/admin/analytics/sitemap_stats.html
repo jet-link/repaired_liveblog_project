@@ -1,0 +1,130 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Sitemap{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Sitemap</li></ol></nav>{% endblock %}
+{% block page_title %}Sitemap{% endblock %}
+{% block content %}
+<section class="admin-analytics-section mb-4">
+    <h2 class="admin-section-title">Public URLs</h2>
+    <p class="admin-text-muted small mb-2">Search engines use the XML index; visitors use the HTML overview. Absolute URLs in <code>sitemap.xml</code> follow <strong>Sites</strong> in Django admin.</p>
+    <div class="admin-sitemap-actions">
+        <a href="{{ html_sitemap_url }}" class="admin-sitemap-action" target="_blank" rel="noopener">
+            <i class="fa-solid fa-map" aria-hidden="true"></i> HTML sitemap
+        </a>
+        <a href="{{ sitemap_public_url }}" class="admin-sitemap-action admin-sitemap-action-secondary" target="_blank" rel="noopener">
+            <i class="fa-solid fa-file-code" aria-hidden="true"></i> sitemap.xml
+        </a>
+        <a href="{{ robots_url }}" class="admin-sitemap-action admin-sitemap-action-secondary" target="_blank" rel="noopener">
+            <i class="fa-solid fa-robot" aria-hidden="true"></i> robots.txt
+        </a>
+    </div>
+    <div class="admin-sitemap-domain-card{% if not site_domain_expected %} is-warning{% endif %}">
+        <div class="admin-sitemap-domain-heading">
+            <strong>django.contrib.sites</strong>
+            {% if site_domain_expected %}
+                <span class="admin-sitemap-badge admin-sitemap-badge--success">brainstorm.news</span>
+            {% else %}
+                <span class="admin-sitemap-badge admin-sitemap-badge--warning">Check domain</span>
+            {% endif %}
+        </div>
+        <p class="small mb-1 admin-text-muted"><strong>Domain:</strong> {{ site_current.domain|default:"—" }} · <strong>Name:</strong> {{ site_current.name|default:"—" }}</p>
+        <p class="small mb-0 admin-text-muted">For production, set the site to <code>www.brainstorm.news</code> or <code>brainstorm.news</code> (match the canonical host and nginx redirect).</p>
+    </div>
+</section>
+
+<section class="admin-analytics-section mb-4">
+    <h2 class="admin-section-title">Totals</h2>
+    <div class="admin-stats-grid">
+        <div class="admin-card admin-stat-card">
+            <div class="admin-stat-value">{{ summary.total_urls }}</div>
+            <div class="admin-stat-label">URLs in index (all sections)</div>
+        </div>
+        <div class="admin-card admin-stat-card">
+            <div class="admin-stat-value">{{ summary.posts }}</div>
+            <div class="admin-stat-label">Published posts</div>
+        </div>
+        <div class="admin-card admin-stat-card">
+            <div class="admin-stat-value">{{ summary.tags }}</div>
+            <div class="admin-stat-label">Tag pages</div>
+        </div>
+    </div>
+</section>
+
+<section class="admin-analytics-section mb-4">
+    <h2 class="admin-section-title">Health</h2>
+    {% if summary.counts_match %}
+    <div class="admin-health-banner admin-health-banner--ok">
+        <span><strong>Sitemap vs live posts</strong> — counts match ({{ summary.published_live }} published).</span>
+        <span class="admin-sitemap-badge admin-sitemap-badge--success">OK</span>
+    </div>
+    {% else %}
+    <div class="admin-health-banner admin-health-banner--warn">
+        <span><strong>Sitemap vs live posts</strong> — mismatch: sitemap {{ summary.published_in_sitemap }}, live {{ summary.published_live }}.</span>
+        <span class="admin-sitemap-badge admin-sitemap-badge--warning">Review</span>
+    </div>
+    {% endif %}
+    <div class="admin-card">
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr><th>Check</th><th class="text-end">Value</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Drafts (excluded from sitemap)</td>
+                        <td class="text-end">{{ summary.drafts }}</td>
+                    </tr>
+                    <tr>
+                        <td>Posts in trash (excluded)</td>
+                        <td class="text-end">{{ summary.trashed_posts }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="admin-analytics-section mb-4">
+    <h2 class="admin-section-title">By segment</h2>
+    <div class="admin-card">
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr><th>Section key</th><th>Public name</th><th class="text-end">URLs</th><th>Maps to</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>static</code></td>
+                        <td>{{ sitemap_section_labels.static }}</td>
+                        <td class="text-end">{{ summary.static_and_list }}</td>
+                        <td class="text-muted small">Home, FAQ, listings, HTML sitemap, about, contacts</td>
+                    </tr>
+                    <tr>
+                        <td><code>posts</code></td>
+                        <td>{{ sitemap_section_labels.posts }}</td>
+                        <td class="text-end">{{ summary.posts }}</td>
+                        <td class="text-muted small">Published posts only</td>
+                    </tr>
+                    <tr>
+                        <td><code>topics</code></td>
+                        <td>{{ sitemap_section_labels.topics }}</td>
+                        <td class="text-end">{{ summary.topics }}</td>
+                        <td class="text-muted small">Topic hub per category</td>
+                    </tr>
+                    <tr>
+                        <td><code>categories</code></td>
+                        <td>{{ sitemap_section_labels.categories }}</td>
+                        <td class="text-end">{{ summary.category_lists }}</td>
+                        <td class="text-muted small">Category post list per category</td>
+                    </tr>
+                    <tr>
+                        <td><code>tags</code></td>
+                        <td>{{ sitemap_section_labels.tags }}</td>
+                        <td class="text-end">{{ summary.tags }}</td>
+                        <td class="text-muted small">Tag listing pages</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

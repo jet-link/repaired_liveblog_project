@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Topics{% endblock %}
+{% block content %}
+  <div class="container-main content_block topics-page">
+    <div class="mb-4">
+      <h4 class="text-muted m-0">Topics</h4>
+    </div>
+
+    {% if topics_all %}
+    {% include 'includes/topic_category_chips.html' with categories=topics_all topic_chips_mode='filter' %}
+
+    <div id="topicsFilterEmpty" class="custom-alert custom-alert-info d-none" role="status">
+      No topics match this filter.
+    </div>
+
+    {% comment %}
+    --- Legacy live text search (optional; not loaded) ---
+    <div class="topics-local-search-wrap mb-4">...</div>
+    {% endcomment %}
+
+    {% if topics_featured %}
+      <section id="topicsFeaturedSection" class="mb-5" aria-labelledby="topicsFeaturedHeading">
+        <h5 id="topicsFeaturedHeading" class="text-muted mb-3">Featured topics</h5>
+        <div class="row g-3 topics-featured-row">
+          {% for t in topics_featured %}
+            <div class="col-12 col-md-6 col-lg-4">
+              {% include 'smart_blog/includes/topic_tile.html' with topic=t %}
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    <section id="topicsAllSection" aria-labelledby="topicsAllHeading">
+      <h5 id="topicsAllHeading" class="text-muted mb-3">All topics</h5>
+        <div class="row g-3" id="topicsAllGrid">
+          {% for t in topics_all %}
+            <div class="col-12 col-md-6 col-lg-4 topics-grid-col">
+              {% include 'smart_blog/includes/topic_tile.html' with topic=t %}
+            </div>
+          {% endfor %}
+        </div>
+    </section>
+    {% else %}
+      <p class="text-muted mb-0">No topics with posts yet</p>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% if topics_all %}
+  <script defer src="{% static 'smart_blog/js/topics_filter.js' %}"></script>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}
+  Login
+{% endblock %}
+{% block content %}
+  <div class="container-main content_block auth-form-layout">
+    <main class="edit-profile-field mx-auto">
+      <form method="post" action="{% url 'login_app:login' %}" novalidate data-validate="true">
+        {% csrf_token %}
+        <h5 class="mb-3 fw-normal primary_ text-uppercase">Sign in</h5>
+        {# GLOBAL / NON-FIELD ERRORS (User not found / Incorrect password) #}
+
+        {# USERNAME #}
+        <div class="form-floating mb-2">
+          {{ form.username }}
+          <label for="floatingInput" class="text-muted">Username...</label>
+          {% if form.username.errors %}
+            <div class="text-danger small mt-1">
+              {% for err in form.username.errors %}
+                {{ err }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        {# PASSWORD #}
+        <div class="form-floating form-floating-password mb-2">
+          {{ form.password }}
+          <label for="floatingPassword" class="text-muted">Password...</label>
+          <button type="button" class="password-toggle password-toggle--inside" data-password-toggle="1" aria-label="Show password"></button>
+        </div>
+        {% if form.password.errors %}
+          <div class="text-danger small mt-1 mb-2">
+            {% for err in form.password.errors %}
+              {{ err }}
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="errors-block">
+          {% if form.non_field_errors %}
+            <div class="custom-alert custom-alert-danger mt-1" data-auto-dismiss="3000">
+              {% for err in form.non_field_errors %}
+                {{ err }}{% if not forloop.last %}
+                  <br />
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        {# REMEMBER ME #}
+        <div class="form-check text-start my-3 small">
+          {{ form.remember }}
+          <label class="form-check-label ms-1 text-muted" for="checkDefault">Remember me</label>
+        </div>
+
+        {# BUTTONS #}
+        <div class="auth-form-submit-row d-flex gap-1 mt-2">
+          <button type="submit" class="cstm-btn custom-primary-btn auth-form-submit-btn">Sign in</button>
+          <a href="{% url 'login_app:register' %}" class="cstm-btn custom-secondary-btn auth-form-submit-btn">Sign up</a>
+        </div>
+      </form>
+
+      {# Preview: inactive social buttons (wire OAuth later via provider_login_url) #}
+      <div class="auth-oauth-mock">
+        <p class="auth-oauth-mock__label">Or sign in with</p>
+        <div class="auth-oauth-mock__stack">
+          <button
+            type="button"
+            class="auth-oauth-mock__btn auth-oauth-mock__btn--google"
+            disabled
+            aria-disabled="true"
+            title="Coming soon">
+            <i class="fa fa-google" aria-hidden="true"></i>
+            <span>Google account</span>
+          </button>
+          <button
+            type="button"
+            class="auth-oauth-mock__btn auth-oauth-mock__btn--apple"
+            disabled
+            aria-disabled="true"
+            title="Coming soon">
+            <i class="fa fa-apple" aria-hidden="true"></i>
+            <span>Apple ID</span>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+{% endblock %}

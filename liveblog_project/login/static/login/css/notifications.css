@@ -1,0 +1,408 @@
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.notification-row {
+    padding: 20px;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    background: transparent;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.notification-body {
+    color: #4b4b4b;
+    font-size: .8rem;
+    width: 100%;
+}
+
+.notification-read-btn {
+    border: 1px solid #2980b9;
+    color: #2980b9;
+    background: transparent;
+}
+
+.notification-row.notif-reply .notification-read-btn {
+    border-color: #8e44ad;
+    color: #8e44ad;
+}
+
+.notification-row.notif-comment_like .notification-read-btn {
+    border-color: #2d9cdb;
+    color: #2d9cdb;
+}
+
+.notification-row.notif-item_like .notification-read-btn {
+    border-color: #f39c12;
+    color: #f39c12;
+}
+
+.notifications-done {
+    background-color: transparent;
+    border: 2px solid #10ac84;
+    border-radius: 50%;
+    color: #10ac84;
+    font-size: .8rem;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.notifications-fade {
+    transition: opacity 0.4s ease;
+}
+
+.notifications-fade.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.notification-dropdown-info-btn{
+    border: none;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    position: relative;
+}
+
+.notification-dropdown-info-btn .notification-legend-icon {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-dropdown-info-btn .notification-legend-icon-close {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+}
+
+.notification-dropdown-info-btn.is-open .notification-legend-icon-open {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+}
+
+.notification-dropdown-info-btn.is-open .notification-legend-icon-close {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
+.notifications-legend {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin: 0 !important;
+    transition: max-height 0.25s ease, opacity 0.25s ease;
+}
+
+.notifications-legend.is-open {
+    max-height: 240px;
+    opacity: 1;
+    margin: 1rem 0 !important;
+}
+
+.read-all-btn{
+    font-size: .750rem;
+    border: 1px solid #e74c3c;
+    background: transparent;
+    padding: 6px 13px;
+    border-radius: 30px;
+    color: #e74c3c;
+}
+
+.marker {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.comment-reply-marker {
+    background: #8e44ad;
+}
+
+.comment-like-marker {
+    background: #2d9cdb;
+}
+
+.item-like-marker {
+    background: #f39c12;
+}
+
+.read-marker {
+    background: #ececec;
+}
+
+.from-admin-marker {
+    background: #e74c3c;
+}
+
+.notification-row.notif-reply {
+    border-color: #8e44ad;
+    box-shadow: 0 0 8px rgba(142, 68, 173, 0.35);
+}
+
+.notification-row.notif-comment_like {
+    border-color: #2d9cdb;
+    box-shadow: 0 0 8px rgba(45, 156, 219, 0.35);
+}
+
+.notification-row.notif-item_like {
+    border-color: #f39c12;
+    box-shadow: 0 0 8px rgba(243, 156, 18, 0.35);
+}
+
+.notification-row.notif-from_admin {
+    border-color: #e74c3c;
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+}
+
+.notification-row.is-read {
+    border-color: #ececec;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.06);
+}
+
+/* from_admin: outer card can fade when read, but block-quote keeps blue left border (same as .bordered) */
+
+.notification-row.is-seen {
+    border-color: var(--border-default);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.notification-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: 0 0 auto;
+}
+
+.notification-dot.dot-reply {
+    background: #8e44ad;
+}
+
+.notification-dot.dot-comment_like {
+    background: #2d9cdb;
+}
+
+.notification-dot.dot-item_like {
+    background: #f39c12;
+}
+
+.notification-dot.dot-from_admin {
+    background: #e74c3c;
+}
+
+/* Admin message box: no inner shadow; left accent matches other notifications (.bordered blue) */
+.notification-row.notif-from_admin .block-quote-from-admin,
+.notification-row.notif-from_admin .block-quote.bordered-from-admin {
+    border-color: #e8ecf3;
+    border-left-color: #2980b9;
+    box-shadow: none;
+}
+
+.block-quote.bordered-from-admin {
+    border-left: 3px solid #2980b9;
+}
+
+.notification-row.notif-from_admin .notification-read-btn {
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+.notification-dot.dot-read {
+    background: #ececec;
+}
+
+.notification-row.is-read .notification-dot {
+    background: #ececec;
+}
+
+.notification-row.is-seen .notification-dot {
+    opacity: 1;
+    pointer-events: none;
+}
+
+.comment-share-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-overlay);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 9999;
+}
+
+.comment-share-overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.comment-share-overlay-text {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.notification-btn {
+    position: relative;
+}
+
+.notifications-count{
+    min-width: 25px;
+    height: 25px;
+    padding: 0 7px;
+    font-size: .7rem;
+    background-color: #ff6b6b;
+    color: #ffffff;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-weight: 600;
+}
+
+.notification-btn .fa-bell {
+    display: inline-block;
+    transform-origin: top center;
+}
+
+.user-tooltip .notification-btn .fa-bell {
+    margin-right: 14px;
+}
+
+.notification-btn.has-unread .fa-bell {
+    color: #e74c3c;
+    animation: none;
+}
+
+.block-quote {
+    padding: 20px;
+    background: #f5f6fa;
+    color: var(--text-muted);
+    border-radius: 10px;
+    font-size: .9rem;
+    margin: 0;
+}
+
+.bordered{
+    border-left: 3px solid #2980b9;
+}
+
+.block-quote p:last-child {
+    margin-bottom: 0;
+}
+
+.notification-header {
+    padding: 10px 0;
+}
+
+.notification-header-text {
+    min-width: 0;
+}
+
+.notification-post-title-clip {
+    position: relative;
+    min-width: 0;
+    flex: 1 1 0%;
+}
+
+.notification-post-title-link {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Fade at end of truncated title (light: white as requested; dark: match page surface). */
+.notification-post-title-clip::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 2.25rem;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
+    pointer-events: none;
+}
+
+html[data-theme="dark"] .notification-post-title-clip::after {
+    background: linear-gradient(to right, transparent, var(--bg-default));
+}
+
+.notification-divider {
+    height: 1px;
+    background: var(--border-default);
+    margin: 12px 0;
+}
+
+.notification-content {
+    position: relative;
+}
+
+.notification-actions {
+    flex-shrink: 0;
+}
+
+/* "Notification from admin" header: stronger than .text-muted, works in light + dark */
+.notification-from-admin-title {
+    color: #153e75;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+html[data-theme="dark"] .notification-from-admin-title {
+    color: #93c5fd;
+}
+
+/* "Theme: …" on one line — label bold/blue, value default text */
+.notification-from-admin-theme-line {
+    font-size: 0.8rem !important;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.notification-from-admin-theme-label {
+    font-weight: 700;
+    color: #2563eb;
+    margin-right: 0.2em;
+    letter-spacing: 0.01em;
+}
+
+html[data-theme="dark"] .notification-from-admin-theme-label {
+    color: #60a5fa;
+}
+
+.notification-from-admin-theme-value {
+    color: #334155;
+}
+
+html[data-theme="dark"] .notification-from-admin-theme-value {
+    color: #cbd5e1;
+}
+
+.notification-from-admin-message-row {
+    width: 100%;
+}
+
+/* Dark: keep blue left bar on from_admin blockquote (read + unread) */
+html[data-theme="dark"] .notification-row.notif-from_admin .block-quote.bordered-from-admin,
+html[data-theme="dark"] .notification-row.notif-from_admin .block-quote-from-admin {
+    border-left-color: #5dade2;
+}

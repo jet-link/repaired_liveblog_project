@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}
+  Popular
+{% endblock %}
+{% block content %}
+  <div class="container-main content_block"
+    data-brainews-listing
+    data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+    data-search-history-url="{% url 'smart_blog:api_search_history_list' %}"
+    data-search-history-clicked-pattern="{% url 'smart_blog:api_search_history_clicked' pk=999999 %}"
+    data-search-history-clear-url="{% url 'smart_blog:api_search_history_clear' %}"
+    data-search-history-delete-pattern="{% url 'smart_blog:api_search_history_delete' pk=999999 %}">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h5 class="text-muted m-0">Popular posts</h5>
+    </div>
+    {% if items %}
+      <div id="filterCardsWrapper" class="brainews-cards-wrapper">
+        {% include 'includes/all_cards.html' with listing_source='popular' listing_source_url=request.get_full_path %}
+      </div>
+    {% else %}
+      <h5 class="text-muted pt-4">There are no popular posts yet.</h5>
+    {% endif %}
+  </div>
+{% endblock %}

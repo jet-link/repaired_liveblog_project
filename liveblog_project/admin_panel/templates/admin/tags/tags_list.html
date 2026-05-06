@@ -1,0 +1,41 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Tags{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Tags</li></ol></nav>{% endblock %}
+{% block page_title %}Tags{% endblock %}
+{% block content %}
+<div class="admin-toolbar">
+    <form class="admin-search-form" method="get"><input type="text" name="q" value="{{ search }}" placeholder="Search..." class="admin-input admin-search-input"><button type="submit" class="admin-button">Search</button></form>
+    <a href="{% url 'admin_panel:tag_create' %}" class="admin-button admin-button-primary">Add Tag</a>
+</div>
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" data-bulk-delete-url="{% url 'admin_panel:tags_bulk_delete' %}">
+            <thead><tr><th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th><th>Tag</th><th>Slug</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for t in tags %}
+                <tr>
+                    <td><input type="checkbox" class="admin-bulk-row-check" value="{{ t.pk }}" aria-label="Select"></td>
+                    <td>{{ t.tag_name }}</td>
+                    <td>{{ t.slug }}</td>
+                    <td class="admin-actions-cell">
+                        <div class="admin-dropdown">
+                            <button type="button" class="admin-dropdown-trigger admin-button">Actions <i class="fa-solid fa-chevron-down"></i></button>
+                            <div class="admin-dropdown-menu">
+                                <a href="{% url 'admin_panel:tag_edit' t.pk %}">Edit</a>
+                                <a href="{% url 'admin_panel:tag_delete' t.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-action-delete">Delete</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="admin-empty">No tags.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ tags.paginator.count }}</div>
+    {% if tags.has_other_pages %}
+    <div class="admin-pagination">{% if tags.has_previous %}<a href="?page={{ tags.previous_page_number }}{% if search %}&q={{ search }}{% endif %}" class="admin-button admin-button-sm">Previous</a>{% endif %}<span class="admin-pagination-info">Page {{ tags.number }} of {{ tags.paginator.num_pages }}</span>{% if tags.has_next %}<a href="?page={{ tags.next_page_number }}{% if search %}&q={{ search }}{% endif %}" class="admin-button admin-button-sm">Next</a>{% endif %}</div>
+    {% endif %}
+</div>
+{% endblock %}

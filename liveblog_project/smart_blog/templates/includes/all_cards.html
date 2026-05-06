@@ -1,0 +1,10 @@
+{% load static %}
+{% load counters %}
+{% load user_status %}
+<div class="feed-cards-masonry mb-2">
+  {% for item in items %}
+    <div class="item-card search-item">
+      {% include 'includes/item_feed_card.html' %}
+    </div>
+  {% endfor %}
+</div>

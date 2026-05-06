@@ -1,0 +1,10 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Unban User{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:users_list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Users</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:banned_users' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Banned</a></li><li class="admin-breadcrumbs-item">Unban</li></ol></nav>{% endblock %}
+{% block page_title %}Unban {{ user_obj.username }}?{% endblock %}
+{% block content %}
+<div class="admin-card admin-modal-card">
+    <h3>Unban user {{ user_obj.username }}?</h3>
+    <form method="post" action="{% url 'admin_panel:user_unban' user_obj.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-form-actions">{% csrf_token %}<button type="submit" class="admin-button admin-button-primary">Unban</button><a href="{{ cancel_url }}" class="admin-button admin-button-outline">Cancel</a></form>
+</div>
+{% endblock %}

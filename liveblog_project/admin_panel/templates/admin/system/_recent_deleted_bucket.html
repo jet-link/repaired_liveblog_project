@@ -1,0 +1,124 @@
+{% load mentions %}
+<div id="recentDeletedBucketRoot">
+<div class="admin-bucket-head">
+<div class="admin-bucket-tabs filter-segment-outer">
+    <div class="filter-segment-shell">
+        <div class="filter-segment-scroll filter-scroll-x">
+            <div class="filter-segment-bar" role="tablist" aria-label="Content type">
+                {% for t in tabs %}
+                <a href="?tab={{ t }}" class="filter-reason-btn{% if tab == t %} is-selected{% endif %}">{{ t|capfirst }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="admin-toolbar admin-bucket-bulk-toolbar" aria-label="Bulk actions"></div>
+</div>
+
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table"
+            data-recent-deleted-kind="{{ tab }}"
+            data-bulk-restore-url="{% url 'admin_panel:recent_deleted_restore' %}"
+            data-bulk-delete-url="{% url 'admin_panel:recent_deleted_purge' %}">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th>
+                    {% if tab == 'posts' %}
+                    <th>Title</th><th>Slug</th><th>Deleted at</th>
+                    {% elif tab == 'comments' %}
+                    <th>Preview</th><th>Post</th><th>Author</th><th>Deleted at</th>
+                    {% elif tab == 'tags' %}
+                    <th>Tag</th><th>Slug</th><th>Deleted at</th>
+                    {% elif tab == 'categories' %}
+                    <th>Name</th><th>Slug</th><th>Deleted at</th>
+                    {% elif tab == 'reports' %}
+                    <th>Target</th><th>Reason</th><th>Reporter</th><th>Deleted at</th>
+                    {% elif tab == 'backups' %}
+                    <th>Name</th><th>Status</th><th>Deleted at</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if tab == 'posts' %}
+                    {% for row in rows %}
+                    <tr>
+                        <td><input type="checkbox" class="admin-bulk-row-check" value="{{ row.pk }}" aria-label="Select"></td>
+                        <td>{{ row.title|truncatechars:60 }}</td>
+                        <td><code>{{ row.slug }}</code></td>
+                        <td>{{ row.deleted_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="admin-empty">No deleted posts.</td></tr>
+                    {% endfor %}
+                {% elif tab == 'comments' %}
+                    {% for row in rows %}
+                    <tr>
+                        <td><input type="checkbox" class="admin-bulk-row-check" value="{{ row.pk }}" aria-label="Select"></td>
+                        <td>{{ row.text|strip_mentions|truncatewords:12 }}</td>
+                        <td>{% if row.item %}{{ row.item.title|truncatechars:40 }}{% else %}—{% endif %}</td>
+                        <td>{{ row.author.username|default:"—" }}</td>
+                        <td>{{ row.deleted_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="admin-empty">No deleted comments.</td></tr>
+                    {% endfor %}
+                {% elif tab == 'tags' %}
+                    {% for row in rows %}
+                    <tr>
+                        <td><input type="checkbox" class="admin-bulk-row-check" value="{{ row.pk }}" aria-label="Select"></td>
+                        <td>{{ row.tag_name }}</td>
+                        <td><code>{{ row.slug }}</code></td>
+                        <td>{{ row.deleted_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="admin-empty">No deleted tags.</td></tr>
+                    {% endfor %}
+                {% elif tab == 'categories' %}
+                    {% for row in rows %}
+                    <tr>
+                        <td><input type="checkbox" class="admin-bulk-row-check" value="{{ row.pk }}" aria-label="Select"></td>
+                        <td>{{ row.name }}</td>
+                        <td><code>{{ row.slug }}</code></td>
+                        <td>{{ row.deleted_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="admin-empty">No deleted categories.</td></tr>
+                    {% endfor %}
+                {% elif tab == 'reports' %}
+                    {% for row in rows %}
+                    <tr>
+                        <td><input type="checkbox" class="admin-bulk-row-check" value="{{ row.pk }}" aria-label="Select"></td>
+                        <td>{% if row.item %}Post: {{ row.item.title|truncatechars:40 }}{% elif row.comment %}Comment #{{ row.comment.pk }}{% else %}—{% endif %}</td>
+                        <td>{{ row.reason }}</td>
+                        <td>{{ row.reporter.username|default:"—" }}</td>
+                        <td>{{ row.deleted_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="admin-empty">No deleted reports.</td></tr>
+                    {% endfor %}
+                {% elif tab == 'backups' %}
+                    {% for row in rows %}
+                    <tr>
+                        <td><input type="checkbox" class="admin-bulk-row-check" value="{{ row.pk }}" aria-label="Select"></td>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.status }}</td>
+                        <td>{{ row.deleted_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="admin-empty">No deleted backups.</td></tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ rows.paginator.count }}</div>
+    {% if rows.has_other_pages %}
+    <div class="admin-pagination">
+        {% if rows.has_previous %}<a href="?tab={{ tab }}&page={{ rows.previous_page_number }}" class="admin-button admin-button-sm">Previous</a>{% endif %}
+        <span class="admin-pagination-info">Page {{ rows.number }} of {{ rows.paginator.num_pages }}</span>
+        {% if rows.has_next %}<a href="?tab={{ tab }}&page={{ rows.next_page_number }}" class="admin-button admin-button-sm">Next</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+</div>

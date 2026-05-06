@@ -1,0 +1,55 @@
+{# includes/replied_comments.html #}
+{% load i18n %}
+{% if not thread_view or depth|default:0 > 0 %}
+  <div id="reply-form-{{ comment.pk }}" class="reply-form d-none mt-2">
+    <form class="reply-comment-form pb-4" data-parent-id="{{ comment.pk }}"{% if comment.author %} data-username="{{ comment.author.username }}"{% endif %} novalidate>
+      {% csrf_token %}
+      <div class="reply-form-errors mb-2"></div>
+      <div class="mb-2">
+        <textarea name="text" id="id_reply_text_{{ comment.pk }}" class="form-control auto-grow" placeholder="{% trans 'Write a reply…' %}" rows="1" required spellcheck="true"></textarea>
+      </div>
+      <div class="comment-form-actions">
+        <button type="submit" class="cstm-btn cstm-btn-sm custom-primary-btn comment-btn">Reply</button>
+        <button type="button" class="cstm-btn cstm-btn-sm custom-secondary-btn cancel-reply">Cancel</button>
+      </div>
+    </form>
+  </div>
+{% endif %}
+
+{% if comment.replies.all %}
+  {% if thread_view %}
+    <div class="replies" data-parent-id="{{ comment.pk }}">
+      {% for reply in comment.replies.all %}
+        {% include 'includes/_comments.html' with comment=reply depth=depth|add:1 thread_view=thread_view no_mentions=true %}
+      {% endfor %}
+    </div>
+  {% elif depth >= 2 %}
+      {% with replies_count=comment.replies.count %}
+      <a id="replies-thread-link-{{ comment.pk }}" href="{% url 'smart_blog:comment_thread' comment.item.slug comment.pk %}" class="comment-replies-thread-link" data-count="{{ replies_count }}">
+        <span class="comment-replies-toggle__label">View deep replies</span>
+        <span class="replies-count">{% if replies_count >= 10 %}10+{% else %}{{ replies_count }}{% endif %}</span>
+      </a>
+      {% endwith %}
+  {% else %}
+    {% with rc=comment.replies.count %}
+    <button type="button"
+      id="comment-replies-toggle-{{ comment.pk }}"
+      class="comment-replies-toggle mt-2"
+      aria-expanded="false"
+      aria-controls="comment-replies-panel-{{ comment.pk }}"
+      data-replies-count="{{ rc }}">
+      <span class="comment-replies-toggle__label">{% if rc == 1 %}1 reply{% else %}{{ rc }} replies{% endif %}</span>
+      <i class="fa fa-chevron-down comment-replies-toggle__chev" aria-hidden="true"></i>
+    </button>
+    <div class="comment-replies-outer" id="comment-replies-panel-{{ comment.pk }}" role="region" aria-labelledby="comment-replies-toggle-{{ comment.pk }}">
+      <div class="comment-replies-inner">
+        <div class="replies" data-parent-id="{{ comment.pk }}">
+          {% for reply in comment.replies.all %}
+            {% include 'includes/_comments.html' with comment=reply depth=depth|add:1 %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+  {% endif %}
+{% endif %}

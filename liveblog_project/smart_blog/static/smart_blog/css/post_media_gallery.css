@@ -1,0 +1,388 @@
+/* Editorial post media grid + lightbox helpers (detail page). Reusable for future blocks. */
+
+.post-media-gallery {
+  margin: 1.75rem 0 2.25rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.post-media-gallery__grid {
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .post-media-gallery__grid {
+    gap: 0.85rem;
+  }
+}
+
+/* —— Layout by count —— */
+.post-media-gallery__grid--single {
+  grid-template-columns: 1fr;
+}
+
+.post-media-gallery__grid--double {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 576px) {
+  .post-media-gallery__grid--double {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 3-up: one hero + stack */
+.post-media-gallery__grid--triple {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr);
+  grid-template-rows: repeat(2, minmax(9rem, 18vh));
+}
+
+.post-media-gallery__grid--triple .post-media-card:nth-child(1) {
+  grid-row: 1 / span 2;
+}
+
+.post-media-gallery__grid--triple .post-media-card:nth-child(2) {
+  grid-row: 1;
+}
+
+.post-media-gallery__grid--triple .post-media-card:nth-child(3) {
+  grid-row: 2;
+}
+
+@media (max-width: 576px) {
+  .post-media-gallery__grid--triple {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+  .post-media-gallery__grid--triple .post-media-card:nth-child(1) {
+    grid-row: auto;
+  }
+  .post-media-gallery__grid--triple .post-media-card:nth-child(2),
+  .post-media-gallery__grid--triple .post-media-card:nth-child(3) {
+    grid-row: auto;
+  }
+}
+
+/* 4-up: even 2×2 */
+.post-media-gallery__grid--quad {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* 5 images: 2 + 3 on desktop */
+.post-media-gallery__grid--five {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: auto auto;
+}
+
+.post-media-gallery__grid--five .post-media-card:nth-child(1) {
+  grid-column: span 3;
+}
+
+.post-media-gallery__grid--five .post-media-card:nth-child(2) {
+  grid-column: span 3;
+}
+
+.post-media-gallery__grid--five .post-media-card:nth-child(3) {
+  grid-column: span 2;
+}
+
+.post-media-gallery__grid--five .post-media-card:nth-child(4) {
+  grid-column: span 2;
+}
+
+.post-media-gallery__grid--five .post-media-card:nth-child(5) {
+  grid-column: span 2;
+}
+
+@media (max-width: 576px) {
+  .post-media-gallery__grid--five {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .post-media-gallery__grid--five .post-media-card:nth-child(n) {
+    grid-column: span 1;
+  }
+  .post-media-gallery__grid--five .post-media-card:nth-child(5):last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 6–10: preview strip — 2×2 + bottom row with “more” */
+.post-media-gallery__grid--preview {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.post-media-gallery__grid--preview .post-media-card:nth-child(5) {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .post-media-gallery__grid--preview {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .post-media-gallery__grid--preview .post-media-card:nth-child(1) {
+    grid-column: span 3;
+  }
+  .post-media-gallery__grid--preview .post-media-card:nth-child(2) {
+    grid-column: span 3;
+  }
+  .post-media-gallery__grid--preview .post-media-card:nth-child(3) {
+    grid-column: span 2;
+  }
+  .post-media-gallery__grid--preview .post-media-card:nth-child(4) {
+    grid-column: span 2;
+  }
+  .post-media-gallery__grid--preview .post-media-card:nth-child(5) {
+    grid-column: span 2;
+  }
+}
+
+/* —— Cards —— */
+.post-media-card {
+  margin: 0;
+  min-width: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bs-secondary-color, #6c757d) 12%, transparent);
+}
+
+[data-theme="dark"] .post-media-card {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.post-media-card--broken .post-media-card__frame {
+  min-height: 10rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-media-card--broken .post-media-card__img {
+  opacity: 0.35;
+  object-fit: contain;
+}
+
+.post-media-card__open {
+  all: unset;
+  display: block;
+  cursor: zoom-in;
+  width: 100%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.post-media-card__open:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--bs-primary, #0d6efd) 65%, transparent);
+  outline-offset: 2px;
+}
+
+.post-media-card__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 8.5rem;
+  max-height: clamp(12rem, 52vw, 32rem);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bs-body-color, #212529) 6%, transparent);
+}
+
+/* Orientation-aware framing */
+.post-media-gallery__grid--single .post-media-card--orient-wide .post-media-card__frame {
+  max-height: clamp(11rem, 38vw, 22rem);
+}
+
+.post-media-gallery__grid--single .post-media-card--orient-portrait .post-media-card__frame {
+  max-height: clamp(18rem, 72vh, 40rem);
+  max-width: min(100%, 22rem);
+  margin: 0 auto;
+}
+
+.post-media-gallery__grid--single .post-media-card--orient-portrait .post-media-card__open {
+  display: flex;
+  justify-content: center;
+}
+
+.post-media-card__img {
+  width: 100%;
+  height: 100%;
+  max-height: inherit;
+  object-fit: contain;
+  vertical-align: middle;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.post-media-card__open:hover .post-media-card__img,
+.post-media-card__open:focus-visible .post-media-card__img {
+  opacity: 0.96;
+  transform: scale(1.01);
+}
+
+/*
+ * Multi-image grid: stretch every card to the row height (set by the tallest cell).
+ * Fixed aspect-ratio on the frame left grey bands when one image was portrait and
+ * neighbors were shorter — the frame did not fill the grid area.
+ */
+.post-media-gallery__grid:not(.post-media-gallery__grid--single) > .post-media-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.post-media-gallery__grid:not(.post-media-gallery__grid--single) .post-media-card__open {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.post-media-gallery__grid:not(.post-media-gallery__grid--single) .post-media-card__frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+  display: block;
+  aspect-ratio: unset;
+  max-height: none;
+  min-height: 9rem;
+}
+
+.post-media-gallery__grid:not(.post-media-gallery__grid--single) .post-media-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+  display: block;
+}
+
+.post-media-gallery__grid:not(.post-media-gallery__grid--single) .post-media-card--broken .post-media-card__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 10rem;
+}
+
+.post-media-gallery__grid:not(.post-media-gallery__grid--single) .post-media-card--broken .post-media-card__img {
+  position: static;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 10rem;
+  object-fit: contain;
+}
+
+/* +N more */
+.post-media-card--has-more .post-media-card__open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.12) 42%,
+    transparent 68%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.post-media-card__more-badge {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.65rem;
+  z-index: 1;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.42);
+  border-radius: 999px;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.post-media-card__caption {
+  padding: 0.45rem 0.35rem 0;
+  line-height: 1.35;
+  max-width: 100%;
+}
+
+/* —— Lightbox additions (used by image_gallery.js) —— */
+/* Section label above content (same typography as counter) */
+.gallery-overlay .gallery-overlay-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: max(1.5rem, env(safe-area-inset-top));
+  z-index: 5;
+  display: block;
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+}
+
+/* Counter docked to bottom of overlay (fixed layer); does not move with image/caption stack */
+.gallery-overlay .gcount {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(0.85rem, env(safe-area-inset-bottom));
+  z-index: 5;
+  display: block;
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+}
+
+.gallery-overlay .gallery-overlay-inner {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y pinch-zoom;
+  pointer-events: auto;
+  /* keep tall slides + caption from sitting under docked counter */
+  padding-bottom: 3rem;
+  box-sizing: border-box;
+}
+
+.gallery-overlay .gcaption {
+  margin: 0.65rem 1rem 0 1rem;
+  max-width: min(42rem, 92vw);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.gallery-overlay .gcaption:empty {
+  display: none;
+}
+
+.gallery-overlay-img.gallery-overlay-img--contain {
+  object-fit: contain;
+  background: rgba(0, 0, 0, 0.2);
+}

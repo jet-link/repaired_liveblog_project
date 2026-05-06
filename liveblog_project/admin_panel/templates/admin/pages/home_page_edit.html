@@ -1,0 +1,294 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Home{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Home</li></ol></nav>{% endblock %}
+{% block page_title %}Home{% endblock %}
+{% block content %}
+<div class="admin-card">
+    <p class="text-muted small mb-3">Public URL: <a href="/" target="_blank" rel="noopener">/</a></p>
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="home" />
+        <h2 class="h6 text-muted mb-3">SEO &amp; hero</h2>
+        <div class="admin-form-group">
+            <label for="id_browser_title">Browser title (tab)</label>
+            <input type="text" id="id_browser_title" name="browser_title" value="{{ page.browser_title }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_meta_description">Meta description</label>
+            <input type="text" id="id_meta_description" name="meta_description" value="{{ page.meta_description }}" class="admin-input" maxlength="320">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_hero_h1">Hero heading (H1)</label>
+            <input type="text" id="id_hero_h1" name="hero_h1" value="{{ page.hero_h1 }}" class="admin-input" maxlength="200">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_hero_lede">Hero lead (short)</label>
+            <textarea id="id_hero_lede" name="hero_lede" class="admin-textarea" rows="3" spellcheck="true">{{ page.hero_lede }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_hero_featured_item">Hero featured post (optional) — post ID for the large card on the right</label>
+            <input type="text" id="id_hero_featured_item" name="hero_featured_item" value="{{ page.hero_featured_item_id|default:'' }}" class="admin-input" placeholder="e.g. 12" maxlength="20">
+        </div>
+        <h2 class="h6 text-muted mb-3 mt-4">Call to action buttons</h2>
+        <div class="admin-form-group">
+            <label for="id_cta_primary_label">Primary label</label>
+            <input type="text" id="id_cta_primary_label" name="cta_primary_label" value="{{ page.cta_primary_label }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_cta_primary_url">Primary URL (path or https)</label>
+            <input type="text" id="id_cta_primary_url" name="cta_primary_url" value="{{ page.cta_primary_url }}" class="admin-input" maxlength="500">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_cta_secondary_label">Secondary label</label>
+            <input type="text" id="id_cta_secondary_label" name="cta_secondary_label" value="{{ page.cta_secondary_label }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_cta_secondary_url">Secondary URL</label>
+            <input type="text" id="id_cta_secondary_url" name="cta_secondary_url" value="{{ page.cta_secondary_url }}" class="admin-input" maxlength="500">
+        </div>
+        <h2 class="h6 text-muted mb-3 mt-4">Trust line (optional)</h2>
+        <div class="admin-form-group">
+            <label for="id_trust_line">Text</label>
+            <input type="text" id="id_trust_line" name="trust_line" value="{{ page.trust_line }}" class="admin-input" maxlength="255">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_trust_link_url">Link URL</label>
+            <input type="text" id="id_trust_link_url" name="trust_link_url" value="{{ page.trust_link_url }}" class="admin-input" maxlength="500">
+        </div>
+        <h2 class="h6 text-muted mb-3 mt-4">Public home — sections</h2>
+        <p class="text-muted small">Toggle blocks on the live homepage. The full &quot;For you&quot; feed (BraiNews filter and <code>/for-you/</code>) is for signed-in users only.</p>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_in_trend" name="show_in_trend" class="admin-checkbox-input" {% if page.show_in_trend %}checked{% endif %}>
+            <label for="id_show_in_trend" class="admin-checkbox-label">In Trend (trending posts)</label>
+        </div>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_for_you_section" name="show_for_you_section" class="admin-checkbox-input" {% if page.show_for_you_section %}checked{% endif %}>
+            <label for="id_show_for_you_section" class="admin-checkbox-label">For you on home (recommendations or sign-in CTA)</label>
+        </div>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_explore_topics" name="show_explore_topics" class="admin-checkbox-input" {% if page.show_explore_topics %}checked{% endif %}>
+            <label for="id_show_explore_topics" class="admin-checkbox-label">Explore Topics</label>
+        </div>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_latest_brainews" name="show_latest_brainews" class="admin-checkbox-input" {% if page.show_latest_brainews %}checked{% endif %}>
+            <label for="id_show_latest_brainews" class="admin-checkbox-label">Latest BraiNews</label>
+        </div>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_bottom_cta" name="show_bottom_cta" class="admin-checkbox-input" {% if page.show_bottom_cta %}checked{% endif %}>
+            <label for="id_show_bottom_cta" class="admin-checkbox-label">Bottom CTA banner</label>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_cta_footer_title">Bottom CTA — title</label>
+            <input type="text" id="id_cta_footer_title" name="cta_footer_title" value="{{ page.cta_footer_title }}" class="admin-input" maxlength="200">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_cta_footer_label">Bottom CTA — button label</label>
+            <input type="text" id="id_cta_footer_label" name="cta_footer_label" value="{{ page.cta_footer_label }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_cta_footer_url">Bottom CTA — button URL</label>
+            <input type="text" id="id_cta_footer_url" name="cta_footer_url" value="{{ page.cta_footer_url }}" class="admin-input" maxlength="500">
+        </div>
+        <h2 class="h6 text-muted mb-3 mt-4">Legacy content strip (unused on new home layout)</h2>
+        <p class="text-muted small">Kept for compatibility. In Trend on the live site uses the limit below; popular/trending mode here is not rendered on the public homepage.</p>
+        <div class="admin-form-group">
+            <label for="id_content_strip_mode">Mode</label>
+            <select id="id_content_strip_mode" name="content_strip_mode" class="admin-input">
+                {% for val, label in strip_choices %}
+                <option value="{{ val }}" {% if page.content_strip_mode == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_content_strip_limit">Item count (3–12)</label>
+            <input type="number" id="id_content_strip_limit" name="content_strip_limit" value="{{ page.content_strip_limit }}" class="admin-input" min="3" max="12">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_popular_min_likes">Popular: minimum likes threshold</label>
+            <input type="number" id="id_popular_min_likes" name="popular_min_likes" value="{{ page.popular_min_likes }}" class="admin-input" min="0">
+        </div>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_quick_links" name="show_quick_links" class="admin-checkbox-input" {% if page.show_quick_links %}checked{% endif %}>
+            <label for="id_show_quick_links" class="admin-checkbox-label">Show quick links row</label>
+        </div>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_decorative_astronauts" name="show_decorative_astronauts" class="admin-checkbox-input" {% if page.show_decorative_astronauts %}checked{% endif %}>
+            <label for="id_show_decorative_astronauts" class="admin-checkbox-label">Show decorative astronauts block</label>
+        </div>
+        <h2 class="h6 text-muted mb-3 mt-4">Editor picks (optional)</h2>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_editor_picks" name="show_editor_picks" class="admin-checkbox-input" {% if page.show_editor_picks %}checked{% endif %}>
+            <label for="id_show_editor_picks" class="admin-checkbox-label">Show editor picks</label>
+        </div>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_editor_pick_order_after_strip" name="editor_pick_order_after_strip" class="admin-checkbox-input" {% if page.editor_pick_order_after_strip %}checked{% endif %}>
+            <label for="id_editor_pick_order_after_strip" class="admin-checkbox-label">Editor picks below main strip (otherwise above)</label>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_editor_pick_1">Editor pick 1 — post ID</label>
+            <input type="text" id="id_editor_pick_1" name="editor_pick_1" value="{{ page.editor_pick_1_id|default:'' }}" class="admin-input" placeholder="e.g. 42">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_editor_pick_2">Editor pick 2 — post ID</label>
+            <input type="text" id="id_editor_pick_2" name="editor_pick_2" value="{{ page.editor_pick_2_id|default:'' }}" class="admin-input">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_editor_pick_3">Editor pick 3 — post ID</label>
+            <input type="text" id="id_editor_pick_3" name="editor_pick_3" value="{{ page.editor_pick_3_id|default:'' }}" class="admin-input">
+        </div>
+        <div class="admin-form-actions">
+            <button type="submit" class="admin-button admin-button-primary">Save home</button>
+        </div>
+    </form>
+</div>
+
+<div class="admin-card mt-4">
+    <h2 class="h6 text-muted mb-3">Quick links</h2>
+    <p class="text-muted small">Shown on the home page when “Show quick links” is enabled.</p>
+    {% for ql in quick_links %}
+    <div class="border-bottom pb-3 mb-3">
+        <form method="post" class="admin-form home-quicklink-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" class="js-home-ql-form-type" value="quicklink_save" />
+            <input type="hidden" name="ql_id" value="{{ ql.pk }}" />
+            <div class="row g-2 align-items-end flex-wrap">
+                <div class="admin-form-group mb-0" style="min-width: 120px;">
+                    <label class="small" for="id_ql_{{ ql.pk }}_label">Label</label>
+                    <input type="text" id="id_ql_{{ ql.pk }}_label" name="label" value="{{ ql.label }}" class="admin-input" maxlength="120">
+                </div>
+                <div class="admin-form-group mb-0 flex-grow-1" style="min-width: 200px;">
+                    <label class="small" for="id_ql_{{ ql.pk }}_url">URL</label>
+                    <input type="text" id="id_ql_{{ ql.pk }}_url" name="url" value="{{ ql.url }}" class="admin-input" maxlength="500">
+                </div>
+                <div class="admin-form-group mb-0" style="min-width: 100px;">
+                    <label class="small" for="id_ql_{{ ql.pk }}_icon">Icon (FA class)</label>
+                    <input type="text" id="id_ql_{{ ql.pk }}_icon" name="icon_class" value="{{ ql.icon_class }}" class="admin-input" maxlength="80">
+                </div>
+                <div class="admin-form-group mb-0" style="min-width: 70px;">
+                    <label class="small" for="id_ql_{{ ql.pk }}_order">Order</label>
+                    <input type="number" id="id_ql_{{ ql.pk }}_order" name="order" value="{{ ql.order }}" class="admin-input">
+                </div>
+                <div class="admin-form-group mb-0 admin-form-group--checkbox-row">
+                    <input type="checkbox" id="id_ql_{{ ql.pk }}_active" name="is_active" class="admin-checkbox-input" {% if ql.is_active %}checked{% endif %}>
+                    <label for="id_ql_{{ ql.pk }}_active" class="admin-checkbox-label small">Active</label>
+                </div>
+            </div>
+            <div class="home-quicklink-actions mt-2">
+                <button type="submit" class="admin-button admin-button-secondary">Save</button>
+                <button type="button" class="admin-button admin-button-danger js-home-quicklink-delete" data-ql-label="{{ ql.label|escape }}">Delete</button>
+            </div>
+        </form>
+    </div>
+    {% endfor %}
+
+    <h3 class="h6 text-muted mt-4 mb-2">Add quick link</h3>
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="quicklink_add" />
+        <div class="admin-form-group">
+            <label for="id_new_label">Label</label>
+            <input type="text" id="id_new_label" name="new_label" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_new_url">URL</label>
+            <input type="text" id="id_new_url" name="new_url" class="admin-input" maxlength="500">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_new_icon_class">Icon class</label>
+            <input type="text" id="id_new_icon_class" name="new_icon_class" class="admin-input" maxlength="80">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_new_order">Order</label>
+            <input type="number" id="id_new_order" name="new_order" value="0" class="admin-input">
+        </div>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_new_is_active" name="new_is_active" class="admin-checkbox-input" checked>
+            <label for="id_new_is_active" class="admin-checkbox-label">Active</label>
+        </div>
+        <div class="admin-form-actions">
+            <button type="submit" class="admin-button admin-button-primary">Add quick link</button>
+        </div>
+    </form>
+</div>
+
+<div id="homeQuickLinkDeleteModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="homeQuickLinkDeleteModalTitle" aria-hidden="true" hidden>
+    <div class="admin-modal-backdrop" id="homeQuickLinkDeleteModalBackdrop"></div>
+    <div class="admin-modal-dialog">
+        <div class="admin-modal-content">
+            <h2 class="admin-modal-title" id="homeQuickLinkDeleteModalTitle">Delete this quick link?</h2>
+            <div class="admin-modal-actions">
+                <button type="button" class="admin-button admin-button-danger" id="homeQuickLinkDeleteConfirm">Delete</button>
+                <button type="button" class="admin-button admin-button-outline" id="homeQuickLinkDeleteCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+    var modal = document.getElementById('homeQuickLinkDeleteModal');
+    if (!modal) return;
+    var titleEl = document.getElementById('homeQuickLinkDeleteModalTitle');
+    var backdrop = document.getElementById('homeQuickLinkDeleteModalBackdrop');
+    var cancelBtn = document.getElementById('homeQuickLinkDeleteCancel');
+    var confirmBtn = document.getElementById('homeQuickLinkDeleteConfirm');
+    var pendingForm = null;
+    var deleteTrigger = null;
+
+    function openModal(form, label, trigger) {
+        pendingForm = form;
+        deleteTrigger = trigger || null;
+        if (titleEl) {
+            titleEl.textContent = label ? ('Delete “' + label + '”?') : 'Delete this quick link?';
+        }
+        modal.removeAttribute('hidden');
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        if (confirmBtn) confirmBtn.focus();
+    }
+
+    function closeModal() {
+        if (modal.contains(document.activeElement) && deleteTrigger && typeof deleteTrigger.focus === 'function') {
+            deleteTrigger.focus({ preventScroll: true });
+        }
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.setAttribute('hidden', '');
+        document.body.style.overflow = '';
+        pendingForm = null;
+        deleteTrigger = null;
+    }
+
+    document.querySelectorAll('.js-home-quicklink-delete').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var form = btn.closest('form');
+            if (!form) return;
+            var label = btn.getAttribute('data-ql-label') || '';
+            openModal(form, label, btn);
+        });
+    });
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function () {
+            if (!pendingForm) return;
+            var ft = pendingForm.querySelector('.js-home-ql-form-type');
+            if (ft) ft.value = 'quicklink_delete';
+            var toSubmit = pendingForm;
+            closeModal();
+            toSubmit.submit();
+        });
+    }
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+            closeModal();
+        }
+    });
+})();
+</script>
+{% endblock %}

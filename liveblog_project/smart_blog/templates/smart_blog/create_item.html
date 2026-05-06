@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+{% block title %}
+  Create post
+{% endblock %}
+
+{% block extra_head %}
+  {# form.media belongs in extra_head when base.html supports it #}
+  <link rel="preconnect" href="https://cdn.ckeditor.com" crossorigin />
+  {{ form.media }}
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block">
+    <main class="create-field mx-auto">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-muted text-uppercase m-0">Create post</h5>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" id="itemForm" data-ajax="true" data-validate="true" data-require-text-or-file="true" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="custom-alert custom-alert-danger mb-2" data-auto-dismiss="3000">
+            {% for err in form.non_field_errors %}
+              <div>{{ err }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="form-floating mb-1">
+          {{ form.title }}
+          <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+        </div>
+        <div class="form-text text-small text-muted mb-3">Max. 40 symbols</div>
+        {% for err in form.title.errors %}
+          <div class="text-danger small mb-2">{{ err }}</div>
+        {% endfor %}
+
+        <!-- TEXT: summernote widget -->
+        <div class="py-3">
+          {{ form.text }}
+          {% for err in form.text.errors %}
+            <div class="text-danger small mb-2">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Or pin File: PDF/DOCX merged into body on server -->
+        <div class="mb-3 item-body-file-import" id="itemBodyPinRow">
+          <label for="id_body_pin_file" class="form-label text-muted mb-2">{% trans "Or pin File" %}</label>
+          {{ form.body_pin_clear }}
+          <div class="item-images-upload item-images-upload--native">
+            {{ form.body_pin_file }}
+          </div>
+          {% for err in form.body_pin_file.errors %}
+            <div class="text-danger small mt-1 invalid-feedback d-block">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Category -->
+        <div class="mb-3">
+          <div class="custom-select-wrap category-select-custom">
+            {{ form.category }}
+          </div>
+          {% for err in form.category.errors %}
+            <div class="text-danger small mb-2">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- New tags (space-separated) -->
+        <div class="form-floating mb-3">
+          {{ form.new_tags }}
+          <label for="{{ form.new_tags.id_for_label }}" class="text-muted">{{ form.new_tags.label }}<span class="field-label-optional-suffix"> · {% trans "optional" %}</span></label>
+        </div>
+        {% for err in form.new_tags.errors %}
+          <div class="text-danger small mb-2">{{ err }}</div>
+        {% endfor %}
+
+        <!-- Existing tags (badge-style selection) -->
+        {% include 'includes/tag_badge_select.html' with form=form selected_tag_ids=selected_tag_ids %}
+        {% for err in form.tags.errors %}
+          <div class="text-danger small mb-2">{{ err }}</div>
+        {% endfor %}
+
+        <!-- IMAGES + VIDEO -->
+        <div class="mb-3">
+          <label for="{{ form.images.id_for_label }}" class="form-label text-muted mb-2">{{ form.images.label }}<span class="field-label-optional-suffix"> · {% trans "optional" %}</span></label>
+          <div class="item-media-upload-row">
+            <div class="item-images-upload item-images-upload--native item-media-upload-row__images">
+              <input id="id_images" name="images" type="file" accept="image/*" multiple class="item-images-file-input" title="Choose images" />
+            </div>
+            <button type="button" class="cstm-btn custom-secondary-btn item-media-upload-row__video-btn" id="btnAddVideo" title="{% trans 'Add video' %}">
+              <i class="fa fa-video-camera" aria-hidden="true"></i>
+            </button>
+            <input id="id_videos" name="videos" type="file" accept="video/mp4,video/webm,video/quicktime" multiple class="d-none" title="Choose videos" />
+          </div>
+          <div id="imagesHelp" class="form-text">{% trans "JPEG/PNG/WebP · up to 10 images. MP4/WebM/MOV · up to 1 video (200 MB)." %}</div>
+          <div id="preview" class="mt-3 d-flex flex-wrap gap-2"></div>
+          <div id="videoPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
+        </div>
+        <div id="postSizeWarning" class="post-size-warning" hidden></div>
+        <div class="item-form-actions d-flex gap-1 align-items-center mt-2">
+          <button class="cstm-btn custom-primary-btn" type="submit">Create</button>
+          <a href="{% url 'login_app:profile' user.username %}" class="cstm-btn custom-secondary-btn">Cancel</a>
+        </div>
+      </form>
+    </main>
+  </div>
+{% endblock %}
+
+{% block editor_scripts %}
+  {# classic/ckeditor.js is injected once by ckeditor_main.js (avoids ckeditor-duplicated-modules) #}
+  <script defer src="{% static 'ckeditor/ckeditor_main.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/item_body_file_import.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    (function () {
+      function clearListing() {
+        try {
+          sessionStorage.removeItem('listing_url');
+          sessionStorage.removeItem('listing_scroll');
+          sessionStorage.removeItem('listing_anchor');
+          sessionStorage.removeItem('listing_changes');
+        } catch (e) { /* ignore */ }
+      }
+
+      clearListing();
+
+      const form = document.getElementById('itemForm');
+      if (form) {
+        var preloaderTimer = null;
+        form.addEventListener('submit', clearListing);
+        form.addEventListener('ajax:start', function () {
+          if (preloaderTimer) clearTimeout(preloaderTimer);
+          preloaderTimer = setTimeout(function () {
+            preloaderTimer = null;
+            var pre = document.getElementById('brainPreloader');
+            if (!pre) return;
+            var lbl = pre.querySelector('.brain-preloader__label');
+            if (lbl) lbl.textContent = 'Posting...';
+            pre.classList.remove('hidden');
+            pre.setAttribute('aria-busy', 'true');
+            document.documentElement.classList.add('brain-preloader-active');
+          }, 220);
+        });
+        function hidePreloader() {
+          if (preloaderTimer) {
+            clearTimeout(preloaderTimer);
+            preloaderTimer = null;
+          }
+          var pre = document.getElementById('brainPreloader');
+          if (pre) { pre.classList.add('hidden'); pre.removeAttribute('aria-busy'); }
+          document.documentElement.classList.remove('brain-preloader-active');
+        }
+        form.addEventListener('ajax:error', hidePreloader);
+        form.addEventListener('ajax:success', hidePreloader);
+      }
+
+      const trustStatusUrl = "{% url 'login_app:api_trust_status' %}";
+      const formWrapper = document.querySelector('.create-field.form-wrapper');
+      if (formWrapper && trustStatusUrl) {
+        const pollInterval = setInterval(async function () {
+          try {
+            const resp = await fetch(trustStatusUrl, {
+              headers: { 'Accept': 'application/json' },
+              credentials: 'same-origin'
+            });
+            if (!resp.ok) return;
+            const data = await resp.json();
+            if (data && (data.shadow_banned || !data.can_post)) {
+              clearInterval(pollInterval);
+              const msg = data.shadow_banned
+                ? 'You have been shadow banned. Improve your trust score to restore access.'
+                : 'Create post is disabled. Improve your trust score to restore access.';
+              formWrapper.innerHTML = '<div class="custom-alert custom-alert-danger"><p class="small danger_">' + msg + '</p></div>';
+            }
+          } catch (e) { /* ignore */ }
+        }, 25000);
+      }
+    })();
+  </script>
+  <script defer src="{% static 'smart_blog/js/category_select.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Forbidden — brainstorm.news</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23273c75'/><text x='16' y='23' text-anchor='middle' fill='white' font-family='sans-serif' font-size='18' font-weight='700'>b</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff; --text: #1f2328; --muted: #6c757d;
+      --primary: #273c75; --accent: #e67e22; --border: #e6e6e6;
+      --card-bg: #ffffff; --card-shadow: 0 3px 12px rgba(0,0,0,.08);
+      --link-hover: #2980b9; --btn-hover: #1e2f5c;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0d1117; --text: #c9d1d9; --muted: #8b949e;
+        --primary: #58a6ff; --accent: #e67e22; --border: #30363d;
+        --card-bg: #161b22; --card-shadow: 0 3px 12px rgba(0,0,0,.4);
+        --link-hover: #79b8ff; --btn-hover: #238636;
+      }
+    }
+    [data-theme="dark"] {
+      --bg: #0d1117; --text: #c9d1d9; --muted: #8b949e;
+      --primary: #58a6ff; --accent: #e67e22; --border: #30363d;
+      --card-bg: #161b22; --card-shadow: 0 3px 12px rgba(0,0,0,.4);
+      --link-hover: #79b8ff; --btn-hover: #238636;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; font-family: Inter, system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .card {
+      max-width: 38rem; width: 100%; padding: clamp(1.75rem, 4vw, 2.75rem);
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 12px; box-shadow: var(--card-shadow); text-align: center;
+    }
+    .brand { font-family: "Space Grotesk", sans-serif; font-size: 0.85rem; margin-bottom: 0.75rem; }
+    .brand a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .brand a:hover { color: var(--link-hover); }
+    .code {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(3.5rem, 12vw, 5.5rem); font-weight: 700;
+      margin: 0 0 0.5rem; color: var(--accent);
+      letter-spacing: -0.06em; line-height: 1;
+    }
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(1.25rem, 3.5vw, 1.6rem); font-weight: 600; margin: 0 0 0.65rem;
+    }
+    .lead {
+      margin: 0 auto 1.5rem; color: var(--muted);
+      line-height: 1.65; font-size: 0.925rem; max-width: 28rem;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+    .btn {
+      display: inline-block; padding: 0.35rem 0.9rem; border-radius: 8px;
+      font-weight: 500; text-decoration: none; font-size: 0.85rem;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; border: 1px solid var(--primary); }
+    .btn-primary:hover { background: var(--btn-hover); border-color: var(--btn-hover); }
+    .btn-outline { background: transparent; color: var(--primary); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); }
+    @media (max-width: 480px) {
+      .actions { flex-direction: column; }
+      .btn { width: 100%; text-align: center; }
+    }
+  </style>
+  <script>
+    (function(){try{var t=localStorage.getItem('themeToggle');if(t==='sun')document.documentElement.setAttribute('data-theme','dark');else if(t)document.documentElement.setAttribute('data-theme','light');}catch(e){}})();
+  </script>
+</head>
+<body>
+  <div class="card">
+    <p class="brand"><a href="/">brainstorm.news</a></p>
+    <p class="code" aria-hidden="true">403</p>
+    <h1>Access denied</h1>
+    <p class="lead">You do not have permission to view this content. Try signing in or return to the home page.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="/">Home</a>
+      <a class="btn btn-outline" href="/login/">Sign in</a>
+    </div>
+  </div>
+</body>
+</html>

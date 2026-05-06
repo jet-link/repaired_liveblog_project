@@ -1,0 +1,156 @@
+{% load static %}
+<aside class="admin-sidebar" id="adminSidebar" role="navigation" aria-label="Admin navigation" data-turbo-permanent>
+    <div class="admin-sidebar-brand">
+        <a href="{% url 'admin_panel:dashboard' %}" class="admin-brand-minimal admin-sidebar-brand-link">
+            <img src="{% static 'admin/favicon-cube.svg' %}" alt="" class="admin-sidebar-logo" width="24" height="24">
+            <span class="admin-sidebar-brand-text">Admin panel</span>
+        </a>
+        <button type="button" class="admin-sidebar-close" id="adminSidebarClose"
+            aria-label="Close menu">&times;</button>
+    </div>
+    <div class="admin-sidebar-body">
+        <nav class="admin-sidebar-nav">
+            <a href="{% url 'admin_panel:dashboard' %}"
+                class="admin-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="admin-nav-icon fa-solid fa-chart-line"></i>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+
+            <div class="admin-nav-group">
+                <div class="admin-nav-group-title">Content</div>
+                <a href="{% url 'admin_panel:posts_list' %}"
+                    class="admin-nav-item {% if 'post' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-file-lines"></i>
+                    <span class="admin-nav-text">Posts</span>
+                </a>
+                <a href="{% url 'admin_panel:comments_list' %}"
+                    class="admin-nav-item {% if 'comment' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-comments"></i>
+                    <span class="admin-nav-text">Comments</span>
+                </a>
+                <a href="{% url 'admin_panel:categories_list' %}"
+                    class="admin-nav-item {% if 'categor' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-folder"></i>
+                    <span class="admin-nav-text">Categories</span>
+                </a>
+                <a href="{% url 'admin_panel:tags_list' %}"
+                    class="admin-nav-item {% if 'tag' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-tags"></i>
+                    <span class="admin-nav-text">Tags</span>
+                </a>
+            </div>
+
+            <div class="admin-nav-group">
+                <div class="admin-nav-group-title">Users</div>
+                <a href="{% url 'admin_panel:users_list' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'users_list' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-user"></i>
+                    <span class="admin-nav-text">Users</span>
+                </a>
+                <a href="{% url 'admin_panel:banned_users' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'banned_users' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-user-slash"></i>
+                    <span class="admin-nav-text">Banned</span>
+                </a>
+                <a href="{% url 'admin_panel:recently_deleted' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'recently_deleted' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-user-minus"></i>
+                    <span class="admin-nav-text">Deleted</span>
+                </a>
+            </div>
+
+            <div class="admin-nav-group">
+                <div class="admin-nav-group-title">Moderation</div>
+                <a href="{% url 'admin_panel:reports_list' %}"
+                    class="admin-nav-item {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-flag"></i>
+                    <span class="admin-nav-text">Reports</span>
+                </a>
+                <a href="{% url 'admin_panel:notifications_list' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'notifications_list' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-bell"></i>
+                    <span class="admin-nav-text">Notifications</span>
+                </a>
+                <a href="{% url 'admin_panel:content_violations_list' %}"
+                    class="admin-nav-item {% if 'content_violation' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-triangle-exclamation"></i>
+                    <span class="admin-nav-text">Violations</span>
+                </a>
+                <a href="{% url 'admin_panel:assistant' %}"
+                    class="admin-nav-item {% if 'assistant' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-robot"></i>
+                    <span class="admin-nav-text">Assistant</span>
+                </a>
+            </div>
+
+            <div class="admin-nav-group">
+                <div class="admin-nav-group-title">Analytics</div>
+                <a href="{% url 'admin_panel:analytics' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-chart-simple"></i>
+                    <span class="admin-nav-text">Statistics</span>
+                </a>
+                <a href="{% url 'admin_panel:sitemap_stats' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'sitemap_stats' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-sitemap"></i>
+                    <span class="admin-nav-text">Sitemap</span>
+                </a>
+            </div>
+
+            <div class="admin-nav-group">
+                <div class="admin-nav-group-title">Static</div>
+                <a href="{% url 'admin_panel:home_page_edit' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'home_page_edit' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-house"></i>
+                    <span class="admin-nav-text">Home</span>
+                </a>
+                <a href="{% url 'admin_panel:about_page_edit' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'about_page_edit' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-file-lines"></i>
+                    <span class="admin-nav-text">About</span>
+                </a>
+                <a href="{% url 'admin_panel:contacts_page_edit' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'contacts_page_edit' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-address-book"></i>
+                    <span class="admin-nav-text">Contacts</span>
+                </a>
+                <a href="{% url 'admin_panel:faq_list' %}"
+                    class="admin-nav-item {% if 'faq' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-circle-question"></i>
+                    <span class="admin-nav-text">FAQ</span>
+                </a>
+            </div>
+
+            <div class="admin-nav-group">
+                <div class="admin-nav-group-title">System</div>
+                <a href="{% url 'admin_panel:backups_list' %}"
+                    class="admin-nav-item {% if 'backup' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-floppy-disk"></i>
+                    <span class="admin-nav-text">Backups</span>
+                </a>
+                <a href="{% url 'admin_panel:logs' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'logs' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-regular fa-clipboard"></i>
+                    <span class="admin-nav-text">Logs</span>
+                </a>
+                <a href="{% url 'admin_panel:recent_deleted_content' %}"
+                    class="admin-nav-item {% if request.resolver_match.url_name == 'recent_deleted_content' %}active{% endif %}">
+                    <i class="admin-nav-icon fa-solid fa-trash-can"></i>
+                    <span class="admin-nav-text">Bucket</span>
+                </a>
+            </div>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <button type="button" class="admin-sidebar-toggle" id="adminSidebarCollapseToggle"
+                aria-label="Toggle sidebar" title="Hide sidebar">
+                <i class="fa-solid fa-angle-left admin-sidebar-toggle-icon" aria-hidden="true"></i>
+                <span class="admin-sidebar-footer-text">Hide</span>
+            </button>
+            <button type="button" class="admin-sidebar-logout admin-signout-trigger" id="adminSidebarLogoutBtn"
+                title="Logout">
+                <i class="admin-nav-icon fa-solid fa-sign-out"></i>
+                <span class="admin-sidebar-logout-text">Logout</span>
+            </button>
+        </div>
+    </div>
+</aside>

@@ -1,0 +1,42 @@
+{% load extras %}
+{% if user.is_authenticated %}
+  {% if user|user_shadow_banned %}
+    <div class="p-0">
+      <div class="d-inline-flex custom-alert custom-alert-danger">
+        <span class="small" title="You have been shadow banned">You have been shadow banned. Improve your trust score to restore access.</span>
+      </div>
+    </div>
+  {% else %}
+    <div class="{% if comments_page %}pt-2{% elif comment_form_expand %}pt-0{% else %}pt-4{% endif %}">
+      {% if comment_form_expand %}
+        <h5 class="text-muted m-0 mb-3">Leave comment</h5>
+        <!-- <small class="text-muted d-block mb-2" title="Max 1500 characters.">Max 1500 characters (line breaks not counted).</small> -->
+      {% else %}
+        <div class="d-inline-flex gap-2 align-items-center">
+          <h6 class="text-muted m-0">Leave a comment</h6>
+          <button type="button" class="comment-form-btn">
+            <i class="fa fa-angle-down"></i>
+            <i class="fa fa-angle-up hidden"></i>
+          </button>
+        </div>
+        <small class="text-muted hidden" title="Max 1500 characters.">(Max 1500 chars)</small>
+      {% endif %}
+    </div>
+    <div id="commentFormBody" class="comment-form-body{% if not comment_form_expand %} hidden{% endif %}">
+      <form id="commentForm" action="{% url 'smart_blog:add_comment' item.slug %}" method="post" novalidate data-validate="true" data-ajax="true" data-item-id="{{ item.pk }}" data-user-id="{{ user.pk }}" data-trust-status-url="{% url 'login_app:api_trust_status' %}" class="pb-4" {% if comments_page %}data-comments-page="1"{% endif %}>
+        {% csrf_token %}
+
+        <div id="commentFormErrors" class="mb-2"></div>
+
+        <div class="mb-2">
+          {{ form.text }}
+        </div>
+
+        <div class="comment-form-actions">
+          <button id="submitCommentBtn" type="submit" class="cstm-btn custom-primary-btn comment-btn">Comment</button>
+          <button id="clearComment" type="button" class="cstm-btn custom-secondary-btn hidden" aria-label="Clear comment">Clr</button>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+{% endif %}

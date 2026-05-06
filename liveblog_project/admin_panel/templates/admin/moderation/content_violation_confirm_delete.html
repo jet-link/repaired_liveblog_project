@@ -1,0 +1,27 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Delete {{ target_type|capfirst }}{% endblock %}
+{% block breadcrumbs %}
+<nav class="admin-breadcrumbs" aria-label="Breadcrumb">
+  <ol class="admin-breadcrumbs-list">
+    <li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li>
+    <li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:content_violations_list' %}{% if filter_qs %}?{{ filter_qs }}{% endif %}">Content Violations</a></li>
+    <li class="admin-breadcrumbs-item">Delete</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block page_title %}Delete {{ target_type }}?{% endblock %}
+{% block content %}
+<div class="admin-card admin-modal-card">
+    <h3>Delete this {{ target_type }}?</h3>
+    <hr />
+    <p>This will permanently delete the {{ target_type }} and all associated data.</p>
+    {% if target_name %}
+    <p style="display: none;"><strong>Preview:</strong> {{ target_name|truncatechars:80 }}{% if target_name|length > 80 %}...{% endif %}</p>
+    {% endif %}
+    <form method="post" class="admin-form-actions" action="{% url 'admin_panel:content_violation_delete_content' violation.pk %}{% if filter_qs %}?{{ filter_qs }}{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="admin-button admin-button-danger">Delete</button>
+        <a href="{% url 'admin_panel:content_violations_list' %}{% if filter_qs %}?{{ filter_qs }}{% endif %}" class="admin-button admin-button-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'admin/layout/base.html' %}
+{% load static %}
+{% block title %}Notifications{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Notifications</li></ol></nav>{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <form class="admin-search-form" method="get" action="{% url 'admin_panel:notifications_list' %}">
+        <input type="text" name="q" value="{{ search }}" placeholder="Recipient, actor, post title…" class="admin-input admin-search-input" autocomplete="off">
+        <select name="nf" id="id_notif_list_filter" class="admin-select" aria-label="Notifications list filter">
+            <option value="{{ NOTIF_FILTER_ACTIVE }}" {% if notif_list_filter == NOTIF_FILTER_ACTIVE %}selected{% endif %}>Active</option>
+            <option value="{{ NOTIF_FILTER_CLEARED }}" {% if notif_list_filter == NOTIF_FILTER_CLEARED %}selected{% endif %}>Сleared</option>
+            <option value="{{ NOTIF_FILTER_ADMIN }}" {% if notif_list_filter == NOTIF_FILTER_ADMIN %}selected{% endif %}>Admin notifications</option>
+        </select>
+        <button type="submit" class="admin-button">Search</button>
+        <button type="button" class="admin-button admin-button-outline admin-notif-new-btn" id="adminManualNotifOpen" title="New notification" aria-label="New notification" aria-haspopup="dialog" aria-controls="adminManualNotifModal">New notification</button>
+    </form>
+</div>
+
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" data-bulk-clear-url="{% url 'admin_panel:notifications_bulk_clear' %}" data-bulk-delete-url="{% url 'admin_panel:notifications_bulk_delete' %}">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th>
+                    <th>Recipient</th>
+                    <th>Reason</th>
+                    <th>Link</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n in rows %}
+                <tr>
+                    <td><input type="checkbox" class="admin-bulk-row-check" value="{{ n.pk }}" aria-label="Select"></td>
+                    <td>{{ n.recipient.username }}</td>
+                    <td>{{ n.admin_reason_label }}</td>
+                    <td>
+                        {% if n.notif_type == 'from_admin' %}
+                            <button type="button" class="admin-button admin-button-sm admin-button-outline js-admin-notif-view-open" data-detail-url="{% url 'admin_panel:notification_from_admin_detail' n.pk %}">View notification</button>
+                        {% else %}
+                            <a href="{{ n.get_absolute_url }}" class="admin-link" target="_blank" rel="noopener">{{ n.item.title|truncatechars:40 }}</a>
+                        {% endif %}
+                    </td>
+                    <td>{{ n.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        {% if n.is_read %}
+                            <span class="admin-badge admin-badge-success">Has been read</span>
+                        {% else %}
+                            <span class="admin-badge admin-badge-pending">Unread</span>
+                        {% endif %}
+                        {% if n.cleared_from_inbox and not n.is_read %}
+                            <span class="admin-badge admin-badge-warning">Cleared inbox</span>
+                        {% endif %}
+                        {% if n.hidden_from_admin %}
+                            <span class="admin-badge admin-badge-neutral">Admin table cleared</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="admin-empty">No notifications{% if notif_list_filter == NOTIF_FILTER_ACTIVE %} in Active only{% elif notif_list_filter == NOTIF_FILTER_ADMIN %} in Admin notifications{% else %} in this filter{% endif %}.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ rows.paginator.count }}</div>
+    {% if rows.has_other_pages %}
+    <div class="admin-pagination">
+        {% if rows.has_previous %}<a href="?page={{ rows.previous_page_number }}&nf={{ notif_list_filter|urlencode }}{% if search %}&q={{ search|urlencode }}{% endif %}" class="admin-button admin-button-sm">Previous</a>{% endif %}
+        <span class="admin-pagination-info">Page {{ rows.number }} of {{ rows.paginator.num_pages }}</span>
+        {% if rows.has_next %}<a href="?page={{ rows.next_page_number }}&nf={{ notif_list_filter|urlencode }}{% if search %}&q={{ search|urlencode }}{% endif %}" class="admin-button admin-button-sm">Next</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block admin_modals %}
+<div id="adminManualNotifModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminManualNotifTitle" aria-hidden="true" hidden>
+    <div class="admin-modal-backdrop" id="adminManualNotifModalBackdrop"></div>
+    <div class="admin-modal-dialog admin-modal-dialog--manual-notif">
+        <div class="admin-modal-content">
+            <h2 class="admin-modal-title" id="adminManualNotifTitle">New notification</h2>
+            <form class="admin-form" id="adminManualNotifForm" data-search-url="{% url 'admin_panel:notification_user_search' %}" data-send-url="{% url 'admin_panel:notification_send_manual' %}" novalidate>
+                <div class="admin-form-group">
+                    <label for="id_manual_theme">Theme</label>
+                    <input type="text" name="theme" class="admin-input" id="id_manual_theme" maxlength="200" placeholder="Optional subject line" autocomplete="off">
+                </div>
+                <div class="admin-form-group">
+                    <label for="id_manual_body">Notification text <span style="color: var(--admin-danger)">*</span></label>
+                    <textarea name="body" class="admin-input admin-manual-notif-textarea" id="id_manual_body" rows="4" required placeholder="Message text" spellcheck="true"></textarea>
+                </div>
+                <div class="admin-form-group">
+                    <label for="id_manual_user">User <span style="color: var(--admin-danger)">*</span></label>
+                    <div class="admin-user-combobox" id="adminUserCombobox">
+                        <input type="text" class="admin-user-combobox__input" id="id_manual_user" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="id_manual_user_list" aria-expanded="false" placeholder="Type to search by username" spellcheck="false">
+                        <input type="hidden" name="user_id" id="id_manual_user_id" value="">
+                        <ul class="admin-user-combobox__list" id="id_manual_user_list" role="listbox" aria-hidden="true" hidden></ul>
+                    </div>
+                    <p class="admin-text-muted" style="margin: 6px 0 0; font-size: 12px;">Search loads matching users as you type (large directories).</p>
+                </div>
+                <p class="admin-alert admin-alert-error" id="adminManualNotifErrors" role="alert" style="display: none;"></p>
+                <div class="admin-form-actions" style="margin-top: 16px;">
+                    <button type="submit" class="admin-button admin-button-primary" id="adminManualNotifSend">Send</button>
+                    <button type="button" class="admin-button admin-button-outline" id="adminManualNotifCancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="adminNotifViewModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminNotifViewTitle" aria-hidden="true" hidden>
+    <div class="admin-modal-backdrop" id="adminNotifViewModalBackdrop"></div>
+    <div class="admin-modal-dialog admin-modal-dialog--view-notif">
+        <div class="admin-modal-content">
+            <h2 class="admin-modal-title" id="adminNotifViewTitle">Notification</h2>
+            <div class="admin-notif-view">
+                <p class="admin-notif-view__line">
+                    <span class="admin-notif-view__field-label">Theme</span><span class="admin-notif-view__line-sep">: </span><span id="adminNotifViewTheme" class="admin-notif-view__inline-value"></span>
+                </p>
+                <div class="admin-notif-view__body-group">
+                    <!-- <p class="admin-notif-view__body-label-line"><span class="admin-notif-view__field-label">Body</span>:</p> -->
+                    <blockquote class="admin-comment-blockquote admin-notif-view__body-quote" id="adminNotifViewBody"></blockquote>
+                </div>
+                <p class="admin-notif-view__line">
+                    <span class="admin-notif-view__field-label">Recipient</span><span class="admin-notif-view__line-sep">: </span><span id="adminNotifViewRecipient" class="admin-notif-view__inline-value"></span>
+                </p>
+            </div>
+            <div class="admin-form-actions" style="margin-top: 16px;">
+                <button type="button" class="admin-button admin-button-outline" id="adminNotifViewClose">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/js/notification_manual.js' %}" defer></script>
+{% endblock %}

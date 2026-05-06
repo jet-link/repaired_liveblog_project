@@ -1,0 +1,6 @@
+<a href="{{ category.get_absolute_url }}" class="home-topic-chip">
+  <span class="home-topic-chip__name">{{ category.name }}</span>
+  {% if category.posts_count %}
+    <span class="home-topic-chip__count">{{ category.posts_count }}</span>
+  {% endif %}
+</a>

@@ -1,0 +1,12 @@
+{% extends 'admin/layout/base.html' %}
+{% load mentions %}
+{% block title %}Block User{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:comments_list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Comments</a></li><li class="admin-breadcrumbs-item">Block</li></ol></nav>{% endblock %}
+{% block page_title %}Block {{ comment.author.username }}?{% endblock %}
+{% block content %}
+<div class="admin-card admin-modal-card">
+    <h3>Block user "{{ comment.author.username }}" from comment?</h3>
+    <blockquote class="admin-comment-blockquote">{{ comment.text|strip_mentions }}</blockquote>
+    <form method="post" class="admin-form-actions">{% csrf_token %}<button type="submit" class="admin-button admin-button-danger">Block</button><a href="{% url 'admin_panel:comments_list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-button admin-button-outline">Cancel</a></form>
+</div>
+{% endblock %}

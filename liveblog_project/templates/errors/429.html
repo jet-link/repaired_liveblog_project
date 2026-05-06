@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function(){try{var t=localStorage.getItem('themeToggle');document.documentElement.setAttribute('data-theme',t==='sun'?'dark':'light');}catch(e){}}());
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Too many requests — brainstorm.news</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/public-breakpoints.css' %}" />
+  <link rel="stylesheet" href="{% static 'smart_blog/css/tokens.css' %}" />
+  <link rel="stylesheet" href="{% static 'smart_blog/css/styles.css' %}" />
+  <link rel="stylesheet" href="{% static 'pages/css/pages.css' %}" />
+</head>
+<body class="error-page">
+  <main class="main">
+    <section class="error-page-section">
+      <div class="container-main">
+        <div class="error-page-card">
+          <p class="error-page-brand">
+            <a href="{% url 'pages:home' %}" class="error-page-brand-link">brainstorm.news</a>
+          </p>
+          <p class="error-page-code" aria-hidden="true">429</p>
+          <h1 class="error-page-title">Too many requests</h1>
+          <p class="error-page-lead">
+            You have sent too many requests in a short time.
+            Please wait a moment and try again.
+          </p>
+          <div class="error-page-actions">
+            <a href="{% url 'pages:home' %}" class="cstm-btn-sm custom-primary-btn">Home</a>
+            <button type="button" class="cstm-btn-sm custom-secondary-btn" onclick="window.history.back()">Go back</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

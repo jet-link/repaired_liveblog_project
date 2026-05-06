@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load counters %}
+{% block title %}
+  {{ vanished_display_name }}
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block">
+    {% include 'includes/breadcrumbs.html' %}
+
+    <div class="text-center py-5">
+      <div class="vanished-avatar-wrap">
+        <img src="{% static 'img/user-deleted.webp' %}" alt="{{ vanished_display_name }}" loading="eager" decoding="async" />
+      </div>
+      <h4 class="text-muted m-0">{{ vanished_display_name }}</h4>
+      <p class="text-muted small mt-2">{% if vanished_status == 'banned' %}User has been banned.{% else %}User has been deleted.{% endif %}</p>
+    </div>
+  </div>
+{% endblock %}

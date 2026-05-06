@@ -1,0 +1,75 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Contacts{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Contacts</li></ol></nav>{% endblock %}
+{% block page_title %}Contacts{% endblock %}
+{% block content %}
+<div class="admin-card">
+    <p class="text-muted small mb-3">Public URL: <a href="{% url 'pages:page' 'contacts' %}" target="_blank" rel="noopener">/contacts/</a></p>
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+        <div class="admin-form-group">
+            <label for="id_browser_title">Browser title (tab)</label>
+            <input type="text" id="id_browser_title" name="browser_title" value="{{ page.browser_title }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_title_h1">Heading (H1)</label>
+            <input type="text" id="id_title_h1" name="title_h1" value="{{ page.title_h1 }}" class="admin-input" maxlength="200">
+        </div>
+        <p class="text-muted small">Lead line is built from three parts: text before, emphasized part (shown in bold), text after.</p>
+        <div class="admin-form-group">
+            <label for="id_lede_before">Lead — before emphasis</label>
+            <input type="text" id="id_lede_before" name="lede_before" value="{{ page.lede_before }}" class="admin-input" maxlength="255">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_lede_emphasis">Lead — emphasized (bold)</label>
+            <input type="text" id="id_lede_emphasis" name="lede_emphasis" value="{{ page.lede_emphasis }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_lede_after">Lead — after emphasis</label>
+            <textarea id="id_lede_after" name="lede_after" class="admin-textarea" rows="3" spellcheck="true">{{ page.lede_after }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_channels_heading">Channels section heading</label>
+            <input type="text" id="id_channels_heading" name="channels_heading" value="{{ page.channels_heading }}" class="admin-input" maxlength="200">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_email_key">Email row label</label>
+            <input type="text" id="id_email_key" name="email_key" value="{{ page.email_key }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_email_address">Email address (display &amp; mailto)</label>
+            <input type="text" id="id_email_address" name="email_address" value="{{ page.email_address }}" class="admin-input" maxlength="255">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_email_note">Email note</label>
+            <input type="text" id="id_email_note" name="email_note" value="{{ page.email_note }}" class="admin-input" maxlength="255">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_community_key">Community row label</label>
+            <input type="text" id="id_community_key" name="community_key" value="{{ page.community_key }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_community_text">Community text</label>
+            <textarea id="id_community_text" name="community_text" class="admin-textarea" rows="3" spellcheck="true">{{ page.community_text }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_no_section_heading">“What we don’t handle” heading</label>
+            <input type="text" id="id_no_section_heading" name="no_section_heading" value="{{ page.no_section_heading }}" class="admin-input" maxlength="200">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_no_section_body">“What we don’t handle” body</label>
+            <textarea id="id_no_section_body" name="no_section_body" class="admin-textarea" rows="4" spellcheck="true">{{ page.no_section_body }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_footer_about_link_text">Footer link text (to About)</label>
+            <input type="text" id="id_footer_about_link_text" name="footer_about_link_text" value="{{ page.footer_about_link_text }}" class="admin-input" maxlength="120">
+        </div>
+        {% if page.updated_at %}
+        <p class="text-muted small">Last updated: {{ page.updated_at }}{% if page.updated_by %} · {{ page.updated_by.get_username }}{% endif %}</p>
+        {% endif %}
+        <div class="admin-form-actions">
+            <button type="submit" class="admin-button admin-button-primary">Save</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

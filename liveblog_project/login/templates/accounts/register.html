@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Registration
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block auth-form-layout">
+    <main class="edit-profile-field mx-auto">
+      <form method="post" action="{% url 'login_app:register' %}" novalidate data-validate="true">
+        {% csrf_token %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex gap-3 align-items-center">
+            <h5 class="m-0 fw-normal text-uppercase primary_">Sign up</h5>
+            {% comment %} <button type="button" class="instruction-btn"><i class="fa fa-question-circle-o" aria-hidden="true"></i></button> {% endcomment %}
+          </div>
+          <small><a href="{% url 'login_app:login' %}" class="text-muted text-decoration-none">I have account</a></small>
+        </div>
+        {# USERNAME (required) #}
+        <div class="form-floating mb-2">
+          {{ form.username }}
+          <label for="floatingUsername" class="text-muted">Username <span class="danger_">*</span></label>
+          {% if form.username.errors %}
+            <div class="text-danger small mt-1">
+              {% for err in form.username.errors %}
+                {{ err }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        {# FIRST NAME (optional) — стиль скриншота: «Field · optional» в плавающей подписи #}
+        <div class="form-floating mb-2">
+          {{ form.first_name }}
+          <label for="floatingFirst" class="text-muted">First name<span class="field-label-optional-suffix"> · optional</span></label>
+          {% if form.first_name.errors %}
+            <div class="text-danger small mt-1">
+              {% for err in form.first_name.errors %}
+                {{ err }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-floating mb-2">
+          {{ form.last_name }}
+          <label for="floatingLast" class="text-muted">Surname<span class="field-label-optional-suffix"> · optional</span></label>
+          {% if form.last_name.errors %}
+            <div class="text-danger small mt-1">
+              {% for err in form.last_name.errors %}
+                {{ err }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-floating mb-2">
+          {{ form.email }}
+          <label for="floatingEmail" class="text-muted">Email<span class="field-label-optional-suffix"> · optional</span></label>
+          {% if form.email.errors %}
+            <div class="text-danger small mt-1">
+              {% for err in form.email.errors %}
+                {{ err }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-floating mb-2">
+          {{ form.avatar_url }}
+          <label for="floatingAvatar" class="text-muted">Avatar URL<span class="field-label-optional-suffix"> · optional</span></label>
+          {% if form.avatar_url.errors %}
+            <div class="text-danger small mt-1">
+              {% for err in form.avatar_url.errors %}
+                {{ err }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        {# PASSWORD #}
+        <div class="form-floating form-floating-password mb-2">
+          {{ form.password1 }}
+          <label for="floatingPass1" class="text-muted">Password <span class="danger_">*</span></label>
+          <button type="button" class="password-toggle password-toggle--inside" data-password-toggle="1" aria-label="Show password"></button>
+        </div>
+        {% if form.password1.errors %}
+          <div class="text-danger small mt-1 mb-2">
+            {% for err in form.password1.errors %}
+              {{ err }}
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {# PASSWORD CONFIRMATION #}
+        <div class="form-floating form-floating-password mb-2">
+          {{ form.password2 }}
+          <label for="floatingPass2" class="text-muted">Password again <span class="danger_">*</span></label>
+          <button type="button" class="password-toggle password-toggle--inside" data-password-toggle="1" aria-label="Show password"></button>
+        </div>
+        {% if form.password2.errors %}
+          <div class="text-danger small mt-1 mb-2">
+            {% for err in form.password2.errors %}
+              {{ err }}
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+          <div class="errors-block">
+            <div class="custom-alert custom-alert-danger mt-2" data-auto-dismiss="6000">
+              {% for err in form.non_field_errors %}
+                {{ err }}{% if not forloop.last %}
+                  <br />
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        {% if turnstile_site_key %}
+          <div class="mb-3 mt-2 d-flex justify-content-start">
+            <div
+              class="cf-turnstile"
+              data-sitekey="{{ turnstile_site_key }}"
+              data-theme="auto"></div>
+          </div>
+        {% endif %}
+
+        <div class="auth-form-register-footer d-flex justify-content-start align-items-center mt-3">
+          <div class="auth-form-submit-row d-flex gap-1">
+            <button type="submit" class="cstm-btn custom-primary-btn auth-form-submit-btn">Sign up</button>
+            <button type="button" id="genPassBtn" class="cstm-btn custom-secondary-btn auth-form-submit-btn">Gen.Pass</button>
+          </div>
+        </div>
+      </form>
+      {% include 'includes/password_generator.html' %}
+      {% include 'includes/instruction_modal.html' %}
+    </main>
+  </div>
+{% endblock %}
+{% block extra_js %}
+  {% if turnstile_site_key %}
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  {% endif %}
+  <script defer src="{% static 'login/js/password_generator.js' %}"></script>
+{% endblock %}

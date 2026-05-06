@@ -1,0 +1,196 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Backups{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Backups</li></ol></nav>{% endblock %}
+{% block page_title %}Backups{% endblock %}
+{% block content %}
+{% if request.user.is_superuser %}
+<div class="admin-toolbar admin-backups-toolbar">
+    <form class="admin-backups-filter-form" method="get" action="{% url 'admin_panel:backups_list' %}">
+        <div class="admin-backups-filter-label">
+            <label for="id_backup_filter_date_from">From</label>
+            <input type="date" id="id_backup_filter_date_from" name="date_from" value="{{ date_from|default:'' }}" class="admin-input">
+        </div>
+        <div class="admin-backups-filter-label">
+            <label for="id_backup_filter_date_to">To</label>
+            <input type="date" id="id_backup_filter_date_to" name="date_to" value="{{ date_to|default:'' }}" class="admin-input">
+        </div>
+        <button type="submit" class="admin-button admin-button-secondary">Filter</button>
+        {% comment %} <a href="{% url 'admin_panel:backups_list' %}" class="admin-button admin-button-secondary">Reset</a> {% endcomment %}
+    </form>
+    <div class="admin-backups-create-bulk-row">
+        <form id="admin-backup-create-form" class="admin-backups-create-form" method="post" action="{% url 'admin_panel:backup_create' %}">
+            {% csrf_token %}
+            <fieldset class="admin-backups-create-fieldset admin-backups-create-checkboxes">
+                <legend class="admin-backups-create-legend">Create backup</legend>
+                <span class="admin-backups-checkbox-pair">
+                    <input type="checkbox" id="id_backup_include_database" name="include_database" value="on" class="admin-checkbox-input" checked>
+                    <label class="admin-backups-checkbox-label" for="id_backup_include_database">Database</label>
+                </span>
+                <span class="admin-backups-checkbox-pair">
+                    <input type="checkbox" id="id_backup_include_media" name="include_media" value="on" class="admin-checkbox-input" checked>
+                    <label class="admin-backups-checkbox-label" for="id_backup_include_media">Media</label>
+                </span>
+                <span class="admin-backups-checkbox-pair">
+                    <input type="checkbox" id="id_backup_include_settings" name="include_settings" value="on" class="admin-checkbox-input">
+                    <label class="admin-backups-checkbox-label" for="id_backup_include_settings">Settings <span class="admin-text-muted">(settings may include secrets from .env)</span></label>
+                </span>
+            </fieldset>
+        </form>
+        <div class="admin-backups-create-actions-row">
+            <button type="submit" form="admin-backup-create-form" class="admin-button admin-button-primary">Create backup</button>
+        </div>
+    </div>
+</div>
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" data-bulk-delete-url="{% url 'admin_panel:backups_bulk_delete' %}">
+            <thead>
+                <tr><th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all"></th><th>Name</th><th>Created</th><th>Size</th><th>Status</th><th>Type</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for b in backups %}
+                <tr data-backup-id="{{ b.pk }}" data-backup-status="{{ b.status }}">
+                    <td><input type="checkbox" class="admin-bulk-row-check" value="{{ b.pk }}" aria-label="Select"></td>
+                    <td>{{ b.name }}</td>
+                    <td>{{ b.created_at|date:"M d, Y H:i" }}</td>
+                    <td class="admin-backup-size-cell"><span class="admin-backup-size-value">{% if b.status == 'completed' and b.file_size %}{{ b.file_size_human }}{% else %}—{% endif %}</span></td>
+                    <td class="admin-backup-status-cell"><span class="admin-badge admin-badge-{% if b.status == 'completed' %}success{% elif b.status == 'failed' %}danger{% else %}warning{% endif %}">{{ b.get_status_display }}</span></td>
+                    <td>{{ b.get_components_label }}</td>
+                    <td class="admin-actions-cell admin-backup-actions-cell">
+                        <div class="admin-dropdown">
+                            <button type="button" class="admin-dropdown-trigger admin-button">Actions <i class="fa-solid fa-chevron-down"></i></button>
+                            <div class="admin-dropdown-menu">
+                                {% if b.status == 'completed' and b.file_path %}
+                                <a href="{% url 'admin_panel:backup_download' b.pk %}">Download</a>
+                                <a href="{% url 'admin_panel:backup_restore' b.pk %}">Restore</a>
+                                {% endif %}
+                                <a href="{% url 'admin_panel:backup_delete' b.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-action-delete" data-no-confirm>Delete</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="admin-empty">No backups.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ total_count }}</div>
+</div>
+<script>
+(function() {
+  var statusUrl = "{% url 'admin_panel:backup_status' %}";
+  var backupBaseUrl = "{% url 'admin_panel:backup_download' 0 %}".replace(/\/0\/download\/?$/, '/');
+  var table = document.querySelector('.admin-table');
+  if (!table) return;
+
+  function getRunningIds() {
+    var ids = [];
+    table.querySelectorAll('tr[data-backup-id]').forEach(function(tr) {
+      var status = tr.getAttribute('data-backup-status');
+      if (status === 'running' || status === 'pending') {
+        ids.push(tr.getAttribute('data-backup-id'));
+      }
+    });
+    return ids;
+  }
+
+  function badgeClass(status) {
+    if (status === 'completed') return 'admin-badge-success';
+    if (status === 'failed') return 'admin-badge-danger';
+    return 'admin-badge-warning';
+  }
+
+  function formatSize(bytes) {
+    if (!bytes || bytes <= 0) return '0.0 B';
+    var size = bytes;
+    var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var i = 0;
+    while (size >= 1024 && i < units.length - 1) { size /= 1024; i++; }
+    return size.toFixed(1) + ' ' + units[i];
+  }
+
+  function animateSize(sizeCell, targetBytes, finalHuman, duration) {
+    if (!sizeCell || targetBytes <= 0) {
+      if (sizeCell) sizeCell.textContent = finalHuman || '—';
+      return;
+    }
+    var span = sizeCell.querySelector('.admin-backup-size-value') || sizeCell;
+    var startTime = performance.now();
+    function tick(now) {
+      var elapsed = now - startTime;
+      var progress = Math.min(elapsed / duration, 1);
+      var current = Math.floor(progress * targetBytes);
+      span.textContent = formatSize(current);
+      if (progress < 1) requestAnimationFrame(tick);
+      else span.textContent = finalHuman;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function updateRow(tr, data) {
+    var statusCell = tr.querySelector('.admin-backup-status-cell');
+    if (statusCell) {
+      statusCell.innerHTML = '<span class="admin-badge ' + badgeClass(data.status) + '">' + (data.display || data.status) + '</span>';
+    }
+    tr.setAttribute('data-backup-status', data.status);
+    if (data.status === 'completed' && (data.file_size || data.file_size_human)) {
+      var sizeCell = tr.querySelector('.admin-backup-size-cell');
+      if (sizeCell) {
+        var alreadyAnimated = sizeCell.getAttribute('data-size-animated') === '1';
+        if (!alreadyAnimated && data.file_size) {
+          sizeCell.setAttribute('data-size-animated', '1');
+          animateSize(sizeCell, data.file_size, data.file_size_human || formatSize(data.file_size), 1000);
+        } else {
+          var span = sizeCell.querySelector('.admin-backup-size-value');
+          if (span) span.textContent = data.file_size_human || formatSize(data.file_size) || '—';
+        }
+      }
+    }
+    if (data.status === 'completed' && data.has_file) {
+      var dd = tr.querySelector('.admin-backup-actions-cell .admin-dropdown');
+      var actionsCell = window.adminFindDropdownMenu ? window.adminFindDropdownMenu(dd) : tr.querySelector('.admin-backup-actions-cell .admin-dropdown-menu');
+      if (actionsCell && !actionsCell.querySelector('a[href*="download"]')) {
+        var id = tr.getAttribute('data-backup-id');
+        var dl = document.createElement('a');
+        dl.href = backupBaseUrl + id + '/download/';
+        dl.textContent = 'Download';
+        var rst = document.createElement('a');
+        rst.href = backupBaseUrl + id + '/restore/';
+        rst.textContent = 'Restore';
+        actionsCell.insertBefore(rst, actionsCell.firstChild);
+        actionsCell.insertBefore(dl, actionsCell.firstChild);
+      }
+    }
+  }
+
+  function poll() {
+    var ids = getRunningIds();
+    if (ids.length === 0) return;
+    fetch(statusUrl + '?ids=' + ids.join(','), { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.backups) {
+          data.backups.forEach(function(b) {
+            var tr = table.querySelector('tr[data-backup-id="' + b.id + '"]');
+            if (tr) updateRow(tr, b);
+          });
+        }
+      })
+      .catch(function() {});
+  }
+
+  var ids = getRunningIds();
+  if (ids.length > 0) {
+    var interval = setInterval(function() {
+      poll();
+      if (getRunningIds().length === 0) clearInterval(interval);
+    }, 1500);
+    poll();
+  }
+})();
+</script>
+{% else %}
+<div class="admin-alert admin-alert-warning">Access denied. Superuser only.</div>
+{% endif %}
+{% endblock %}

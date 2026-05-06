@@ -1,0 +1,102 @@
+{% load i18n %}
+<div class="tags-badge-select mb-3">
+  <fieldset class="border-0 p-0 m-0">
+    <legend class="form-label text-muted mb-1 d-flex justify-content-between align-items-center" style="width:100%;float:none;">
+      <small>{{ form.tags.label }}</small>
+    </legend>
+  <div class="tags-badge-wrap d-flex flex-wrap gap-1 align-items-center" data-field-name="{{ form.tags.html_name }}">
+    {% for tag in form.tags.field.queryset %}
+      <label class="tag-vlb tag-badge-option text-decoration-none mb-0 cursor-pointer{% if tag.pk in selected_tag_ids %} tag-badge-selected{% endif %}{% if forloop.counter > 15 %} tag-badge-overflow d-none{% endif %}">
+        <input type="checkbox" name="{{ form.tags.html_name }}" value="{{ tag.pk }}" class="tag-badge-checkbox d-none"{% if tag.pk in selected_tag_ids %} checked{% endif %}>
+        {{ tag.tag_name }}
+      </label>
+    {% empty %}
+      <span class="small text-muted">No existing tags. Add new ones below.</span>
+    {% endfor %}
+  </div>
+  {% with tag_count=form.tags.field.queryset.count %}
+  {% if tag_count > 0 %}
+  <div class="tags-badge-actions d-flex align-items-center flex-wrap gap-1 mt-2 small">
+    <button type="button"
+            class="btn-tag-select-all text-muted text-decoration-none border-0 p-0 bg-transparent"
+            data-label-all="{% trans 'Select all' %}"
+            data-label-none="{% trans 'Deselect all' %}">{% trans "Select all" %}</button>
+    {% if tag_count > 15 %}
+    <span class="text-muted user-select-none" aria-hidden="true">·</span>
+    <button type="button"
+            class="btn-tag-show-more"
+            aria-expanded="false"
+            data-label-more="{% trans 'Show more' %}"
+            data-label-less="{% trans 'Show less' %}">{% trans "Show more" %}</button>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endwith %}
+  </fieldset>
+</div>
+<script>
+(function() {
+  var wrap = document.querySelector('.tags-badge-select');
+  if (!wrap) return;
+  var labels = wrap.querySelectorAll('.tag-badge-option');
+  var toggleBtn = wrap.querySelector('.btn-tag-select-all');
+  var showMoreBtn = wrap.querySelector('.btn-tag-show-more');
+  var overflowLabels = wrap.querySelectorAll('.tag-badge-overflow');
+
+  var moreLabel = showMoreBtn ? (showMoreBtn.getAttribute('data-label-more') || 'Show more') : '';
+  var lessLabel = showMoreBtn ? (showMoreBtn.getAttribute('data-label-less') || 'Show less') : '';
+  var allLabel = toggleBtn ? (toggleBtn.getAttribute('data-label-all') || 'Select all') : '';
+  var noneLabel = toggleBtn ? (toggleBtn.getAttribute('data-label-none') || 'Deselect all') : '';
+
+  function updateToggleBtn() {
+    var checkboxes = wrap.querySelectorAll('.tag-badge-checkbox');
+    var anyUnchecked = Array.from(checkboxes).some(function(c) { return !c.checked; });
+    if (toggleBtn) toggleBtn.textContent = anyUnchecked ? allLabel : noneLabel;
+  }
+  updateToggleBtn();
+
+  if (showMoreBtn && overflowLabels.length > 0) {
+    showMoreBtn.addEventListener('click', function() {
+      var expanded = showMoreBtn.getAttribute('aria-expanded') === 'true';
+      if (expanded) {
+        overflowLabels.forEach(function(lbl) {
+          lbl.classList.add('d-none');
+        });
+        showMoreBtn.textContent = moreLabel;
+        showMoreBtn.setAttribute('aria-expanded', 'false');
+      } else {
+        overflowLabels.forEach(function(lbl) {
+          lbl.classList.remove('d-none');
+        });
+        showMoreBtn.textContent = lessLabel;
+        showMoreBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+
+  labels.forEach(function(lbl) {
+    lbl.addEventListener('click', function(e) {
+      e.preventDefault();
+      var cb = lbl.querySelector('input[type="checkbox"]');
+      if (!cb) return;
+      cb.checked = !cb.checked;
+      lbl.classList.toggle('tag-badge-selected', cb.checked);
+      updateToggleBtn();
+    });
+  });
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      var checkboxes = wrap.querySelectorAll('.tag-badge-checkbox');
+      var anyUnchecked = Array.from(checkboxes).some(function(c) { return !c.checked; });
+      checkboxes.forEach(function(cb) {
+        cb.checked = anyUnchecked;
+      });
+      labels.forEach(function(lbl) {
+        var cb = lbl.querySelector('input[type="checkbox"]');
+        lbl.classList.toggle('tag-badge-selected', cb ? cb.checked : false);
+      });
+      updateToggleBtn();
+    });
+  }
+})();
+</script>

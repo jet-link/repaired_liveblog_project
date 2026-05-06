@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-main content_block{% block listing_root_classes %}{% endblock %}"
+     {% block listing_data_attrs %}
+     data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+     data-search-history-url="{% url 'smart_blog:api_search_history_list' %}"
+     data-search-history-clicked-pattern="{% url 'smart_blog:api_search_history_clicked' pk=999999 %}"
+     data-search-history-clear-url="{% url 'smart_blog:api_search_history_clear' %}"
+     data-search-history-delete-pattern="{% url 'smart_blog:api_search_history_delete' pk=999999 %}"
+     {% endblock %}>
+
+  {% block listing_header %}{% endblock %}
+
+  {% block listing_above_cards %}{% endblock %}
+
+  {% block listing_body %}
+    {% if items %}
+      <div id="filterCardsWrapper" class="{% block cards_wrapper_class %}brainews-cards-wrapper{% endblock %}" {% block cards_wrapper_attrs %}{% endblock %}>
+        {% block listing_cards %}
+          {% include 'includes/all_cards.html' %}
+        {% endblock %}
+      </div>
+      {% block listing_pagination %}
+        <div id="itemsListPagination" class="brainews-pagination filter-pagination-extra">
+          {% include 'includes/pagination.html' %}
+        </div>
+      {% endblock %}
+    {% else %}
+      {% block listing_empty %}
+        <h5 class="text-muted pt-4">No items found.</h5>
+      {% endblock %}
+    {% endif %}
+  {% endblock %}
+
+</div>
+{% endblock %}

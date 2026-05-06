@@ -1,0 +1,111 @@
+{# includes/_comment.html #}
+{% load static %}
+{% load mentions %}
+{% load extras %}
+{% load user_status %}
+<div id="comment-{{ comment.pk }}" class="py-3 comment-block comment-card" data-reply-url="{% url 'smart_blog:add_comment' comment.item.slug %}" data-thread-url="{% url 'smart_blog:comment_thread' comment.item.slug comment.pk %}" data-depth="{{ depth|default:0 }}" data-raw-html="{{ comment.text|escape }}" data-edit-text="{{ comment.text|comment_plain_for_edit|mention_names|escape }}" data-mention-id="{{ comment.text|mention_first_id }}">
+  <span class="comment-anchor" id="comment-anchor-{{ comment.pk }}"></span>
+
+  <div class="comment-layout">
+    <div class="comment-avatar-col">
+      {% if comment.author %}
+        <a href="{% url 'login_app:profile' comment.author.username %}"
+          class="d-flex align-items-center text-decoration-none comment-avatar-link"
+          title="{% user_status_title comment.author %}">
+          <div class="little-avatar{% if user == comment.author %} avatar-ring{% endif %}">
+            {% if comment.author.is_active %}
+              {% if comment.author.profile.avatar_url or comment.author.profile.avatar_file %}
+                <img src="{{ comment.author.profile.get_avatar }}" alt="{{ comment.author }}" class="user-avatar clickable-avatar" width="38" height="38" loading="eager" decoding="async" data-full="{{ comment.author.profile.get_avatar }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+              {% else %}
+                <img src="{% static 'img/no_avatar.svg' %}" alt="{{ comment.author }}" class="user-avatar no_avatar" width="38" height="38" loading="eager" decoding="async" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+              {% endif %}
+            {% else %}
+              <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display comment.author %}" class="user-avatar" width="38" height="38" loading="eager" decoding="async" />
+            {% endif %}
+          </div>
+        </a>
+      {% else %}
+        <a href="{% url 'login_app:vanished' %}" class="d-flex align-items-center text-decoration-none comment-avatar-link" title="{% user_status_display comment.author %}">
+          <div class="little-avatar">
+            <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display comment.author %}" class="user-avatar" width="40" height="40" loading="eager" decoding="async" />
+          </div>
+        </a>
+      {% endif %}
+    </div>
+
+    <div class="comment-meta-row">
+      <div class="comment-meta-start d-flex align-items-center gap-1 flex-wrap min-w-0">
+        <span class="comment-author-name fw-semibold">
+          {% if comment.author %}
+            {% if comment.author.is_active %}
+              {{ comment.author }}
+            {% else %}
+              {% user_status_display comment.author %}
+            {% endif %}
+          {% else %}
+            {% user_status_display comment.author %}
+          {% endif %}
+        </span>
+        <span class="comment-meta-sep comment-meta-sep--inline" aria-hidden="true">·</span>
+        <span class="comment-meta-published comment-actions-bar__date text-muted fw-semibold">{{ comment.human_published }}</span>
+      </div>
+      <div class="comment-menu comment-menu--actions-bar">
+        {% include 'includes/overflow_more_button.html' with aria_label='More actions' %}
+        <div class="comment-actions" role="menu">
+          {% include 'includes/comment_actions_overflow_menu.html' %}
+        </div>
+      </div>
+    </div>
+
+    <div class="comment-main">
+      <div class="comment-body mt-2 mb-0">
+        <div class="comment-text-wrapper position-relative">
+          <div class="comment-text">
+            {% if no_mentions %}
+              {{ comment.text|comment_display }}
+            {% else %}
+              {% if thread_view and depth|default:0 == 0 %}
+                {{ comment.text|comment_display }}
+              {% else %}
+                {{ comment.text|render_mentions:comment.parent_id }}
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="comment-actions-bar" role="group" aria-label="Comment actions">
+        {% if comment.author and comment.author.is_active %}
+          <span class="comment-actions-bar__likes"{% if not user.is_authenticated or not user.is_active %} role="group" aria-label="Likes: {{ comment.likes_count|default:comment.likes.count }}"{% endif %}>
+            {% if user.is_authenticated and user.is_active %}
+              <button type="button" class="thumb_btn btn-comment-like comment-actions-bar__like-btn" data-url="{% url 'smart_blog:toggle_comment_like' comment.pk %}" data-comment-id="{{ comment.pk }}" aria-pressed="{{ comment.user_liked|yesno:'true,false' }}" aria-label="Like comment">
+                <i id="comment-like-icon-{{ comment.pk }}" class="fa fa-{{ comment.user_liked|yesno:'thumbs-up,thumbs-o-up' }}"></i>
+              </button>
+            {% else %}
+              <span class="comment-actions-bar__like-guest-icon" title="Likes"><i class="fa fa-thumbs-up" aria-hidden="true"></i></span>
+            {% endif %}
+            <span id="comment-likes-count-{{ comment.pk }}" class="comment-actions-bar__like-count fw-semibold"{% if not user.is_authenticated or not user.is_active %} aria-hidden="true"{% endif %}>{{ comment.likes_count|default:comment.likes.count }}</span>
+          </span>
+        {% endif %}
+        {% if user.is_authenticated and user.is_active %}
+          {% if comment.author and comment.author.is_active and user != comment.author %}
+            {% if not thread_view or depth|default:0 > 0 %}
+              {% if not hide_reply %}
+                <span class="comment-meta-sep comment-actions-bar__sep" aria-hidden="true">·</span>
+                {% if user|user_shadow_banned %}
+                  <span class="comment-action-bar-pill disabled comment-actions-bar__reply" title="You have been shadow banned">Reply</span>
+                {% else %}
+                  <button type="button" class="comment-menu-action comment-action-bar-pill btn-reply comment-actions-bar__reply" data-comment-id="{{ comment.pk }}" data-mention-id="{{ comment.author.id }}">Reply</button>
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </div>
+
+      {% if not skip_replies %}
+        {% include 'includes/replied_comments.html' with depth=depth|default:0 %}
+      {% endif %}
+    </div>
+  </div>
+</div>

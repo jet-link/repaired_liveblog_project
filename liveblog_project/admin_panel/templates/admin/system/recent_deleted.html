@@ -1,0 +1,15 @@
+{% extends 'admin/layout/base.html' %}
+{% load static %}
+{% block title %}Bucket{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Bucket</li></ol></nav>{% endblock %}
+{% block page_title %}Bucket{% endblock %}
+
+{% block content %}
+{% include 'admin/system/_recent_deleted_bucket.html' %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script defer src="{% static 'smart_blog/js/filter_segment_scroll.js' %}"></script>
+<script defer src="{% static 'admin/js/recent_deleted_bucket.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,87 @@
+/* pages app — public static pages (home, about, faq, contacts) */
+
+@media (max-width: 991px) {
+    .primary_section,
+    .cosmo_section {
+        min-height: auto;
+        padding: 64px 0;
+    }
+
+    /* Hero “Explore Beyond” / astronauts — taller on tablet+phone */
+    .cosmo_section.centered {
+        min-height: min(88vh, 720px);
+        padding-top: 72px;
+        padding-bottom: 72px;
+    }
+
+    .site-main > .cosmo_section {
+        padding-left: var(--container-px-tablet, 24px);
+        padding-right: var(--container-px-tablet, 24px);
+    }
+
+    .sec-astro {
+        width: 240px;
+        max-width: 42vw;
+    }
+}
+
+@media (max-width: 767px) {
+    .primary_section,
+    .cosmo_section {
+        padding: 48px 0;
+    }
+
+    .cosmo_section.centered {
+        min-height: min(90vh, 680px);
+        padding-top: 56px;
+        padding-bottom: 64px;
+    }
+
+    .site-main > .cosmo_section {
+        padding-left: var(--container-px-mobile, 22px);
+        padding-right: var(--container-px-mobile, 22px);
+    }
+
+    .sec-inner {
+        padding-left: var(--space-2, 8px);
+        padding-right: var(--space-2, 8px);
+    }
+
+}
+
+@media (max-width: 575px) {
+    .hero-subtitle {
+        font-size: 16px;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 575px) {
+    .sec-astro {
+        width: 200px;
+        max-width: 55vw;
+    }
+}
+
+/* Multi-column sections → stack */
+@media (max-width: 767px) {
+    .site-main .row > [class*="col-"] {
+        margin-bottom: var(--space-6, 24px);
+    }
+}
+
+/* Footer */
+@media (max-width: 767px) {
+    .footer .footer-blocks {
+        flex-direction: column !important;
+        flex-wrap: wrap !important;
+        align-items: stretch !important;
+        gap: var(--space-8, 32px) !important;
+    }
+
+    .footer .footer-links {
+        flex-direction: column !important;
+        gap: var(--space-4, 16px) !important;
+    }
+}
+

@@ -1,0 +1,76 @@
+{% extends 'admin/layout/base.html' %}
+{% load admin_extras %}
+
+{% block title %}Users{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Users</li></ol></nav>{% endblock %}
+{% block page_title %}Users{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <form class="admin-search-form" method="get" action="{% url 'admin_panel:users_list' %}">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search users..." class="admin-input admin-search-input">
+        {% comment %} <select name="status" class="admin-select">
+            <option value="">Users</option>
+            <option value="active" {% if current_status == 'active' %}selected{% endif %}>Active</option>
+            <option value="banned" {% if current_status == 'banned' %}selected{% endif %}>Banned</option>
+        </select> {% endcomment %}
+        <button type="submit" class="admin-button">Search</button>
+    </form>
+</div>
+
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" data-bulk-ban-url="{% url 'admin_panel:users_bulk_ban' %}" data-bulk-ban-active-only="1" data-bulk-delete-url="{% url 'admin_panel:users_bulk_delete' %}">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Posts</th>
+                    <th>Comments</th>
+                    <th>Joined</th>
+                    <th>Trust Score</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr data-is-active="{% if u.is_active %}1{% else %}0{% endif %}">
+                    <td>{% if u.is_staff %}<span class="admin-badge admin-badge-danger">Admin</span>{% else %}<input type="checkbox" class="admin-bulk-row-check" value="{{ u.pk }}" aria-label="Select">{% endif %}</td>
+                    <td><a href="{% url 'admin_panel:user_profile' u.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-link">{{ u.username }}</a></td>
+                    <td><span class="admin-badge {% if u.is_active %}admin-badge-success{% else %}admin-badge-danger{% endif %}">{% if u.is_active %}Active{% else %}Banned{% endif %}</span></td>
+                    <td>{{ u.posts_count }}</td>
+                    <td>{{ u.comments_count }}</td>
+                    <td>{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td>{% trust_score_badge u %}</td>
+                    <td class="admin-actions-cell">
+                        <div class="admin-dropdown">
+                            <button type="button" class="admin-dropdown-trigger admin-button">Actions <i class="fa-solid fa-chevron-down"></i></button>
+                            <div class="admin-dropdown-menu">
+                                <a href="{% url 'admin_panel:user_profile' u.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Profile</a>
+                                {% if u.is_active %}
+                                <a href="{% url 'admin_panel:user_ban' u.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Ban</a>
+                                {% else %}
+                                <a href="{% url 'admin_panel:user_unban' u.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Unban</a>
+                                {% endif %}
+                                {% if not u.is_staff %}<a href="{% url 'admin_panel:user_delete' u.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-action-delete">Delete</a>{% endif %}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="admin-empty">No users.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ users.paginator.count }}</div>
+    {% if users.has_other_pages %}
+    <div class="admin-pagination">
+        {% if users.has_previous %}<a href="?page={{ users.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" class="admin-button admin-button-sm">Previous</a>{% endif %}
+        <span class="admin-pagination-info">Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+        {% if users.has_next %}<a href="?page={{ users.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" class="admin-button admin-button-sm">Next</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

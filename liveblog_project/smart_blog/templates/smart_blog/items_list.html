@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  BraiNews
+{% endblock %}
+{% block content %}
+  <div class="container-main content_block" data-brainews-listing data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}" data-search-history-url="{% url 'smart_blog:api_search_history_list' %}" data-search-history-clicked-pattern="{% url 'smart_blog:api_search_history_clicked' pk=999999 %}" data-search-history-clear-url="{% url 'smart_blog:api_search_history_clear' %}" data-search-history-delete-pattern="{% url 'smart_blog:api_search_history_delete' pk=999999 %}">
+   <div class="d-flex align-items-center justify-content-between mb-4">
+      <h4 id="brainewsListingTitle" class="text-muted m-0">BraiNews</h4>
+   </div>
+    {% if page_obj.paginator.count %}
+   <div class="mb-4">
+     {% if user.is_authenticated %}
+        {% include 'includes/filter_block.html' %}
+      {% endif %}
+   </div>
+      <div id="filterCardsWrapper" class="brainews-cards-wrapper">
+        {% include 'includes/all_cards.html' with listing_source='items_list' listing_source_url=request.get_full_path %}
+      </div>
+      <div id="itemsListPagination" class="brainews-pagination filter-pagination-extra">
+        {% include 'includes/pagination.html' %}
+      </div>
+    {% else %}
+      <h5 class="text-muted pt-4">There are not items yet</h5>
+    {% endif %}
+  </div>
+{% endblock %}
+{% block extra_js %}
+  {% if page_obj.paginator.count %}
+  <script defer src="{% static 'smart_blog/js/brainews_filter.js' %}"></script>
+  {% endif %}
+{% endblock %}

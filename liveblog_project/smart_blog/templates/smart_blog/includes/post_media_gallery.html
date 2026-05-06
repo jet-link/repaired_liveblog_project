@@ -1,0 +1,77 @@
+{% load static i18n %}
+{% if show %}
+<section
+  id="post-media-{{ item.pk }}"
+  class="post-media-pinned js-gallery"
+  aria-label="{% trans 'Attachments for this post' %}"
+  data-json-script-id="{{ script_id }}"
+>
+  {% if image_count > 0 %}
+    {{ slides|json_script:script_id }}
+  {% endif %}
+  {% if video_count > 0 %}
+    {{ video_slides|json_script:video_script_id }}
+  {% endif %}
+
+  <div class="post-media-pinned__links">
+    {% if image_count > 0 %}
+      <button type="button" class="post-media-pinned__link js-open-photo-gallery" data-json-id="{{ script_id }}">
+        <i class="fa fa-image" aria-hidden="true"></i>
+        <span>{% trans 'Pinned photos' %}</span>
+        <span class="post-media-pinned__count">{{ image_count }}</span>
+      </button>
+    {% endif %}
+    {% if video_count > 0 %}
+      <button type="button" class="post-media-pinned__link js-open-video-gallery" data-json-id="{{ video_script_id }}">
+        <i class="fa fa-video-camera" aria-hidden="true"></i>
+        <span>{% trans 'Pinned videos' %}</span>
+        <span class="post-media-pinned__count">{{ video_count }}</span>
+      </button>
+    {% endif %}
+    {% if has_pin_file %}
+      <button type="button" class="post-media-pinned__link" data-bs-toggle="modal" data-bs-target="#itemPinnedFileModal">
+        <i class="fa fa-file-text-o" aria-hidden="true"></i>
+        <span>{% trans 'Pinned file' %}</span>
+      </button>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+(function () {
+  var section = document.getElementById('post-media-{{ item.pk }}');
+  if (!section) return;
+
+  var photoBtn = section.querySelector('.js-open-photo-gallery');
+  if (photoBtn) {
+    photoBtn.addEventListener('click', function () {
+      var scriptId = photoBtn.dataset.jsonId;
+      var el = document.getElementById(scriptId);
+      if (!el) return;
+      try {
+        var slides = JSON.parse(el.textContent || '[]');
+        if (typeof window.__gallery_openAt === 'function') {
+          window.__gallery_openAt(0, slides);
+        }
+      } catch (e) {}
+    });
+  }
+
+  var videoBtn = section.querySelector('.js-open-video-gallery');
+  if (videoBtn) {
+    videoBtn.addEventListener('click', function () {
+      var scriptId = videoBtn.dataset.jsonId;
+      var el = document.getElementById(scriptId);
+      if (!el) return;
+      try {
+        var slides = JSON.parse(el.textContent || '[]');
+        if (typeof window.__videoGallery_openAt === 'function') {
+          window.__videoGallery_openAt(0, slides);
+        }
+      } catch (e) {}
+    });
+  }
+
+})();
+</script>
+{% endif %}

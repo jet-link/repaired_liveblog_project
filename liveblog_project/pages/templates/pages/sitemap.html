@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  Sitemap
+{% endblock %}
+
+{% block extra_head %}
+  <meta name="description" content="Overview of pages, topics, and content on {{ site_name }} ({{ site_domain }}). Search engines use the XML sitemap index." />
+  <link rel="alternate" type="application/xml" title="Sitemap index" href="{{ sitemap_xml_url }}" />
+{% endblock %}
+
+{% block content %}
+  <section class="faq-section sitemap-html-section" id="sitemap-page">
+    <div class="container-main">
+      <header class="sitemap-html-header">
+        <h4 class="text-muted mb-4">Sitemap</h4>
+        {% comment %} <p class="text-muted small mt-2 mb-0">
+          Key pages and fresh posts on <strong class="text-body">{{ site_domain }}</strong>.
+          Crawlers load the full URL set from <a href="{{ sitemap_xml_url }}" class="text-decoration-none">sitemap.xml</a>
+          · <a href="{{ robots_url }}" class="text-decoration-none">robots.txt</a>
+        </p> {% endcomment %}
+      </header>
+      <!-- <hr class="text-muted"/> -->
+      <div class="sitemap-html-grid">
+        <section class="sitemap-html-block" id="sitemap-main-pages" aria-labelledby="sitemap-heading-main">
+          <h4 id="sitemap-heading-main" class="sitemap-html-block-title">Main pages</h4>
+          <ul class="sitemap-html-list list-unstyled mb-0">
+            {% for row in static_links %}
+              <li><a href="{{ row.url }}" class="sitemap-html-link text-decoration-none text-muted">{{ row.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </section>
+
+        <section class="sitemap-html-block" id="sitemap-topics" aria-labelledby="sitemap-heading-topics">
+          <h4 id="sitemap-heading-topics" class="sitemap-html-block-title">Topic hubs</h4>
+          {% if topic_links %}
+            <ul class="sitemap-html-list list-unstyled mb-0">
+              {% for row in topic_links %}
+                <li><a href="{{ row.url }}" class="sitemap-html-link text-decoration-none text-muted">{{ row.label }}</a></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted small mb-0">No topics yet.</p>
+          {% endif %}
+        </section>
+
+        {% comment %} <section class="sitemap-html-block" id="sitemap-categories" aria-labelledby="sitemap-heading-categories">
+          <h3 id="sitemap-heading-categories" class="sitemap-html-block-title">Posts by category</h3>
+          {% if category_links %}
+            <ul class="sitemap-html-list list-unstyled mb-0">
+              {% for row in category_links %}
+                <li><a href="{{ row.url }}" class="sitemap-html-link text-decoration-none text-muted">{{ row.label }}</a></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted small mb-0">No categories yet.</p>
+          {% endif %}
+        </section> {% endcomment %}
+
+        <section class="sitemap-html-block" id="sitemap-tags" aria-labelledby="sitemap-heading-tags">
+          <h4 id="sitemap-heading-tags" class="sitemap-html-block-title">Tags</h4>
+          {% if tag_links %}
+            <ul class="sitemap-html-list sitemap-html-list--tags list-unstyled mb-0">
+              {% for row in tag_links %}
+                <li><a href="{{ row.url }}" class="sitemap-html-link text-decoration-none text-muted">{{ row.label }}</a></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted small mb-0">No tags yet.</p>
+          {% endif %}
+        </section>
+
+        {% comment %} <section class="sitemap-html-block sitemap-html-block--wide" id="sitemap-recent-posts" aria-labelledby="sitemap-heading-recent">
+          <h4 id="sitemap-heading-recent" class="sitemap-html-block-title">Recent posts</h4>
+          <p class="small text-muted mb-3">Latest {{ recent_total_shown }} published posts. All post URLs are included in the XML sitemap.</p>
+          {% if recent_links %}
+            <ul class="sitemap-html-list list-unstyled mb-0">
+              {% for row in recent_links %}
+                <li><a href="{{ row.url }}" class="sitemap-html-link text-decoration-none text-muted">{{ row.label }}</a></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted small mb-0">No posts yet.</p>
+          {% endif %}
+        </section> {% endcomment %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

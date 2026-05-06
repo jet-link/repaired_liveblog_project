@@ -1,0 +1,38 @@
+{# Share modal trigger is your existing link: keep it as is or add data-bs-target/data-bs-toggle #}
+{# <a href="#" class="share_link text-decoration-none" data-bs-toggle="modal" data-bs-target="#shareItemModal">... </a> #}
+
+<!-- Share modal -->
+<div class="modal fade" id="shareItemModal" tabindex="-1" aria-labelledby="shareItemModalLabel" aria-hidden="true" data-repost-api="{% url 'smart_blog:api_repost' %}">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header d-flex align-items-center justify-content-between">
+        <h5 class="modal-title text-muted" id="shareItemModalLabel">Share item</h5>
+        <button type="button" class="modal-close-btn" data-bs-dismiss="modal" aria-label="Close">×</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="small text-muted">Copy link below to share</p>
+        <div class="input-group mb-4">
+          <input id="shareLinkInput" type="text" class="form-control" readonly aria-label="Share link" value="{{ request.build_absolute_uri }}" />
+          <button id="copyShareLinkBtn" class="btn btn-outline-secondary" type="button" aria-label="Copy link to clipboard"><i class="fa fa-copy" aria-hidden="true"></i></button>
+        </div>
+
+        <div class="share-buttons">
+          <button id="shareTelegram" type="button" class="social_btn telegram_btn" data-platform="telegram"><i class="fa fa-paper-plane" aria-hidden="true"></i> Telegram</button>
+          {% comment %} <button id="shareTwitter" type="button" class="social_btn twitter_btn" data-platform="twitter">
+            <i class="fa fa-twitter" aria-hidden="true"></i>
+            Twitter
+          </button> {% endcomment %}
+          <button id="shareFacebook" type="button" class="social_btn facebook_btn" data-platform="facebook"><i class="fa fa-facebook" aria-hidden="true"></i> Facebook</button>
+          <button id="shareWhatsapp" type="button" class="social_btn whatsup_btn" data-platform="other"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</button>
+        </div>
+
+        <div id="shareCopyFeedback" class="mt-3" style="display:none;">
+          <div class="custom-alert custom-alert-success py-2 mb-0" role="alert">
+            Link copied to clipboard
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,126 @@
+/* ========== Design Tokens & Variables ========== */
+:root {
+    /* Fonts */
+    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Space Grotesk', sans-serif;
+
+    /* Ориентир высоты шапки (модалки, расчёты позиции) */
+    --header-height: 72px;
+
+    /* Spacing & Layout (align with public-breakpoints scale where possible) */
+    --gap: 13px;
+    --gap-sm: 8px;
+    --gap-lg: 24px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+    --card-radius: var(--radius-md);
+
+    /* Light theme — backgrounds */
+    --bg-default: #ffffff;
+    --bg-muted: #f6f8fa;
+    --bg-subtle: #f1f2f3;
+    /* Dim scrim: keep page visible through the overlay (blur added per-component) */
+    --bg-overlay: rgba(0, 0, 0, 0.38);
+    --overlay-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+
+    /* Light theme — text */
+    --text-default: #1f2328;
+    --text-primary: #273c75;
+    --text-muted: #6c757d;
+    --text-muted-alt: #8b949e;
+    --text-link: #2980b9;
+    --text-link-hover: #58a6ff;
+
+    /* Light theme — borders */
+    --border-default: #e6e6e6;
+    --border-muted: #e5e7eb;
+    --border-subtle: #f1f2f3;
+    --border-strong: #d0d7de;
+
+    /* Light theme — buttons & accents */
+    --btn-primary-bg: #273c75;
+    --btn-primary-fg: #ffffff;
+    --btn-primary-hover: #1e2f5c;
+    --btn-secondary-bg: transparent;
+    --btn-secondary-border: var(--border-default);
+    --btn-secondary-fg: var(--text-primary);
+    --btn-secondary-hover-bg: var(--bg-subtle);
+    /* Segmented filters (BraiNews, Topics, topic hub) — light theme selected chip */
+    --filter-chip-selected-fallback: #59cde9;
+    --filter-chip-gradient-start: #0a2a88;
+    --filter-chip-gradient-end: #59cde9;
+    --btn-radius: 8px;
+    --orange-color: #e67e22;
+    --badge-reserve-color: #82ccdd;
+
+    /* Light theme — cards & surfaces */
+    --card-bg: #ffffff;
+    --card-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    --card-shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.08);
+    --excerpt-fade: rgba(255, 255, 255, 0.85);
+
+    /* Light theme — alerts & states */
+    --danger-bg: rgba(231, 76, 60, 0.7);
+    --danger-fg: #ED4C67;
+    --success-bg: rgb(39, 174, 96, 0.7);
+    --info-bg: rgba(116, 185, 255, 0.7);
+    --warning-bg: rgba(243, 156, 18, 0.7);
+    --warning-fg: #856404;
+
+    /* Toggle */
+    --toggle-track: #e9e9ea;
+    --toggle-thumb: #ffffff;
+    --toggle-thumb-dark: #5f27cd;
+
+    /* Form fields — focus ring (color-mix with link accent) */
+    --input-focus-ring: color-mix(in srgb, var(--text-link) 28%, transparent);
+}
+
+/* GitHub-style dark theme */
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --bg-overlay: rgba(0, 0, 0, 0.55);
+    --overlay-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+    --bg-default: #0d1117;
+    --bg-muted: #161b22;
+    --bg-subtle: #21262d;
+
+    --text-default: #c9d1d9;
+    --text-primary: #8b949e;
+    --text-muted: #8b949e;
+    --text-muted-alt: #6e7681;
+    --text-link: #58a6ff;
+    --text-link-hover: #79b8ff;
+
+    --border-default: #30363d;
+    --border-muted: #21262d;
+    --border-subtle: #21262d;
+    --border-strong: #484f58;
+
+    --btn-primary-bg: #238636;
+    --btn-primary-fg: #ffffff;
+    --btn-primary-hover: #2ea043;
+    --btn-secondary-bg: #21262d;
+    --btn-secondary-border: #30363d;
+    --btn-secondary-fg: #c9d1d9;
+    --btn-secondary-hover-bg: #30363d;
+
+    --card-bg: #161b22;
+    --card-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+    --card-shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.4);
+    --excerpt-fade: rgba(22, 27, 34, 0.85);
+
+    --danger-bg: rgba(248, 81, 73, 0.2);
+    --danger-fg: #f85149;
+    --success-bg: rgba(63, 185, 80, 0.2);
+    --info-bg: rgba(56, 139, 253, 0.2);
+    --warning-bg: rgba(210, 153, 34, 0.2);
+    --warning-fg: #d4a72c;
+
+    --toggle-track: #21262d;
+    --toggle-thumb: var(--toggle-thumb-dark);
+
+    --input-focus-ring: color-mix(in srgb, var(--text-link) 32%, transparent);
+}

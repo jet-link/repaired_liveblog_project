@@ -1,0 +1,309 @@
+html[data-theme="dark"] .ck.ck-list__item .ck-button.ck-on:focus,
+html[data-theme="dark"] .ck.ck-button:focus {
+    box-shadow: none;
+    background-color: transparent;
+}
+
+/* ========== CKEditor dark theme (create_item, edit_item) ========== */
+html[data-theme="dark"] .ck-editor,
+html[data-theme="dark"] .ck.ck-editor {
+    --ck-color-base-background: var(--bg-muted);
+    --ck-color-base-foreground: var(--text-default);
+    --ck-color-base-border: var(--border-default);
+    --ck-color-text: var(--text-default);
+    --ck-color-focus-border: var(--text-link);
+    --ck-color-shadow-drop: rgba(0, 0, 0, 0.4);
+    --ck-color-shadow-inner: rgba(0, 0, 0, 0.2);
+    --ck-content-font-color: var(--text-default);
+
+    --ck-color-button-default-hover-background: var(--bg-subtle);
+    --ck-color-button-default-active-background: var(--border-strong);
+    --ck-color-button-default-active-shadow: var(--border-default);
+    --ck-color-button-on-background: var(--bg-subtle);
+    --ck-color-button-on-hover-background: var(--border-strong);
+    --ck-color-button-on-active-background: var(--border-default);
+    --ck-color-button-on-active-shadow: var(--border-strong);
+    --ck-color-button-on-disabled-background: var(--bg-subtle);
+
+    --ck-color-toolbar-background: var(--bg-muted);
+    --ck-color-toolbar-border: var(--border-default);
+    --ck-color-dropdown-panel-border: var(--border-default);
+    --ck-color-input-border: var(--border-default);
+    --ck-color-input-text: var(--text-default);
+    --ck-color-input-disabled-background: var(--bg-default);
+    --ck-color-input-disabled-border: var(--border-muted);
+    --ck-color-input-disabled-text: var(--text-muted);
+    --ck-color-panel-border: var(--border-default);
+    --ck-color-tooltip-background: var(--bg-subtle);
+    --ck-color-tooltip-text: var(--text-default);
+    --ck-color-link-default: var(--text-link);
+}
+
+html[data-theme="dark"] .ck-toolbar,
+html[data-theme="dark"] .ck.ck-toolbar {
+    background: var(--bg-muted) !important;
+    border-color: var(--border-default) !important;
+}
+
+html[data-theme="dark"] .ck-toolbar .ck-button,
+html[data-theme="dark"] .ck-toolbar .ck.ck-button {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .ck-toolbar .ck-button:hover,
+html[data-theme="dark"] .ck-toolbar .ck.ck-button:hover {
+    color: var(--text-default) !important;
+}
+
+html[data-theme="dark"] .ck-toolbar .ck-button .ck-icon,
+html[data-theme="dark"] .ck-toolbar .ck.ck-button .ck-icon,
+html[data-theme="dark"] .ck-toolbar .ck-dropdown__button .ck-icon,
+html[data-theme="dark"] .ck-toolbar .ck-icon * {
+    color: var(--text-muted) !important;
+    fill: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .ck-toolbar .ck-dropdown__button,
+html[data-theme="dark"] .ck-toolbar .ck.ck-dropdown__button {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .ck-toolbar .ck-dropdown__button .ck-button__label {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .ck-editor__top,
+html[data-theme="dark"] .ck.ck-editor__top {
+    background: var(--bg-muted) !important;
+    border-color: var(--border-default) !important;
+}
+
+html[data-theme="dark"] .ck-toolbar .ck-toolbar__separator {
+    background: var(--border-default) !important;
+}
+
+html[data-theme="dark"] .ck-dropdown__panel,
+html[data-theme="dark"] .ck.ck-dropdown__panel,
+html[data-theme="dark"] .ck.ck-reset.ck-dropdown__panel,
+html[data-theme="dark"] .ck-dropdown__panel.ck-dropdown__panel_se,
+html[data-theme="dark"] .ck-dropdown__panel.ck-dropdown__panel-visible,
+html[data-theme="dark"] .ck-balloon-panel {
+    background: var(--bg-muted) !important;
+    border-color: var(--border-default) !important;
+}
+
+html[data-theme="dark"] .ck-dropdown__panel .ck-list,
+html[data-theme="dark"] .ck-dropdown__panel .ck.ck-list {
+    background: var(--bg-muted) !important;
+    color: var(--text-default);
+}
+
+html[data-theme="dark"] .ck-list__item .ck-button,
+html[data-theme="dark"] .ck-list .ck-button {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .ck-list__item .ck-button:hover,
+html[data-theme="dark"] .ck-list .ck-button:hover {
+    color: var(--text-default) !important;
+    background: var(--bg-subtle) !important;
+}
+
+html[data-theme="dark"] .ck-editor__editable,
+html[data-theme="dark"] .ck.ck-editor__editable {
+    background: var(--bg-muted) !important;
+    border-color: var(--border-default) !important;
+    color: var(--text-default);
+}
+
+html[data-theme="dark"] .ck-editor__editable a,
+html[data-theme="dark"] .ck.ck-editor__editable a {
+    color: var(--text-link);
+}
+
+html[data-theme="dark"] .ck-editor .ck-content pre {
+    background-color: var(--bg-default);
+    border-color: var(--border-default);
+    color: var(--text-default);
+}
+
+html[data-theme="dark"] .ck-editor .ck-content code {
+    background-color: var(--bg-subtle);
+    color: var(--text-default);
+    border: 1px solid var(--border-default);
+}
+
+html[data-theme="dark"] .ck-editor .ck-content blockquote {
+    border-left-color: var(--border-strong);
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .ck-editor .ck-content th,
+html[data-theme="dark"] .ck-editor .ck-content td {
+    border-color: var(--border-default);
+    background-color: var(--bg-muted);
+    color: var(--text-default);
+}
+
+/* CKEditor content display (item_detail) — dark theme */
+html[data-theme="dark"] .item-text.ck-content pre {
+    background-color: var(--bg-default);
+    border-color: var(--border-default);
+    color: var(--text-default);
+}
+
+html[data-theme="dark"] .item-text.ck-content code {
+    background-color: var(--bg-subtle);
+    color: var(--text-default);
+    border: 1px solid var(--border-default);
+}
+
+html[data-theme="dark"] .item-text.ck-content blockquote {
+    border-left-color: var(--border-strong);
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .item-text.ck-content th,
+html[data-theme="dark"] .item-text.ck-content td {
+    border-color: var(--border-default);
+    background-color: var(--bg-muted);
+    color: var(--text-default);
+}
+
+.ck-editor__editable_inline {
+    min-height: 420px;
+    /* поставь нужное значение */
+    max-height: 420px !important;
+    overflow: auto !important;
+}
+
+.ck-powered-by {
+    display: none !important;
+}
+
+/* ========== CKEditor content — корректное наследование Bootstrap ========== */
+/* 1) Не трогаем все элементы (*) — только контейнер, параграфы и блок-элементы. */
+.item-text.ck-content,
+.ck-content {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: inherit;
+}
+
+/* обычные текстовые блоки */
+.ck-content p,
+.item-text.ck-content p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+/* заголовки — немного более явные отступы */
+.ck-content h1,
+.ck-content h2,
+.ck-content h3,
+.ck-content h4,
+.ck-content h5,
+.ck-content h6 {
+    margin-top: 1rem;
+    margin-bottom: .5rem;
+    font-weight: 600;
+}
+
+/* таблицы: делаем аккуратные границы и padding, но не трогаем layout слишком радикально */
+.ck-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    table-layout: auto;
+    /* пусть таблица сама решает ширину колонок */
+}
+
+.ck-content th,
+.ck-content td {
+    border: 1px solid #dee2e6;
+    padding: .6rem .75rem;
+    vertical-align: top;
+    text-align: left;
+    background-clip: padding-box;
+}
+
+/* переопределяем слишком «высокую» межстрочность в код-блоках */
+.ck-content pre {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    padding: 1rem;
+    overflow: auto;
+    white-space: pre-wrap;
+    /* чтобы длинные строки переносились, если нужно */
+    line-height: 1.4;
+    /* чуть более плотный */
+    margin-bottom: 1rem;
+}
+
+/* inline code */
+.ck-content code {
+    background-color: #f1f3f5;
+    padding: .15rem .35rem;
+    border-radius: .2rem;
+    font-size: .95em;
+}
+
+/* blockquote — вид, похожий на Bootstrap */
+.ck-content blockquote {
+    margin: 0 0 1rem;
+    padding: .5rem 1rem;
+    border-left: .25rem solid #dee2e6;
+    color: var(--text-muted);
+    background: transparent;
+}
+
+/* Ограничение ширины текста для удобочитаемости (опционально) */
+.item-text.ck-content {
+    max-width: 100%;
+}
+
+.ck-editor__editable_inline {
+    min-height: 500px !important;
+    /* можешь поставить любое значение */
+}
+
+
+/* бейдж языка (маленький прямоугольник в правом верхнем углу блока pre) */
+pre.has-code-lang {
+    position: relative;
+    padding-top: 1.6rem;
+    /* чтобы бейдж не накрывал код */
+}
+
+pre .code-lang-badge {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 12px;
+    line-height: 1;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    z-index: 6;
+    pointer-events: none;
+    text-transform: lowercase;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+}
+
+/* если хочешь отличать (например для python — синий) — можно дать класс .lang-python */
+pre .code-lang-badge {
+    background: #192a56;
+}
+
+/* базовые стили для <pre> чтобы не ломать вид */
+pre {
+    position: relative;
+    overflow: auto;
+    background: #0b0b0b;
+    color: #e6e6e6;
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+}

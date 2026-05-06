@@ -1,0 +1,14 @@
+# Скопируйте блок в ~/.ssh/config на Mac (объедините с существующим файлом).
+# Важно: один Host — один логин; удалите дубликаты с User root и тем же IP.
+
+Host brainstorm-server
+    HostName 161.35.19.91
+    User brainstorm
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    ConnectTimeout 60
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    TCPKeepAlive yes
+
+# Если ключ не ed25519, замените IdentityFile на ~/.ssh/id_rsa или путь к своему ключу.

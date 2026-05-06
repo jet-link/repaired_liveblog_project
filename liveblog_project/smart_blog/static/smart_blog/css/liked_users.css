@@ -1,0 +1,272 @@
+.liked-users-block {
+    min-width: 220px;
+    min-height: 65px;
+}
+
+.liked-users-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: 80%;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.liked-users-link.is-hidden {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.liked-users-link:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.liked-users-link:focus {
+    outline: none;
+}
+
+.liked-users-stack {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 32px;
+    cursor: pointer;
+}
+.liked-users-stack:focus,
+.liked-users-stack:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.liked-user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-default);
+    background: var(--bg-subtle);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.liked-users-stack .liked-user-avatar {
+    margin-left: -10px;
+    opacity: 0;
+    animation: likedStackAvatarIn 0.38s cubic-bezier(0.34, 1.25, 0.52, 1) forwards;
+}
+
+.liked-users-stack .liked-user-avatar:first-child {
+    margin-left: 0;
+}
+
+.liked-users-stack .liked-user-avatar:nth-child(1) {
+    animation-delay: 0ms;
+}
+
+.liked-users-stack .liked-user-avatar:nth-child(2) {
+    animation-delay: 45ms;
+}
+
+.liked-users-stack .liked-user-avatar:nth-child(3) {
+    animation-delay: 90ms;
+}
+
+.liked-users-stack .liked-user-avatar:nth-child(4) {
+    animation-delay: 135ms;
+}
+
+.liked-users-stack .liked-user-avatar:nth-child(5) {
+    animation-delay: 180ms;
+}
+
+/* Before rebuild (sync after like/unlike), existing avatars fade out */
+.liked-users-stack.is-refreshing-out .liked-user-avatar {
+    animation: none;
+    opacity: 0;
+    transform: scale(0.88);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+@keyframes likedStackAvatarIn {
+    from {
+        opacity: 0;
+        transform: scale(0.75) translateX(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .liked-users-stack .liked-user-avatar {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .liked-users-stack.is-refreshing-out .liked-user-avatar {
+        animation: none;
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+.liked-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/*
+ * One fixed stacking root (matches Bootstrap: backdrop is not a second fixed layer nested inside).
+ * Nested position:fixed + scroll-locked body can composite scrim as opaque on iOS WebKit.
+ */
+.liked-users-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    align-items: stretch;
+    justify-items: stretch;
+    isolation: isolate;
+    background: transparent;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+}
+
+.liked-users-overlay.hidden {
+    display: none;
+}
+
+/*
+ * Same dimmer as Bootstrap .modal-backdrop: rgba only, no backdrop-filter.
+ * Stays inside the single fixed overlay (grid cell) — not position:fixed (avoids nested-fixed bugs).
+ */
+.liked-users-backdrop {
+    grid-column: 1;
+    grid-row: 1;
+    position: relative;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.52);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-theme="dark"] .liked-users-backdrop {
+    background: rgba(0, 0, 0, 0.72);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .liked-users-backdrop {
+        background: rgba(0, 0, 0, 0.55);
+    }
+
+    html[data-theme="dark"] .liked-users-backdrop {
+        background: rgba(0, 0, 0, 0.72);
+    }
+}
+
+.liked-users-panel {
+    grid-column: 1;
+    grid-row: 1;
+    position: relative;
+    z-index: 1;
+    width: min(620px, 94vw);
+    justify-self: center;
+    align-self: center;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.liked-users-search-wrap {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.liked-users-search-input {
+    min-width: 160px;
+    max-width: 160px;
+    width: 200px;
+    padding: 5px 12px;
+    font-size: .775rem;
+    flex-shrink: 1;
+    box-sizing: border-box;
+}
+
+.liked-users-list-container {
+    position: relative;
+    padding: 0 20px 20px 20px;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.liked-users-header {
+    padding: 20px 20px 0 20px;
+    flex-shrink: 0;
+}
+
+.liked-users-panel > hr {
+    flex-shrink: 0;
+}
+
+.liked-users-header-actions {
+    flex-shrink: 0;
+}
+
+.liked-users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 16px;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.liked-users-empty-msg {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted, #6c757d);
+    font-size: 1.1rem;
+}
+
+.liked-users-item {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.liked-users-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.liked-users-item .custom_badge {
+    text-transform: none;
+}

@@ -1,0 +1,6 @@
+<div class="profile-section-page">
+  {% if items %}
+    {% include 'includes/profile_created_posts_grid.html' with items=items trending_item_ids=trending_item_ids listing_source='profile' listing_user=user_obj.username listing_section=section %}
+    {% include 'includes/pagination.html' %}
+  {% endif %}
+</div>

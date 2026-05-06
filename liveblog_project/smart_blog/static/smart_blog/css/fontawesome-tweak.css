@@ -1,0 +1,23 @@
+/* Loaded after font-awesome.min.css: faster text/icon paint (swap), preload woff2 in base.html */
+@font-face {
+    font-family: "FontAwesome";
+    font-display: swap;
+    font-weight: normal;
+    font-style: normal;
+    src: url("../vendor/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0") format("woff2"),
+        url("../vendor/fontawesome/fonts/fontawesome-webfont.woff?v=4.7.0") format("woff");
+}
+
+/*
+ * FA4 sets `.fa { font: normal normal normal 14px/1 FontAwesome; }` after our bundles.
+ * Restoring `font-size` alone loses to that shorthand — must reset full `font` for overrides.
+ */
+.mobile-bottom-nav .fa.mobile-bottom-nav__icon {
+    /* Scales with viewport so six tabs stay balanced on narrow phones */
+    font: normal normal normal clamp(1.2rem, 0.76rem + 1.35vw, 1.68rem) / 1 FontAwesome;
+}
+
+.mobile-nav-account-popover .fa.mobile-nav-account-popover__ico {
+    font: normal normal normal 1.0625rem / 1 FontAwesome;
+    width: 1.35rem;
+}

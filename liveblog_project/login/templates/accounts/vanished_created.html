@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load counters %}
+{% block title %}
+  Deleted user — Created
+{% endblock %}
+{% block content %}
+  <div class="container-main content_block">
+    {% include 'includes/breadcrumbs.html' %}
+    {% if items %}
+      {% include 'includes/all_cards.html' with items=items listing_source='vanished' %}
+      {% include 'includes/pagination.html' %}
+    {% else %}
+      <p class="text-muted">No posts.</p>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{# Bottom nav: body data-turbo="false"; bar data-turbo="true"; permanent node. Login/sign-out data-turbo="false". Popovers live inside __inner so clicks are not swallowed by nav pointer-events. #}
+{% with ns=request.resolver_match.namespace|default:'' un=request.resolver_match.url_name|default:'' slug_user=request.resolver_match.kwargs.username|default:'' %}
+<nav class="mobile-bottom-nav{% if un == 'post_detail' %} mobile-bottom-nav--hidden-on-detail{% endif %}" aria-label="Mobile primary" id="mobileBottomNav" data-turbo-permanent data-turbo="true"{% if un == 'post_detail' %} aria-hidden="true" inert{% else %} aria-hidden="false"{% endif %}>
+  <div class="mobile-bottom-nav__inner">
+    <div class="mobile-bottom-nav__scroll">
+      <div class="mobile-bottom-nav__track">
+        <span class="mobile-bottom-nav__slide" aria-hidden="true"></span>
+        <a href="{% url 'smart_blog:items_list' %}" class="mobile-bottom-nav__link mobile-bottom-nav__nav-cell{% if ns == 'smart_blog' and un == 'items_list' %} mobile-bottom-nav__link--active{% endif %}">
+          <span class="mobile-bottom-nav__icon-wrap" aria-hidden="true">
+            <i class="fa fa-newspaper-o mobile-bottom-nav__icon" aria-hidden="true"></i>
+          </span>
+          <span class="mobile-bottom-nav__label">BraiNews</span>
+        </a>
+
+        <a href="{% url 'smart_blog:trending_list' %}" class="mobile-bottom-nav__link mobile-bottom-nav__nav-cell{% if ns == 'smart_blog' and un == 'trending_list' %} mobile-bottom-nav__link--active{% endif %}">
+          <span class="mobile-bottom-nav__icon-wrap" aria-hidden="true">
+            <i class="fa fa-fire mobile-bottom-nav__icon" aria-hidden="true"></i>
+          </span>
+          <span class="mobile-bottom-nav__label">In trend</span>
+        </a>
+
+        <a href="{% url 'smart_blog:topics_list' %}" class="mobile-bottom-nav__link mobile-bottom-nav__nav-cell{% if ns == 'smart_blog' and un == 'topics_list' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'topic_detail' %} mobile-bottom-nav__link--active{% endif %}">
+          <span class="mobile-bottom-nav__icon-wrap" aria-hidden="true">
+            <i class="fa fa-compass mobile-bottom-nav__icon" aria-hidden="true"></i>
+          </span>
+          <span class="mobile-bottom-nav__label">Topics</span>
+        </a>
+
+        <div class="mobile-bottom-nav__tail-group">
+          {% if user.is_authenticated %}
+            <div class="mobile-bottom-nav__account mobile-bottom-nav__nav-cell">
+              <button type="button"
+                class="mobile-bottom-nav__link mobile-bottom-nav__more-btn{% if slug_user == user.username and un == 'profile' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-section' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'notifications' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-edit' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'create_post' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'edit_post' %} mobile-bottom-nav__link--active{% endif %}"
+                id="mobileNavMoreBtn"
+                aria-label="Account menu"
+                aria-expanded="false"
+                aria-controls="mobileNavAccountPopover"
+                aria-haspopup="true">
+                <span class="mobile-bottom-nav__icon-wrap mobile-bottom-nav__icon-wrap--ellipsis" aria-hidden="true">
+                  <span class="mobile-nav-ellipsis"><span></span><span></span><span></span></span>
+                </span>
+                <span class="mobile-bottom-nav__label">Profile</span>
+              </button>
+            </div>
+          {% else %}
+            <a href="{% url 'login_app:login' %}" data-turbo="false" class="mobile-bottom-nav__link mobile-bottom-nav__nav-cell{% if ns == 'login_app' and un == 'login' %} mobile-bottom-nav__link--active{% endif %}">
+              <span class="mobile-bottom-nav__icon-wrap" aria-hidden="true">
+                <i class="fa fa-sign-in mobile-bottom-nav__icon" aria-hidden="true"></i>
+              </span>
+              <span class="mobile-bottom-nav__label">Sign in</span>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Popovers outside __inner so .mobile-bottom-nav__scroll height = tabs only (~113px bug was extra in-flow siblings). #}
+  {% if user.is_authenticated %}
+  <div class="mobile-nav-account-popover" id="mobileNavAccountPopover" role="dialog" aria-label="Account" aria-hidden="true">
+    <a href="{% url 'login_app:profile' user.username %}" class="mobile-nav-account-popover__row{% if slug_user == user.username and un == 'profile' %} mobile-nav-account-popover__row--active{% elif slug_user == user.username and un == 'profile-section' %} mobile-nav-account-popover__row--active{% endif %}">
+      <i class="fa fa-user-circle mobile-nav-account-popover__ico" aria-hidden="true"></i>
+      <span class="mobile-nav-account-popover__text">{{ user.username }}</span>
+    </a>
+    <a href="{% url 'login_app:notifications' user.username %}" class="mobile-nav-account-popover__row notification-btn{% if notifications_count %} has-unread{% endif %}{% if slug_user == user.username and un == 'notifications' %} mobile-nav-account-popover__row--active{% endif %}"{% if notifications_count %} data-notifications-count="{{ notifications_count }}"{% endif %}>
+      <i class="fa fa-bell mobile-nav-account-popover__ico" aria-hidden="true"></i>
+      <span class="mobile-nav-account-popover__text">Notifications</span>
+    </a>
+    <a href="{% url 'smart_blog:create_post' %}" class="mobile-nav-account-popover__row{% if ns == 'smart_blog' and un == 'create_post' %} mobile-nav-account-popover__row--active{% endif %}">
+      <i class="fa fa-plus mobile-nav-account-popover__ico" aria-hidden="true"></i>
+      <span class="mobile-nav-account-popover__text">Create post</span>
+    </a>
+    <a href="{% url 'login_app:profile-edit' user.username %}" class="mobile-nav-account-popover__row{% if slug_user == user.username and un == 'profile-edit' %} mobile-nav-account-popover__row--active{% endif %}">
+      <i class="fa fa-cog mobile-nav-account-popover__ico" aria-hidden="true"></i>
+      <span class="mobile-nav-account-popover__text">Edit profile</span>
+    </a>
+    <a href="#" data-turbo="false" class="mobile-nav-account-popover__row mobile-nav-account-popover__row--danger signout-trigger">
+      <i class="fa fa-sign-out mobile-nav-account-popover__ico" aria-hidden="true"></i>
+      <span class="mobile-nav-account-popover__text">Sign out</span>
+    </a>
+  </div>
+  {% endif %}
+</nav>
+{% endwith %}

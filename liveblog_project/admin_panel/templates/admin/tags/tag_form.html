@@ -1,0 +1,13 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}{% if is_create %}Create{% else %}Edit{% endif %} Tag{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:tags_list' %}">Tags</a></li><li class="admin-breadcrumbs-item">{% if is_create %}Create{% else %}Edit{% endif %}</li></ol></nav>{% endblock %}
+{% block page_title %}{% if is_create %}Create Tag{% else %}Edit {{ tag.tag_name }}{% endif %}{% endblock %}
+{% block content %}
+<div class="admin-card">
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+        <div class="admin-form-group"><label for="id_tag_name">Tag name</label><input type="text" id="id_tag_name" name="tag_name" value="{% if tag %}{{ tag.tag_name }}{% endif %}" class="admin-input" placeholder="{% if is_create %}Tag name or multiple tags separated by spaces{% else %}Tag name{% endif %}" required></div>
+        <div class="admin-form-actions"><button type="submit" class="admin-button admin-button-primary">{% if is_create %}Create{% else %}Save{% endif %}</button><a href="{% url 'admin_panel:tags_list' %}" class="admin-button admin-button-outline">Cancel</a></div>
+    </form>
+</div>
+{% endblock %}

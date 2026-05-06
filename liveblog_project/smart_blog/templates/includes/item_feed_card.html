@@ -1,0 +1,148 @@
+{% load static %}
+{% load counters %}
+{% load user_status %}
+<span class="item-anchor" id="item-anchor-{{ item.pk }}"></span>
+<article id="item-{{ item.pk }}"
+  class="trending-card trending-card--feed item_block item-feed-card {% if item.has_photos or item.has_videos or item.body_pin_original %}item-feed-card--has-media{% else %}item-feed-card--no-media{% endif %} position-relative"
+  data-item-id="{{ item.pk }}">
+  <div class="row g-0 h-100">
+    {% comment %}
+    Thumbnails / feed preview images — restore later.
+    {% with img_count=item.images.count %}
+    {% if img_count > 0 %}
+    <div class="trending-card__img-wrap col-12 col-md-4">
+      <a href="{{ item.get_absolute_url }}" class="d-block h-100 trending-card__img-link text-decoration-none{% if img_count > 1 %} item-feed-card__img-link--grid{% endif %}" tabindex="-1" aria-hidden="true">
+        {% if img_count == 1 %}
+          <img src="{{ item.images.first.get_thumbnail_url }}" alt="" class="trending-card__img" loading="lazy" decoding="async" />
+        {% else %}
+          <div class="item-feed-card__thumb-grid item-feed-card__thumb-grid--n{% if img_count > 10 %}10{% else %}{{ img_count }}{% endif %}">
+            {% for img in item.images.all|slice:":10" %}
+              <div class="item-feed-card__thumb-slot">
+                <img src="{{ img.get_thumbnail_url }}" alt="" class="item-feed-card__thumb-cell" loading="lazy" decoding="async" />
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </a>
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% endcomment %}
+    <div class="col col-12 d-flex flex-column">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+          <div class="d-flex align-items-center gap-2">
+            {% include 'includes/user_avatar.html' with author=item.author %}
+          </div>
+          <div class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-end">
+            {% if item.category %}
+              <span class="item-category-badge">{{ item.category.name }}</span>
+            {% else %}
+              <small class="primary_ fw-semibold">No category</small>
+            {% endif %}
+            {% if user.is_authenticated %}
+              {% if not item.author_id or user.id != item.author_id %}
+                <span id="reading-badge-{{ item.pk }}" class="item-reading-badge"{% if not item.user_bookmarked %} hidden{% endif %}>I'll read it</span>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+        <h3 class="m-0 item-feed-card__title">{{ item.title }}</h3>
+        <hr class="text-muted" />
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted mb-3">
+          <div class="d-inline-flex align-items-center gap-2">
+            <i class="fa fa-calendar-o" aria-hidden="true"></i>
+            <small class="fw-semibold">{{ item.human_published }}</small>
+          </div>
+          {% if item.has_photos or item.has_videos or item.body_pin_original %}
+            <div class="item-feed-card__media-preview">
+              {% comment %} Thumbnail stack — restore when item-feed-card__image-stack is needed again.
+              {% if item.has_photos %}
+                <div class="item-feed-card__image-stack" aria-hidden="true">
+                  {% for img in item.images.all %}
+                    {% if forloop.counter <= 5 %}
+                      <span class="item-feed-card__stack-disc" style="z-index: {{ forloop.counter }}">
+                        <img src="{{ img.get_thumbnail_url }}" alt="" loading="lazy" decoding="async" width="30" height="30" />
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% elif item.has_videos %}
+                {% with vid=item.videos.first %}
+                  {% if vid %}
+                    <div class="item-feed-card__image-stack item-feed-card__image-stack--video-only" aria-hidden="true">
+                      <span class="item-feed-card__stack-disc">
+                        {% if vid.thumbnail %}
+                          <img src="{{ vid.thumbnail.url }}" alt="" loading="lazy" decoding="async" width="30" height="30" />
+                        {% else %}
+                          <span class="item-feed-card__video-fallback"><i class="fa fa-video-camera" aria-hidden="true"></i></span>
+                        {% endif %}
+                      </span>
+                    </div>
+                  {% endif %}
+                {% endwith %}
+              {% endif %}
+              {% endcomment %}
+              <div class="feed-card-pin">
+                <i class="fa fa-thumb-tack" aria-hidden="true"></i>
+                <span class="feed-card-pin__labels">
+                  {% if item.has_photos %}photos{% endif %}
+                  {% if item.has_photos and item.has_videos %} + {% endif %}
+                  {% if item.has_videos %}videos{% endif %}
+                  {% if item.body_pin_original %}
+                    {% if item.has_photos or item.has_videos %} + {% endif %}file
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <p class="card-text flex-grow-1 text-muted excerpt-html excerpt-html--feed-sm d-md-none mb-3">{{ item.list_excerpt|truncatechars:450 }}</p>
+        <p class="card-text flex-grow-1 text-muted excerpt-html excerpt-html--feed-lg d-none d-md-block mb-3">{{ item.list_excerpt|truncatechars:750 }}</p>
+        <div class="d-flex pt-2 feed-card-bottom-row">
+          <div class="d-flex align-items-center VLB">
+            <div class="item-stats item-stats--feed d-inline-flex align-items-center flex-wrap">
+              <div class="stat stat--views">
+                <span id="views-count-{{ item.pk }}">{{ item.views_count|human }}</span>
+                <i class="fa fa-eye" aria-hidden="true"></i>
+              </div>
+              <div class="stat stat--likes">
+                <span id="likes-count-{{ item.pk }}">{{ item.likes_count|human }}</span>
+                <i class="fa fa-heart" aria-hidden="true"></i>
+              </div>
+              <div class="stat stat--reposts">
+                <span id="reposts-count-{{ item.pk }}">{{ item.reposts_count|human }}</span>
+                <i class="fa fa-retweet" aria-hidden="true"></i>
+              </div>
+              <div class="stat stat--comments">
+                <span id="comments-count-{{ item.pk }}">{{ item.comments_count|human }}</span>
+                <i class="fa fa-comment" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% if listing_source == 'profile' and listing_user and listing_section %}
+          <a href="{{ item.get_absolute_url }}?from=profile&amp;user={{ listing_user|urlencode }}&amp;section={{ listing_section }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% elif listing_source == 'profile' and listing_user %}
+          <a href="{{ item.get_absolute_url }}?from=profile&amp;user={{ listing_user|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% elif listing_source == 'items_list' and listing_source_url %}
+          <a href="{{ item.get_absolute_url }}?from=items_list&amp;source_url={{ listing_source_url|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% elif listing_source == 'for_you' and listing_source_url %}
+          <a href="{{ item.get_absolute_url }}?from=for_you&amp;source_url={{ listing_source_url|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% elif listing_source == 'popular' and listing_source_url %}
+          <a href="{{ item.get_absolute_url }}?from=popular&amp;source_url={{ listing_source_url|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% elif listing_source == 'search' and listing_source_url and listing_query %}
+          <a href="{{ item.get_absolute_url }}?from=search&amp;source_url={{ listing_source_url|urlencode }}&amp;query={{ listing_query|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% elif listing_source == 'tag' and listing_source_url and listing_tag %}
+          <a href="{{ item.get_absolute_url }}?from=tag&amp;source_url={{ listing_source_url|urlencode }}&amp;tag={{ listing_tag|urlencode }}&amp;tag_slug={{ listing_tag_slug|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% elif listing_source == 'topic' and listing_source_url and listing_category %}
+          <a href="{{ item.get_absolute_url }}?from=topic&amp;source_url={{ listing_source_url|urlencode }}&amp;category={{ listing_category|urlencode }}&amp;category_slug={{ listing_category_slug|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% elif listing_source == 'category' and listing_source_url and listing_category %}
+          <a href="{{ item.get_absolute_url }}?from=topic&amp;source_url={{ listing_source_url|urlencode }}&amp;category={{ listing_category|urlencode }}&amp;category_slug={{ listing_category_slug|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% else %}
+          <a href="{{ item.get_absolute_url }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</article>

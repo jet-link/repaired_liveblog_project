@@ -1,0 +1,8 @@
+{% load static %}
+<div class="little-avatar">
+{% if user.profile.avatar_file or user.profile.avatar_url %}
+    <img src="{{ user.profile.get_avatar }}" alt="{{ user.username }}" class="user-avatar clickable-avatar" width="30" height="30" decoding="async" loading="eager" data-full="{{ user.profile.get_avatar }}" data-username="{{ user.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+  {% else %}
+    <img src="{% static 'img/no_avatar.svg' %}" alt="{{ user.username }}" class="user-avatar no_avatar" width="30" height="30" decoding="async" loading="eager" data-username="{{ user.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+  {% endif %}
+</div>

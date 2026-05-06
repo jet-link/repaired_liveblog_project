@@ -1,0 +1,10 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Ban User{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:reports_list' %}{% if next_qs %}?{{ next_qs }}{% endif %}">Reports</a></li><li class="admin-breadcrumbs-item">Ban</li></ol></nav>{% endblock %}
+{% block page_title %}Ban {{ user_obj.username }}?{% endblock %}
+{% block content %}
+<div class="admin-card admin-modal-card">
+    <h3>Ban user {{ user_obj.username }} (reported content author)?</h3>
+    <form method="post" action="{% url 'admin_panel:report_ban_user' report.pk %}{% if next_qs %}?{{ next_qs }}{% endif %}" class="admin-form-actions">{% csrf_token %}<button type="submit" class="admin-button admin-button-danger">Ban</button><a href="{% url 'admin_panel:reports_list' %}{% if next_qs %}?{{ next_qs }}{% endif %}" class="admin-button admin-button-outline">Cancel</a></form>
+</div>
+{% endblock %}

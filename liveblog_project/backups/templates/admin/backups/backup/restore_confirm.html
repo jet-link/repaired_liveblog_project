@@ -1,0 +1,80 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Confirm Restore" %} | {{ site_title|default:_('Admin') }}{% endblock %}
+
+{% block content %}
+<div class="module backup-restore-confirm">
+  <h2>{% translate "Confirm restore" %}</h2>
+
+  <p class="backup-restore-warning">
+    {% blocktranslate with backup_name=backup.name %}
+    You are about to restore backup:
+    {% endblocktranslate %}
+  </p>
+  <p class="backup-restore-name"><strong>{{ backup.name }}</strong></p>
+  <p class="backup-restore-meta">{{ backup.file_size_human }} · {{ backup.filename_display }}</p>
+  <p class="errornote">
+    {% blocktranslate %}
+    This will overwrite current database and media files. All current data will be replaced.
+    It is recommended to restart the server after restore.
+    {% endblocktranslate %}
+  </p>
+
+  <form method="post" id="restore-confirm-form">
+    {% csrf_token %}
+    <input type="hidden" name="confirm" value="yes">
+
+    <div class="form-row backup-confirm-type-restore">
+      <label for="id_confirm_text">{% translate "Type RESTORE to confirm:" %}</label>
+      <input type="text" id="id_confirm_text" name="confirm_text" placeholder="RESTORE" autocomplete="off"
+             maxlength="10" class="backup-confirm-input">
+      <span class="backup-confirm-hint" id="confirm-hint"></span>
+    </div>
+
+    <div class="form-row backup-checkbox-row">
+      <label>
+        <input type="checkbox" name="backup_before_restore" value="yes"
+               {% if backup_before_restore %}checked{% endif %}
+               id="id_backup_before_restore">
+        {% translate "Create safety backup before restore" %}
+      </label>
+    </div>
+
+    <div class="submit-row">
+      <a href="{% url 'admin:backups_backup_changelist' %}" class="button">{% translate "Cancel" %}</a>
+      <input type="submit" value="{% translate 'Restore' %}" class="default" id="restore-submit" disabled>
+    </div>
+  </form>
+</div>
+
+<script>
+(function() {
+  var input = document.getElementById('id_confirm_text');
+  var submitBtn = document.getElementById('restore-submit');
+  var hint = document.getElementById('confirm-hint');
+  var checkbox = document.getElementById('id_backup_before_restore');
+  var form = document.getElementById('restore-confirm-form');
+
+  function checkConfirm() {
+    var val = (input.value || '').trim().toUpperCase();
+    if (val === 'RESTORE') {
+      submitBtn.disabled = false;
+      hint.textContent = '';
+      hint.classList.remove('error');
+    } else {
+      submitBtn.disabled = true;
+      if (val) {
+        hint.textContent = '{% translate "Type RESTORE exactly" %}';
+        hint.classList.add('error');
+      } else {
+        hint.textContent = '';
+      }
+    }
+  }
+  input.addEventListener('input', checkConfirm);
+  input.addEventListener('keyup', checkConfirm);
+
+})();
+</script>
+{% endblock %}

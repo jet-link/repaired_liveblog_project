@@ -1,0 +1,19 @@
+[Unit]
+Description=Liveblog Gunicorn (Django)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/brainstorm/liveblog_project/liveblog_project
+EnvironmentFile=/home/brainstorm/liveblog_project/.env
+ExecStart=/home/brainstorm/liveblog_project/venv/bin/gunicorn \
+  --bind 127.0.0.1:8000 \
+  --workers 1 \
+  --threads 2 \
+  --timeout 120 \
+  liveblog_project.wsgi:application
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

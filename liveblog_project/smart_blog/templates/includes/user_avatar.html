@@ -1,0 +1,24 @@
+{% load static %}
+{% load user_status %}
+{% if author %}
+  {% if author.is_active %}
+    <div class="little-avatar{% if user == author %} avatar-ring{% endif %}">
+      {% if author.profile.avatar_url or author.profile.avatar_file %}
+        <img src="{{ author.profile.get_avatar }}" alt="{{ author }}" class="user-avatar clickable-avatar" width="{{ size|default:'30' }}" height="{{ size|default:'30' }}" loading="eager" decoding="async" data-full="{{ author.profile.get_avatar }}" data-username="{{ author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+      {% else %}
+        <img src="{% static 'img/no_avatar.svg' %}" alt="{{ author }}" class="user-avatar no_avatar" width="{{ size|default:'30' }}" height="{{ size|default:'30' }}" loading="eager" decoding="async" data-username="{{ author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+      {% endif %}
+    </div>
+    <small class="d-inline-block text-primary-emphasis fw-semibold text-muted">{{ author }}</small>
+  {% else %}
+    <div class="little-avatar">
+      <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display author %}" class="user-avatar" width="{{ size|default:'30' }}" height="{{ size|default:'30' }}" loading="eager" decoding="async" />
+    </div>
+    <small class="d-inline-block text-primary-emphasis fw-semibold text-muted">{% user_status_display author %}</small>
+  {% endif %}
+{% else %}
+  <div class="little-avatar">
+    <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display author %}" class="user-avatar" width="{{ size|default:'40' }}" height="{{ size|default:'40' }}" loading="eager" decoding="async" />
+  </div>
+  <small class="d-inline-block text-primary-emphasis fw-semibold text-muted">{% user_status_display author %}</small>
+{% endif %}

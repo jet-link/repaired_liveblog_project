@@ -1,0 +1,49 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Categories{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Categories</li></ol></nav>{% endblock %}
+{% block page_title %}Categories{% endblock %}
+{% block content %}
+<div class="admin-toolbar">
+    <form class="admin-search-form" method="get" action="{% url 'admin_panel:categories_list' %}">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search..." class="admin-input admin-search-input">
+        <button type="submit" class="admin-button">Search</button>
+    </form>
+    <a href="{% url 'admin_panel:category_create' %}" class="admin-button admin-button-primary">Add category</a>
+</div>
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" data-bulk-delete-url="{% url 'admin_panel:categories_bulk_delete' %}">
+            <thead><tr><th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th><th>Name</th><th>Slug</th><th>Description</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for c in categories %}
+                <tr>
+                    <td><input type="checkbox" class="admin-bulk-row-check" value="{{ c.pk }}" aria-label="Select"></td>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.slug }}</td>
+                    <td class="admin-category-details-cell" title="{{ c.description }}">{% if c.description %}{{ c.description|truncatewords:10 }}{% else %}…{% endif %}</td>
+                    <td class="admin-actions-cell">
+                        <div class="admin-dropdown">
+                            <button type="button" class="admin-dropdown-trigger admin-button">Actions <i class="fa-solid fa-chevron-down"></i></button>
+                            <div class="admin-dropdown-menu">
+                                <a href="{% url 'admin_panel:category_edit' c.pk %}">Edit</a>
+                                <a href="{% url 'admin_panel:category_delete' c.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-action-delete">Delete</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="admin-empty">No categories.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ categories.paginator.count }}</div>
+    {% if categories.has_other_pages %}
+    <div class="admin-pagination">
+        {% if categories.has_previous %}<a href="?page={{ categories.previous_page_number }}{% if search %}&q={{ search }}{% endif %}" class="admin-button admin-button-sm">Previous</a>{% endif %}
+        <span class="admin-pagination-info">Page {{ categories.number }} of {{ categories.paginator.num_pages }}</span>
+        {% if categories.has_next %}<a href="?page={{ categories.next_page_number }}{% if search %}&q={{ search }}{% endif %}" class="admin-button admin-button-sm">Next</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

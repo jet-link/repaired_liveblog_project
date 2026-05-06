@@ -1,0 +1,52 @@
+{# pages/templates/pages/about.html #}
+{% extends 'base.html' %}
+{% block title %}{{ about.browser_title }}{% endblock %}
+{% block content %}
+<div class="container-main content_block">
+<article class="page-static page-static--about">
+  <div class="page-static__inner">
+    <header class="page-static__header">
+      <h1 class="page-static__title">{{ about.title_h1 }}</h1>
+      <p class="page-static__lede">{{ about.lede|linebreaksbr }}</p>
+    </header>
+
+    <section class="page-static__section" aria-labelledby="about-mission-heading">
+      <h2 id="about-mission-heading" class="page-static__h2">{{ about.mission_heading }}</h2>
+      <ul class="page-static__list">
+        <li>{{ about.mission_item_1 }}</li>
+        <li>{{ about.mission_item_2 }}</li>
+        <li>{{ about.mission_item_3 }}</li>
+      </ul>
+    </section>
+
+    <section class="page-static__section" aria-labelledby="about-facts-heading">
+      <h2 id="about-facts-heading" class="page-static__h2 visually-hidden">{{ about.facts_heading_hidden }}</h2>
+      <dl class="page-static__facts">
+        <div class="page-static__fact">
+          <dt class="page-static__fact-label mb-0">{{ about.fact1_label }}</dt>
+          <hr class="text-muted" />
+          <dd class="page-static__fact-value">{{ about.fact1_value|linebreaksbr }}</dd>
+        </div>
+        <div class="page-static__fact">
+          <dt class="page-static__fact-label mb-0">{{ about.fact2_label }}</dt>
+          <hr class="text-muted" />
+          <dd class="page-static__fact-value">{{ about.fact2_value|linebreaksbr }}</dd>
+        </div>
+        <div class="page-static__fact">
+          <dt class="page-static__fact-label mb-0">{{ about.fact3_label }}</dt>
+          <hr class="text-muted" />
+          <dd class="page-static__fact-value">{{ about.fact3_value|linebreaksbr }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <footer class="page-static__footer">
+      <p class="page-static__cta">
+        <a href="{% url 'pages:page' 'contacts' %}" class="page-static__link">{{ about.cta_link_text }}</a>
+        <span class="page-static__cta-hint">{{ about.cta_hint }}</span>
+      </p>
+    </footer>
+  </div>
+</article>
+</div>
+{% endblock %}

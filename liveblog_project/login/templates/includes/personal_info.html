@@ -1,0 +1,59 @@
+{% load extras %}
+<div class="d-flex align-items-start personal_block">
+  <div class="personal_info flex-grow-1 min-w-0">
+    <dl class="personal-info-dl">
+      {% for label, field in fields.items %}
+        <div class="personal-info-row">
+          <dt class="personal-info-label">{{ label }}</dt>
+          {% if field.type == 'trust_rating' %}
+            <dd class="personal-info-value personal-info-value--trust">
+              <span class="d-inline-flex flex-wrap align-items-center gap-1">
+                <span class="custom_badge {{ field.zone_class }} trust-level-badge fw-semibold">{{ field.score|floatformat:1 }}</span>
+                <span class="custom_badge {{ field.zone_class }} trust-zone-badge">{{ field.zone }}</span>
+              </span>
+            </dd>
+          {% else %}
+            <dd class="personal-info-value">
+              <span class="d-inline-flex align-items-center gap-2 flex-wrap">
+                {% if field.is_empty %}
+                  <span class="empty-field">Empty field</span>
+                {% elif field.type == 'email' %}
+                  {% if field.is_owner %}
+                    <span id="emailValue" class="success_ fw-semibold">{{ field.value }}</span>
+                  {% else %}
+                    <a href="mailto:{{ field.value }}" class="custom_link_danger">{{ field.value }}</a>
+                  {% endif %}
+                {% else %}
+                  <span class="fw-semibold text-muted">{{ field.value }}</span>
+                {% endif %}
+                {% if is_owner %}
+                  {% if label == 'Username' and not user_obj.profile.public_username %}
+                    <i class="fa fa-eye-slash personal-info-hidden-icon text-muted" title="Hidden from public profile" aria-hidden="true"></i>
+                  {% elif label == 'First name' and not user_obj.profile.public_first_name %}
+                    <i class="fa fa-eye-slash personal-info-hidden-icon text-muted" title="Hidden from public profile" aria-hidden="true"></i>
+                  {% elif label == 'Last name' and not user_obj.profile.public_last_name %}
+                    <i class="fa fa-eye-slash personal-info-hidden-icon text-muted" title="Hidden from public profile" aria-hidden="true"></i>
+                  {% elif label == 'Email' and not user_obj.profile.public_email %}
+                    <i class="fa fa-eye-slash personal-info-hidden-icon text-muted" title="Hidden from public profile" aria-hidden="true"></i>
+                  {% endif %}
+                {% endif %}
+              </span>
+            </dd>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </dl>
+    {% if show_no_public_details %}
+      <div class="personal-info-empty-row">
+        <p class="text-muted small mb-0">No public profile details.</p>
+      </div>
+    {% endif %}
+  </div>
+  {% include 'includes/profile_avatar_viewer.html' %}
+</div>
+{% if user.is_authenticated and user.username == user_obj.username and user_obj.is_staff %}
+<hr class="text-muted" />
+<div class="profile-owner-admin mt-3">
+  <a href="{% url 'admin_panel:dashboard' %}" class="cstm-btn-sm custom-secondary-btn profile-owner-admin-link">Admin-panel</a>
+</div>
+{% endif %}

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load counters %}
+{% block title %}Trending Now{% endblock %}
+{% block content %}
+{% if has_trending_content %}
+<div class="container-main content_block trending-page"
+     id="trendingPageRoot"
+     data-trending-api-url="{{ trending_api_url|escape }}">
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h3 id="trending-hot-heading" class="trending-section-title mb-3"><i class="fa fa-fire text-danger me-3"></i>Hot Now</h3>
+    <span class="small text-muted" id="trendingPollStatus" aria-live="polite"></span>
+  </div>
+
+  {% if hot_rows %}
+  <section class="mb-5" id="trendingHotSection" aria-labelledby="trending-hot-heading">
+    <div class="row g-3">
+      {% for t in hot_rows %}
+        {% with item=t.item %}
+        <div class="col-12 {% if forloop.first %}col-lg-12{% else %}col-md-6{% endif %}">
+          <article class="trending-card trending-card--hot card border-0 overflow-hidden h-100 {% if forloop.first %}trending-card--hero{% endif %}" data-trending-slug="{{ item.slug }}">
+            <div class="row g-0 h-100 flex-wrap flex-md-nowrap">
+              <div class="trending-card__img-wrap col-12 col-md-{% if forloop.first %}5{% else %}4{% endif %}">
+                <a href="{{ item.get_absolute_url }}?from=trending&amp;source_url={{ request.get_full_path|urlencode }}" class="d-block h-100 stretched-link trending-card__img-link text-decoration-none">
+                  {% comment %}
+                  {% if item.images.first %}
+                    <img src="{{ item.images.first.get_thumbnail_url }}" alt="" class="trending-card__img" loading="lazy" decoding="async" />
+                  {% else %}
+                    <div class="trending-card__placeholder trending-card__placeholder--hot" aria-hidden="true">
+                      <span class="trending-card__placeholder-icon"><i class="fa fa-fire text-danger"></i></span>
+                    </div>
+                  {% endif %}
+                  {% endcomment %}
+                  <div class="trending-card__placeholder trending-card__placeholder--hot" aria-hidden="true">
+                    <span class="trending-card__placeholder-icon"><i class="fa fa-fire text-danger"></i></span>
+                  </div>
+                  <span class="trending-card__rank">#{{ forloop.counter }}</span>
+                </a>
+              </div>
+              <div class="col flex-grow-1 d-flex flex-column">
+                <div class="card-body d-flex flex-column">
+                  <div class="d-flex justify-content-between align-items-start gap-2 mb-2 flex-wrap">
+                    {% if item.category %}
+                      <span class="trending-card__category">{{ item.category.name }}</span>
+                    {% else %}
+                      <small class="primary_ fw-semibold">No category</small>
+                    {% endif %}
+                    <span class="badge trending-badge trending-badge--hot">In trend</span>
+                  </div>
+                  <h3 class="{% if forloop.first %}h4{% else %}h5{% endif %} mb-2"><a href="{{ item.get_absolute_url }}?from=trending&amp;source_url={{ request.get_full_path|urlencode }}" class="text-decoration-none stretched-link trending-card__title">{{ item.title }}</a></h3>
+                  <p class="text-muted small mb-3 flex-grow-1">{{ item.list_excerpt|truncatechars:280 }}</p>
+                  <div class="trending-metrics d-flex flex-wrap gap-4 small" data-trending-slug="{{ item.slug }}">
+                    <span data-metric="total_views_h" class="trending-metric" title="Total views"><i class="fa fa-eye me-1"></i><strong class="trending-val">{{ item.views_count|human }}</strong></span>
+                    <span data-metric="total_likes_h" class="trending-metric" title="Total likes"><i class="fa fa-heart me-1"></i><strong class="trending-val">{{ item.likes_count|human }}</strong></span>
+                    <span data-metric="comments_24h" class="trending-metric" title="Comments in 24h"><i class="fa fa-comment me-1"></i><strong class="trending-val">{{ t.comments_24h|human }}</strong></span>
+                    <span data-metric="total_bookmarks_h" class="trending-metric" title="Total bookmarks"><i class="fa fa-bookmark me-1"></i><strong class="trending-val">{{ item.bookmarks_count|human }}</strong></span>
+                    <span data-metric="views_24h" class="trending-metric trending-metric--window" title="Views of this post in the last 24 hours"><i class="fa fa-clock-o me-1" aria-hidden="true"></i><strong class="trending-val">{{ t.views_24h|human }}</strong> <span class="text-muted ms-1">views in 24h</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if rising_rows %}
+  <section class="mb-5" id="trendingRisingSection" aria-labelledby="trending-rising-heading">
+    <h3 id="trending-rising-heading" class="trending-section-title mb-3"><i class="fa fa-line-chart text-success me-3"></i>Rising</h3>
+    <div class="row g-3">
+      {% for t in rising_rows %}
+        {% with item=t.item %}
+        <div class="col-md-6 col-lg-4">
+          <article class="trending-card trending-card--rising card border-0 overflow-hidden h-100" data-trending-slug="{{ item.slug }}">
+            <div class="trending-card__img-wrap trending-card__img-wrap--sm">
+              <a href="{{ item.get_absolute_url }}?from=trending&amp;source_url={{ request.get_full_path|urlencode }}" class="d-block stretched-link trending-card__img-link text-decoration-none">
+                {% comment %}
+                {% if item.images.first %}
+                  <img src="{{ item.images.first.get_thumbnail_url }}" alt="" class="trending-card__img" loading="lazy" decoding="async" />
+                {% else %}
+                  <div class="trending-card__placeholder" aria-hidden="true"></div>
+                {% endif %}
+                {% endcomment %}
+                <div class="trending-card__placeholder" aria-hidden="true"></div>
+              </a>
+              <span class="trending-badge trending-badge--rising">Rising</span>
+              <span class="trending-growth-badge">+<span data-metric="growth_rate"><span class="trending-val">{{ t.growth_rate|floatformat:2 }}</span></span>×</span>
+            </div>
+            <div class="card-body">
+              <h3 class="h6 mb-2"><a href="{{ item.get_absolute_url }}?from=trending&amp;source_url={{ request.get_full_path|urlencode }}" class="text-decoration-none stretched-link trending-card__title">{{ item.title }}</a></h3>
+              <div class="trending-metrics d-flex flex-wrap gap-3 small" data-trending-slug="{{ item.slug }}">
+                <span data-metric="total_views_h" class="trending-metric" title="Total views"><i class="fa fa-eye me-1"></i><strong class="trending-val">{{ item.views_count|human }}</strong></span>
+                <span data-metric="total_likes_h" class="trending-metric" title="Total likes"><i class="fa fa-heart me-1"></i><strong class="trending-val">{{ item.likes_count|human }}</strong></span>
+                <span data-metric="views_last_hour" class="trending-metric trending-metric--window" title="Views of this post in the last hour"><i class="fa fa-clock-o me-1" aria-hidden="true"></i><strong class="trending-val">{{ t.views_last_hour|human }}</strong> <span class="text-muted ms-1">views in 1h</span></span>
+              </div>
+            </div>
+          </article>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="mb-5" id="trendingFeedSection" aria-labelledby="trending-feed-heading">
+    <h3 id="trending-feed-heading" class="trending-section-title mb-3"><i class="fa fa-rss text-primary me-3"></i>Trending Feed</h3>
+    {% if feed_page.object_list %}
+    <div class="row g-3" id="trendingFeedCards">
+      {% for t in feed_page %}
+        {% with item=t.item %}
+        <div class="col-lg-6 col-md-6 col-12">
+          <article class="trending-card trending-card--feed card border-0 overflow-hidden h-100" data-trending-slug="{{ item.slug }}">
+            <div class="row g-0 h-100">
+              <div class="trending-card__img-wrap col-12 col-md-4">
+                <a href="{{ item.get_absolute_url }}?from=trending&amp;source_url={{ request.get_full_path|urlencode }}" class="d-block h-100 stretched-link trending-card__img-link text-decoration-none">
+                  {% comment %}
+                  {% if item.images.first %}
+                    <img src="{{ item.images.first.get_thumbnail_url }}" alt="" class="trending-card__img" loading="lazy" decoding="async" />
+                  {% else %}
+                    <div class="trending-card__placeholder" aria-hidden="true"></div>
+                  {% endif %}
+                  {% endcomment %}
+                  <div class="trending-card__placeholder" aria-hidden="true"></div>
+                </a>
+              </div>
+              <div class="col flex-grow-1 d-flex flex-column">
+                <div class="card-body d-flex flex-column">
+                  <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
+                    {% if item.category %}
+                      <span class="trending-card__category">{{ item.category.name }}</span>
+                    {% else %}
+                      <small class="primary_ fw-semibold">No category</small>
+                    {% endif %}
+                    <span class="badge trending-badge trending-badge--feed">In trend</span>
+                  </div>
+                  <h3 class="h6 mb-2"><a href="{{ item.get_absolute_url }}?from=trending&amp;source_url={{ request.get_full_path|urlencode }}" class="text-decoration-none stretched-link trending-card__title">{{ item.title }}</a></h3>
+                  <p class="text-muted small flex-grow-1 mb-2">{{ item.list_excerpt|truncatechars:200 }}</p>
+                  <div class="trending-metrics d-flex flex-wrap gap-3 small" data-trending-slug="{{ item.slug }}">
+                    <span data-metric="total_views_h" class="trending-metric" title="Total views"><i class="fa fa-eye me-1"></i><strong class="trending-val">{{ item.views_count|human }}</strong></span>
+                    <span data-metric="total_likes_h" class="trending-metric" title="Total likes"><i class="fa fa-heart me-1"></i><strong class="trending-val">{{ item.likes_count|human }}</strong></span>
+                    <span data-metric="comments_24h" class="trending-metric" title="Comments in 24h"><i class="fa fa-comment me-1"></i><strong class="trending-val">{{ t.comments_24h|human }}</strong></span>
+                    <span data-metric="total_bookmarks_h" class="trending-metric" title="Total bookmarks"><i class="fa fa-bookmark me-1"></i><strong class="trending-val">{{ item.bookmarks_count|human }}</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+    {% if feed_page.has_other_pages %}
+    <nav class="mt-4" aria-label="Trending feed pagination">
+      <ul class="pagination pagination-sm">
+        {% if feed_page.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ feed_page.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Page {{ feed_page.number }} / {{ feed_page.paginator.num_pages }}</span></li>
+        {% if feed_page.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ feed_page.next_page_number }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+    {% else %}
+    <p class="text-muted">Nothing in the feed yet.</p>
+    {% endif %}
+  </section>
+</div>
+{% else %}
+<div class="container-main content_block trending-page">
+  <p class="text-muted mb-0" role="status">No trend posts</p>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+{% if has_trending_content %}
+<script defer src="{% static 'smart_blog/js/trending_poll.js' %}"></script>
+{% endif %}
+{% endblock %}

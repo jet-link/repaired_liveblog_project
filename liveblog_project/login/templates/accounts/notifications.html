@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {{ user.username }} notifications
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <h4 class="text-muted m-0">Notifications</h4>
+        <button type="button" class="button notification-dropdown-info-btn" aria-expanded="false" aria-controls="notificationsLegend">
+          <i class="fa fa-angle-down notification-legend-icon notification-legend-icon-open" aria-hidden="true"></i>
+          <i class="fa fa-angle-up notification-legend-icon notification-legend-icon-close" aria-hidden="true"></i>
+        </button>
+        <span id="notificationsPageBadgeWrap">
+          {% if notifications_count_label %}
+            <span class="notifications-count">{{ notifications_count_label }}</span>
+          {% endif %}
+        </span>
+      </div>
+      {% if notifications %}
+        <div id="notificationsActions" class="d-flex align-items-center gap-2">
+          {% if unread_count > 0 %}
+            <button id="notificationsReadAll" type="button" class="read-all-btn d-flex align-items-center">Read all</button>
+          {% endif %}
+          <button id="notificationsDelete" type="button" class="text-muted btn btn-link text-decoration-none p-0 btn-sm ps-1"><i class="fa fa-trash-o fs-5"></i></button>
+        </div>
+      {% endif %}
+    </div>
+    <hr />
+    {% if notifications %}
+      <div id="notificationsLegend" class="notifications-legend text-muted">
+        <div class="d-flex align-items-center gap-2 my-1">
+          <span class="marker comment-reply-marker"></span>
+          <span>Replied comment in post</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 my-1">
+          <span class="marker comment-like-marker"></span>
+          <span>Liked comment in post</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 my-1">
+          <span class="marker item-like-marker"></span>
+          <span>Liked post</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 my-1">
+          <span class="marker from-admin-marker"></span>
+          <span>Notification from admin</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 my-1">
+          <span class="marker read-marker"></span>
+          <span>Has been read</span>
+        </div>
+      </div>
+    {% endif %}
+    {% if notifications %}
+      <div class="notifications-list">
+        {% for n in notifications %}
+          <div class="notification-row notif-{{ n.notif_type }}{% if n.is_read %} is-read{% endif %}" data-notification-id="{{ n.id }}" data-is-read="{{ n.is_read|yesno:'1,0' }}">
+            <!-- Header row -->
+            <div class="notification-header small">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="notification-header-text d-flex align-items-center gap-1 flex-grow-1 min-w-0{% if n.notif_type != 'from_admin' %} text-muted{% endif %}">
+                  {% if n.notif_type == 'from_admin' %}
+                    <span class="notification-from-admin-title flex-shrink-0">Notification from admin</span>
+                  {% else %}
+                    {% if n.actor_name %}
+                      <a href="{% url 'login_app:profile' n.actor_name %}" class="actor-author-name fw-semibold text-decoration-none flex-shrink-0">{{ n.actor_name }}</a>
+                    {% else %}
+                      <a href="{% url 'login_app:vanished' %}" class="actor-author-name fw-semibold text-decoration-none flex-shrink-0">Deleted user</a>
+                    {% endif %}
+                    <span class="flex-shrink-0">{{ n.header_text }}</span>
+                    {% if n.notif_type == 'item_like' %}
+                      <span class="primary_ hidden">{{ n.item.title }}</span>
+                    {% else %}
+                      <span class="notification-post-title-clip">
+                        <a href="{{ n.get_absolute_url }}" class="notification-post-title-link text-decoration-none notification-target-link fw-semibold primary_" data-notification-id="{{ n.id }}" aria-label="{{ n.item.title }}" title="{{ n.item.title }}">{{ n.item.title }}</a>
+                      </span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+                {% if n.is_read %}
+                  <span class="notification-dot dot-read" aria-hidden="true"></span>
+                {% else %}
+                  <span class="notification-dot dot-{{ n.notif_type }}" aria-hidden="true"></span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="d-flex gap-1 mt-3 small">
+              <small class="text-muted">{{ n.human_added }}</small>
+            </div>
+
+            <!-- ───────── line ───────── -->
+            <div class="notification-divider"></div>
+
+            <!-- Body + actions -->
+            {% if n.notif_type == 'from_admin' %}
+            <div class="notification-content">
+              <div class="notification-body w-100">
+                {% if n.admin_theme %}
+                <p class="notification-from-admin-theme-line m-0 mb-2">
+                  <span class="notification-from-admin-theme-label">Theme:</span>
+                  <span class="notification-from-admin-theme-value">{{ n.admin_theme }}</span>
+                </p>
+                {% endif %}
+                <div class="notification-from-admin-message-row d-flex align-items-center gap-3">
+                  <blockquote class="block-quote block-quote-from-admin bordered-from-admin flex-grow-1 min-w-0">{{ n.body_text|linebreaksbr }}</blockquote>
+                  <div class="notification-actions d-flex align-items-center justify-content-center flex-shrink-0">
+                    {% if n.is_read %}
+                      <span class="notifications-done" aria-label="Read" title="Has been read!"><i class="fa fa-check"></i></span>
+                    {% else %}
+                      <button type="button" class="cstm-btn cstm-btn-sm notification-read-btn rounded-btn">Read</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <div class="notification-content d-flex align-items-center gap-3">
+              <div class="notification-body flex-grow-1">
+                {% if n.notif_type == 'item_like' %}
+                  <blockquote class="block-quote">
+                    <a href="{{ n.item.get_absolute_url }}" class="text-decoration-none primary_ liked-item notification-target-link fw-semibold" data-notification-id="{{ n.id }}">{{ n.item.title }}</a>
+                  </blockquote>
+                {% else %}
+                  <blockquote class="block-quote bordered">{{ n.body_text|truncatechars:160 }}</blockquote>
+                {% endif %}
+              </div>
+              <div class="notification-actions d-flex align-items-center gap-1">
+                {% if n.is_read %}
+                  <span class="notifications-done" aria-label="Read" title="Has been read!"><i class="fa fa-check"></i></span>
+                {% else %}
+                  <button type="button" class="cstm-btn cstm-btn-sm notification-read-btn rounded-btn">Read</button>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      <div id="notificationsEmpty" class="text-muted d-none">No notifications yet.</div>
+      {% if notifications|length > 50 %}
+        <div id="notificationsShowMoreWrapper" class="d-flex justify-content-center align-items-center gap-3 my-4">
+          <button id="notificationsShowMoreBtn" type="button" class="show-more-btn-toggle">Show more</button>
+        </div>
+      {% endif %}
+    {% else %}
+      <div id="notificationsEmpty" class="text-muted">No notifications yet.</div>
+    {% endif %}
+    <div id="notificationsState" class="d-none" data-unread="{{ unread_count }}"></div>
+    <div
+      id="notificationsPageApi"
+      class="d-none"
+      data-notification-read="{% url 'login_app:notification_read' %}"
+      data-notification-read-all="{% url 'login_app:notifications_read_all' %}"
+      data-notification-delete="{% url 'login_app:notifications_delete' %}"
+      data-notification-check-target="{% url 'login_app:notification_check_target' %}"
+    ></div>
+  </div>
+{% endblock %}
+
+{# Must be outside <main> — same as comment/delete modals (see base.html page_modals). #}
+{% block page_modals %}
+  <div class="modal fade" id="notificationsDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header d-flex align-items-center justify-content-between">
+          <h5 class="modal-title text-muted">Clear notifications</h5>
+          <button type="button" class="modal-close-btn" data-bs-dismiss="modal" aria-label="Close">×</button>
+        </div>
+        <div class="modal-body">Clear from your inbox without removing records (repeat likes or replies will not create duplicate rows).</div>
+        <div class="modal-footer">
+          <button id="notificationsDeleteAll" type="button" class="cstm-btn custom-danger-btn cstm-btn-sm">Clear all</button>
+          <button id="notificationsDeleteLast5" type="button" class="cstm-btn custom-secondary-btn cstm-btn-sm">Clear last 5</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="notifTargetGoneModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header d-flex align-items-center justify-content-between">
+          <h5 class="modal-title text-muted">Not found</h5>
+          <button type="button" class="modal-close-btn" data-bs-dismiss="modal" aria-label="Close">×</button>
+        </div>
+        <div class="modal-body" id="notifTargetGoneBody">Post does not exist</div>
+        <div class="modal-footer">
+          <button type="button" class="cstm-btn custom-secondary-btn cstm-btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script defer src="{% static 'login/js/notifications.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load static %}
+{% load user_status %}
+<div id="likedUsersOverlay" class="liked-users-overlay hidden" aria-hidden="true" data-liked-count="{{ liked_users|length }}">
+  <div class="liked-users-backdrop"></div>
+  <div class="liked-users-panel">
+    <div class="liked-users-header d-flex align-items-center justify-content-between">
+      <h5 class="m-0 text-muted">Liked users</h5>
+      <div class="liked-users-header-actions d-flex align-items-center gap-2">
+        <span class="liked-users-search-wrap" style="display:none;">
+          <input type="search" id="liked-users-search-input" name="liked_users_search" class="liked-users-search-input form-control form-control-sm" placeholder="Search user..." aria-label="Search liked users" style="display:none; width:200px;">
+          <button type="button" class="users-search-btn" aria-label="Search"><i class="fa fa-search users-search-icon"></i></button>
+        </span>
+        <button id="likedUsersClose" type="button" class="liked-users-close text-muted" aria-label="Close liked users">×</button>
+      </div>
+    </div>
+    <hr class="text-muted"/>
+    <div class="liked-users-list-container">
+      <div class="liked-users-list">
+      {% for like in liked_users %}
+          <a href="{% if like.user %}{% if like.user.is_active %}{% url 'login_app:profile' like.user.username %}{% else %}{% url 'login_app:vanished' %}{% endif %}{% else %}{% url 'login_app:vanished' %}{% endif %}" class="liked-users-item d-flex align-items-center gap-2 text-decoration-none" data-like-user="{% user_status_display like.user %}" title="{% user_status_title like.user %}">
+            <div class="liked-user-avatar little-avatar">
+              {% if like.user %}
+                {% if like.user.is_active %}
+                  {% if like.user.profile.avatar_url or like.user.profile.avatar_file %}
+                    <img src="{{ like.user.profile.get_avatar }}" alt="{{ like.user.username }}" class="user-avatar" width="30" height="30" loading="lazy" decoding="async" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                  {% else %}
+                    <img src="{% static 'img/no_avatar.svg' %}" alt="{{ like.user.username }}" class="user-avatar no_avatar" width="30" height="30" loading="lazy" decoding="async" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                  {% endif %}
+                {% else %}
+                  <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display like.user %}" class="user-avatar" width="30" height="30" loading="lazy" decoding="async" />
+                {% endif %}
+              {% else %}
+                <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display like.user %}" class="user-avatar" width="30" height="30" loading="lazy" decoding="async" />
+              {% endif %}
+            </div>
+            <span class="custom_badge badge_primary">{% user_status_display like.user %}</span>
+          </a>
+      {% endfor %}
+      </div>
+      <div class="liked-users-empty-msg" aria-live="polite">User not found</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,45 @@
+{# pages/templates/pages/contacts.html #}
+{% extends 'base.html' %}
+{% block title %}{{ contacts.browser_title }}{% endblock %}
+{% block content %}
+<div class="container-main content_block">
+<article class="page-static page-static--contacts">
+  <div class="page-static__inner">
+    <header class="page-static__header">
+      <h1 class="page-static__title">{{ contacts.title_h1 }}</h1>
+      <p class="page-static__lede">{{ contacts.lede_before }}<strong>{{ contacts.lede_emphasis }}</strong>{{ contacts.lede_after|linebreaksbr }}</p>
+    </header>
+
+    <section class="page-static__section" aria-labelledby="contacts-channels-heading">
+      <h2 id="contacts-channels-heading" class="page-static__h2">{{ contacts.channels_heading }}</h2>
+      <dl class="page-static__contact-list">
+        <div class="page-static__contact-row">
+          <dt class="page-static__contact-key">{{ contacts.email_key }}</dt>
+          <dd class="page-static__contact-val">
+            <a href="mailto:{{ contacts.email_address }}" class="page-static__link">{{ contacts.email_address }}</a>
+            <span class="page-static__contact-note">{{ contacts.email_note }}</span>
+          </dd>
+        </div>
+        <div class="page-static__contact-row">
+          <dt class="page-static__contact-key">{{ contacts.community_key }}</dt>
+          <dd class="page-static__contact-val">
+            <span class="page-static__contact-note">{{ contacts.community_text|linebreaksbr }}</span>
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="page-static__section page-static__section--muted" aria-labelledby="contacts-no-heading">
+      <h2 id="contacts-no-heading" class="page-static__h2">{{ contacts.no_section_heading }}</h2>
+      <p class="page-static__p">{{ contacts.no_section_body|linebreaksbr }}</p>
+    </section>
+
+    <footer class="page-static__footer">
+      <p class="page-static__meta">
+        <a href="{% url 'pages:page' 'about' %}" class="page-static__link page-static__link--subtle">{{ contacts.footer_about_link_text }}</a>
+      </p>
+    </footer>
+  </div>
+</article>
+</div>
+{% endblock %}

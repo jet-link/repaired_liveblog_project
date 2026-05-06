@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}
+  Edit profile - {{ user_obj.username }}
+{% endblock %}
+{% block content %}
+  <div class="container-main content_block">
+    <main class="edit-profile-field mx-auto">
+      <div class="card-switcher">
+        <div id="profileCard" class="card-panel is-visible" role="region" aria-labelledby="profileCardTitle">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex gap-3 align-items-center">
+              <h5 id="profileCardTitle" class="m-0 text-muted text-uppercase">Edit profile</h5>
+              {% comment %} <button type="button" class="instruction-btn"><i class="fa fa-question-circle-o" aria-hidden="true"></i></button> {% endcomment %}
+            </div>
+            <button id="showPasswordBtn" type="button" class="btn btn-link text-decoration-none btn-sm text-muted p-0">Change password</button>
+          </div>
+
+          <form id="profileForm" method="post" enctype="multipart/form-data" novalidate data-validate="true">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="custom-alert custom-alert-danger mb-2" data-auto-dismiss="3000">
+                {% for err in form.non_field_errors %}
+                  {{ err }}{% if not forloop.last %}<br />{% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <table class="profile-info-edit-table w-100">
+              <tbody>
+                <tr class="profile-edit-row">
+                  <td class="profile-toggle-cell">
+                    {{ form.public_username }}
+                    <button type="button" class="profile-field-visibility-btn" data-profile-visibility-toggle data-public-field="public_username" aria-label="Shown on public profile" aria-pressed="false" title="Shown on public profile. Click to mark hidden from others.">
+                      <i class="fa fa-eye" aria-hidden="true"></i>
+                    </button>
+                  </td>
+                  <td>
+                    <div class="form-floating">
+                      {{ form.username }}
+                      <label for="floatingUsernameProfile" class="text-muted">{{ form.username.label }} <span class="danger_">*</span></label>
+                    </div>
+                  </td>
+                </tr>
+                {% if form.username.errors %}
+                  <tr>
+                    <td colspan="2" class="profile-edit-field-errors">
+                      <div class="text-danger small">
+                        {% for err in form.username.errors %}
+                          {{ err }}
+                        {% endfor %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+
+                <tr class="profile-edit-row">
+                  <td class="profile-toggle-cell">
+                    {{ form.public_first_name }}
+                    <button type="button" class="profile-field-visibility-btn" data-profile-visibility-toggle data-public-field="public_first_name" aria-label="Shown on public profile" aria-pressed="false" title="Shown on public profile. Click to mark hidden from others.">
+                      <i class="fa fa-eye" aria-hidden="true"></i>
+                    </button>
+                  </td>
+                  <td>
+                    <div class="form-floating">
+                      {{ form.first_name }}
+                      <label for="floatingFirstNameProfile" class="text-muted">{{ form.first_name.label }}<span class="field-label-optional-suffix"> · {% trans "optional" %}</span></label>
+                    </div>
+                  </td>
+                </tr>
+                {% if form.first_name.errors %}
+                  <tr>
+                    <td colspan="2" class="profile-edit-field-errors">
+                      <div class="text-danger small">
+                        {% for err in form.first_name.errors %}
+                          {{ err }}
+                        {% endfor %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+
+                <tr class="profile-edit-row">
+                  <td class="profile-toggle-cell">
+                    {{ form.public_last_name }}
+                    <button type="button" class="profile-field-visibility-btn" data-profile-visibility-toggle data-public-field="public_last_name" aria-label="Shown on public profile" aria-pressed="false" title="Shown on public profile. Click to mark hidden from others.">
+                      <i class="fa fa-eye" aria-hidden="true"></i>
+                    </button>
+                  </td>
+                  <td>
+                    <div class="form-floating">
+                      {{ form.last_name }}
+                      <label for="floatingLastNameProfile" class="text-muted">{{ form.last_name.label }}<span class="field-label-optional-suffix"> · {% trans "optional" %}</span></label>
+                    </div>
+                  </td>
+                </tr>
+                {% if form.last_name.errors %}
+                  <tr>
+                    <td colspan="2" class="profile-edit-field-errors">
+                      <div class="text-danger small">
+                        {% for err in form.last_name.errors %}
+                          {{ err }}
+                        {% endfor %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+
+                <tr class="profile-edit-row">
+                  <td class="profile-toggle-cell">
+                    {{ form.public_email }}
+                    <button type="button" class="profile-field-visibility-btn" data-profile-visibility-toggle data-public-field="public_email" aria-label="Shown on public profile" aria-pressed="false" title="Shown on public profile. Click to mark hidden from others.">
+                      <i class="fa fa-eye" aria-hidden="true"></i>
+                    </button>
+                  </td>
+                  <td>
+                    <div class="form-floating">
+                      {{ form.email }}
+                      <label for="floatingEmailProfile" class="text-muted">{{ form.email.label }}<span class="field-label-optional-suffix"> · {% trans "optional" %}</span></label>
+                    </div>
+                  </td>
+                </tr>
+                {% if form.email.errors %}
+                  <tr>
+                    <td colspan="2" class="profile-edit-field-errors">
+                      <div class="text-danger small">
+                        {% for err in form.email.errors %}
+                          {{ err }}
+                        {% endfor %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+
+                <tr class="profile-edit-row profile-edit-row--avatar-only">
+                  <td colspan="2">
+                    <div class="avatar-url-row-table d-flex gap-2 align-items-stretch">
+                      <div class="form-floating flex-grow-1">
+                        {{ form.avatar_url }}
+                        <label for="floatingAvatarProfile" class="text-muted">{% trans "Avatar URL" %}<span class="field-label-optional-suffix"> · {% trans "optional" %}</span></label>
+                      </div>
+                      <button type="button" class="cstm-btn custom-primary-btn avatar-file-trigger" title="Upload image file"><i class="fa fa-folder-open"></i></button>
+                    </div>
+                  </td>
+                </tr>
+                {% if form.avatar_url.errors %}
+                  <tr>
+                    <td colspan="2" class="profile-edit-field-errors">
+                      <div class="text-danger small my-2">
+                        {% for err in form.avatar_url.errors %}
+                          {{ err }}
+                        {% endfor %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+
+            <div id="avatarUrlPreview" class="d-none position-relative">
+              <img src="" alt="Avatar URL preview" />
+              <button type="button" class="avatar-preview-delete" aria-label="Remove avatar"><i class="fa fa-times" aria-hidden="true"></i></button>
+            </div>
+
+            <input type="file" name="avatar_file" id="avatarFileInput" hidden accept=".jpg,.jpeg,.png,.webp,.gif,.svg,image/*" />
+            <div id="avatarFilePreview" class="d-none position-relative">
+              <img src="" alt="Avatar File preview" />
+              <button type="button" class="avatar-preview-delete" aria-label="Remove avatar"><i class="fa fa-times" aria-hidden="true"></i></button>
+            </div>
+
+            <div id="avatarFileName" class="small mb-2 d-none"></div>
+            <input type="hidden" name="avatar_clear" id="avatarClearFlag" value="0" />
+
+            <div class="d-flex gap-2 mb-0 mt-2">
+              <button name="profile_submit" class="cstm-btn custom-primary-btn w-50" type="submit">Save</button>
+              <a href="{% url 'login_app:profile' user_obj.username %}" class="cstm-btn custom-secondary-btn w-50">Back</a>
+            </div>
+          </form>
+        </div>
+
+        {% include 'includes/instruction_modal.html' %}
+        <div id="passwordCard" class="card-panel from-top is-hidden" role="region" aria-labelledby="passwordCardTitle">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 id="passwordCardTitle" class="m-0 text-muted text-uppercase">Change password</h5>
+            <button id="closePasswordBtn" type="button" class="cstm-btn-sm custom-secondary-btn btn-change">Back</button>
+          </div>
+          {% include 'includes/password_change.html' %}
+          {% include 'includes/password_generator.html' %}
+        </div>
+      </div>
+    </main>
+  </div>
+{% endblock %}
+{% load static %}
+{% block extra_js %}
+  <script defer src="{% static 'login/js/password_gen_switcher.js' %}"></script>
+  <script defer src="{% static 'login/js/password_generator.js' %}"></script>
+  <script src="{% static 'login/js/visibility_toggle.js' %}"></script>
+{% endblock %}

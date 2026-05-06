@@ -1,0 +1,32 @@
+{% load i18n %}
+{% load static %}
+<div id="instructionModal" class="modal fade" tabindex="-1" aria-labelledby="instructionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0 d-flex align-items-center justify-content-between">
+        <h5 class="modal-title text-muted" id="instructionModalLabel">
+          {% trans "Instructions" %}
+        </h5>
+        <button type="button" class="modal-close-btn" data-bs-dismiss="modal" aria-label="Close">×</button>
+      </div>
+      <hr />
+      <div class="modal-body pt-0">
+        <div class="small text-muted">
+          <p class="mb-2 text-decoration-underline">{% trans "Username rules " %}</p>
+          <ol class="mb-2" style="list-style-type: none;">
+            <li class="mb-2 fw-semibold">1–15 characters</li>
+            <li class="mb-2 fw-semibold">{% trans "No spaces" %}</li>
+            <li class="mb-0">{% trans "Allowed" %}
+              <ul class="mb-0 mt-1 ps-4" style="list-style-type: none;">
+                <li class="mb-2 fw-semibold">letters</li>
+                <li class="mb-2 fw-semibold">digits</li>
+                <li><code>* _ - ~ ( ) ^ $ @ ? !</code></li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script defer src="{% static 'login/js/instruction_modal.js' %}"></script>

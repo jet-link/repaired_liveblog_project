@@ -1,0 +1,87 @@
+{% extends 'admin/layout/base.html' %}
+{% load mentions %}
+
+{% block title %}Comments{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Comments</li></ol></nav>{% endblock %}
+{% block page_title %}
+  Comments
+{% endblock %}
+
+{% block content %}
+  <div class="admin-toolbar">
+    <form class="admin-search-form" method="get" action="{% url 'admin_panel:comments_list' %}">
+      <input type="text" name="q" value="{{ search }}" placeholder="Search..." class="admin-input admin-search-input">
+      <select name="filter" class="admin-select">
+        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>Comments</option>
+        <option value="root" {% if filter_type == 'root' %}selected{% endif %}>Root only</option>
+        <option value="child" {% if filter_type == 'child' %}selected{% endif %}>Child only</option>
+      </select>
+      <select name="sort" class="admin-select">
+        <option value="date" {% if current_sort == 'date' %}selected{% endif %}>By date</option>
+        <option value="likes" {% if current_sort == 'likes' %}selected{% endif %}>By likes</option>
+      </select>
+      <button type="submit" class="admin-button">Search</button>
+    </form>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-table-wrapper">
+      <table class="admin-table" data-bulk-delete-url="{% url 'admin_panel:comments_bulk_delete' %}">
+        <thead>
+          <tr>
+            <th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th>
+            <th>Comment</th>
+            <th>Author</th>
+            <th>Post</th>
+            <th>Likes</th>
+            <th>Published</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in comments %}
+            <tr>
+              <td><input type="checkbox" class="admin-bulk-row-check" value="{{ c.pk }}" aria-label="Select"></td>
+              <td>
+                {% if c.is_draft %}<span class="admin-comment-link admin-link-draft">{{ c.text|strip_mentions|truncatewords:5 }}</span>{% elif c.item.is_published %}<a href="{{ c.get_comment_url }}" class="admin-comment-link">{{ c.text|strip_mentions|truncatewords:5 }}</a>{% else %}<span class="admin-comment-link admin-link-draft">{{ c.text|strip_mentions|truncatewords:5 }}</span>{% endif %}
+              </td>
+              <td>{{ c.author.username|default:'Vanished' }}</td>
+              <td>{{ c.item.title|truncatewords:5 }}</td>
+              <td>{{ c.likes_count|default:0 }}</td>
+              <td>{{ c.created|date:'M d, H:i' }}</td>
+              <td>
+                <span class="admin-badge {% if c.is_draft %}admin-badge-warning{% else %}admin-badge-success{% endif %}">{% if c.is_draft %}Draft{% else %}Active{% endif %}</span>
+              </td>
+              <td class="admin-actions-cell">
+                <div class="admin-dropdown">
+                  <button type="button" class="admin-dropdown-trigger admin-button">Actions <i class="fa-solid fa-chevron-down"></i></button>
+                  <div class="admin-dropdown-menu">
+                    {% if c.is_draft %}<a href="{% url 'admin_panel:comment_confirm_activate' c.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Active</a>{% else %}<a href="{% url 'admin_panel:comment_confirm_draft' c.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Draft</a>{% endif %}
+                    <a href="{% url 'admin_panel:comment_delete' c.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-action-delete">Delete</a>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="admin-empty">No comments.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ comments.paginator.count }}</div>
+    {% if comments.has_other_pages %}
+      <div class="admin-pagination">
+        {% if comments.has_previous %}
+          <a href="?page={{ comments.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}&sort={{ current_sort }}" class="admin-button admin-button-sm">Previous</a>
+        {% endif %}
+        <span class="admin-pagination-info">Page {{ comments.number }} of {{ comments.paginator.num_pages }}</span>
+        {% if comments.has_next %}
+          <a href="?page={{ comments.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}&sort={{ current_sort }}" class="admin-button admin-button-sm">Next</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

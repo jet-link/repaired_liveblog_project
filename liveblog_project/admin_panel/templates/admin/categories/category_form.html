@@ -1,0 +1,23 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}{% if is_create %}Create{% else %}Edit{% endif %} Category{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:categories_list' %}">Categories</a></li><li class="admin-breadcrumbs-item">{% if is_create %}Create{% else %}Edit{% endif %}</li></ol></nav>{% endblock %}
+{% block page_title %}{% if is_create %}Create Category{% else %}Edit {{ category.name }}{% endif %}{% endblock %}
+{% block content %}
+<div class="admin-card">
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+        <div class="admin-form-group">
+            <label for="id_category_name">Name</label>
+            <input type="text" id="id_category_name" name="name" value="{% if category %}{{ category.name }}{% endif %}" class="admin-input" placeholder="Category name" required spellcheck="true">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_category_description">Description</label>
+            <textarea id="id_category_description" name="description" class="admin-textarea" placeholder="Description · optional" spellcheck="true">{% if category %}{{ category.description }}{% endif %}</textarea>
+        </div>
+        <div class="admin-form-actions">
+            <button type="submit" class="admin-button admin-button-primary">{% if is_create %}Create{% else %}Save{% endif %}</button>
+            <a href="{% url 'admin_panel:categories_list' %}" class="admin-button admin-button-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

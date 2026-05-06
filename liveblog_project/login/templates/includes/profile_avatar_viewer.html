@@ -1,0 +1,13 @@
+{% load static %}
+<div class="personal_avatar">
+  <div class="avatar-wrapper">
+    {% if user_obj.profile.avatar_file or user_obj.profile.avatar_url %}
+      <img src="{{ user_obj.profile.get_avatar }}" alt="{{ user_obj.username }}" class="clickable-avatar user-avatar" width="250" height="250" decoding="async" loading="eager" fetchpriority="high" data-full="{{ user_obj.profile.get_avatar }}" data-username="{{ user_obj.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+      {% if user.is_authenticated and user.username == user_obj.username %}
+        <button type="button" class="avatar-remove-overlay" data-url="{% url 'login_app:remove_avatar' %}" data-username="{{ user_obj.username }}" title="Remove avatar"><i class="fa fa-trash"></i></button>
+      {% endif %}
+    {% else %}
+      <img src="{% static 'img/no_avatar.svg' %}" class="user_no_avatar user-avatar" width="250" height="250" decoding="async" loading="eager" fetchpriority="high" data-username="{{ user_obj.username }}" alt="thumbnail" title="I am without avatar!" onerror="this.onerror=null;this.classList.add('avatar-load-failed');"/>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,423 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}
+  Assistant
+{% endblock %}
+{% block breadcrumbs %}
+  <nav class="admin-breadcrumbs" aria-label="Breadcrumb">
+    <ol class="admin-breadcrumbs-list">
+      <li class="admin-breadcrumbs-item">
+        <a href="{% url 'admin_panel:dashboard' %}">Dashboard</a>
+      </li>
+      <li class="admin-breadcrumbs-item">Assistant</li>
+    </ol>
+  </nav>
+{% endblock %}
+{% block page_title %}
+  Assistant
+{% endblock %}
+{% block content %}
+  {% if access_denied %}
+    <div class="admin-alert admin-alert-warning">Access denied. Superuser only.</div>
+  {% else %}
+    <div class="admin-assistant-page">
+    <div class="admin-card admin-assistant-card">
+      <h3>Content Moderation Analysis</h3>
+      <p>Run AI-powered analysis to detect violations in posts and comments (banned words, regex patterns, OpenAI Moderation + GPT classifier).</p>
+      <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+        <button type="button" id="assistantAnalyzeBtn" class="admin-button admin-button-primary assistant-analyze-btn" aria-label="Run analysis">
+          <span id="assistantAnalyzeFill" class="assistant-analyze-btn__fill" aria-hidden="true"></span>
+          <span id="assistantAnalyzeLabel" class="assistant-analyze-btn__label">Analyze</span>
+        </button>
+        <a href="{% url 'admin_panel:content_violations_list' %}" id="assistantNewViolationsBtn" class="admin-button" style="display:none;">New violations</a>
+      </div>
+
+      <div id="assistantLogsBlock" class="admin-assistant-logs-block">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-shrink:0;">
+          <h4 style="margin:0;">Analysis Logs</h4>
+          <div id="assistantClearHistoryBtnWrap" style="display:{% if recent_runs %}flex{% else %}none{% endif %};">
+            <button type="button" id="assistantClearHistoryBtn" class="admin-button admin-button-outline admin-button-sm">Clear history</button>
+          </div>
+        </div>
+        <div id="assistantLogsContent" class="admin-assistant-logs-content">
+          {% for run in recent_runs %}
+          <div class="assistant-run-block" data-run-id="{{ run.pk }}">
+            <div class="assistant-run-date" style="font-weight:600; color:var(--admin-muted); margin-bottom:0.25rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;" data-iso="{{ run.started_at|date:'c' }}" data-run-id="{{ run.pk }}" data-started-by="{{ run.started_by.username|default:'' }}">
+              <span class="assistant-run-date-text">—</span>
+              {% if run.started_by %}<span class="admin-badge admin-badge-danger">{{ run.started_by.username }}</span>{% endif %}
+            </div>
+            <div class="assistant-run-lines">
+            {% for line in run.log_lines %}
+            <div>{{ line }}</div>
+            {% empty %}
+            <div style="color:var(--admin-muted);">No logs</div>
+            {% endfor %}
+            </div>
+            <hr style="margin:0.75rem 0; border:none; border-top:1px solid var(--admin-border);">
+          </div>
+          {% empty %}
+          <div id="assistantLogsEmpty" style="color:var(--admin-muted);">No analysis history yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block admin_modals %}
+  {% if not access_denied %}
+    <div id="assistantClearHistoryModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="assistantClearHistoryModalTitle" aria-hidden="true" hidden>
+      <div class="admin-modal-backdrop" id="assistantClearHistoryModalBackdrop"></div>
+      <div class="admin-modal-dialog">
+        <div class="admin-modal-content">
+          <h2 class="admin-modal-title" id="assistantClearHistoryModalTitle">Delete all analysis history?</h2>
+          <div class="admin-modal-actions">
+            <button type="button" class="admin-button admin-button-danger" id="assistantClearHistoryConfirmBtn">Clear</button>
+            <button type="button" class="admin-button admin-button-outline" id="assistantClearHistoryCancelBtn">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  {% if not access_denied %}
+    <script>
+      ;(function () {
+        function getCsrf() {
+          return window.ADMIN_CSRF_TOKEN || document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || ''
+        }
+
+        var analyzeBtn = document.getElementById('assistantAnalyzeBtn')
+        var analyzeFill = document.getElementById('assistantAnalyzeFill')
+        var analyzeLabel = document.getElementById('assistantAnalyzeLabel')
+        var logsContent = document.getElementById('assistantLogsContent')
+        var clearHistoryBtn = document.getElementById('assistantClearHistoryBtn')
+        var clearHistoryBtnWrap = document.getElementById('assistantClearHistoryBtnWrap')
+        var newViolationsBtn = document.getElementById('assistantNewViolationsBtn')
+
+        var currentAnalysisId = null
+
+        function setAnalyzeBusy(busy) {
+          analyzeBtn.disabled = busy
+          if (busy) {
+            analyzeBtn.classList.add('is-analyzing')
+            analyzeBtn.setAttribute('aria-busy', 'true')
+          } else {
+            analyzeBtn.classList.remove('is-analyzing')
+            analyzeBtn.removeAttribute('aria-busy')
+          }
+        }
+
+        function setClearHistoryLocked(locked) {
+          if (!clearHistoryBtn) return
+          clearHistoryBtn.disabled = locked
+          if (locked) {
+            clearHistoryBtn.setAttribute('aria-disabled', 'true')
+          } else {
+            clearHistoryBtn.removeAttribute('aria-disabled')
+          }
+        }
+
+        function resetAnalyzeButton() {
+          clearAnalyzeResetTimeout()
+          if (analyzeFill) {
+            analyzeFill.style.width = '0%'
+            analyzeFill.style.removeProperty('background')
+          }
+          if (analyzeLabel) {
+            analyzeLabel.textContent = 'Analyze'
+            analyzeLabel.style.color = ''
+          }
+          analyzeBtn.classList.remove('is-failed')
+          setAnalyzeBusy(false)
+          setClearHistoryLocked(false)
+          analyzeBtn.removeAttribute('aria-valuenow')
+        }
+
+        function updateClearHistoryVisibility() {
+          if (!clearHistoryBtnWrap) return
+          var hasBlocks = logsContent && logsContent.querySelectorAll('.assistant-run-block').length > 0
+          clearHistoryBtnWrap.style.display = hasBlocks ? 'flex' : 'none'
+        }
+        var pollInterval = null
+        var analyzeResetTimeout = null
+
+        function clearAnalyzeResetTimeout() {
+          if (analyzeResetTimeout) {
+            clearTimeout(analyzeResetTimeout)
+            analyzeResetTimeout = null
+          }
+        }
+
+        function scheduleAnalyzeButtonReset() {
+          clearAnalyzeResetTimeout()
+          analyzeResetTimeout = setTimeout(function () {
+            analyzeResetTimeout = null
+            resetAnalyzeButton()
+          }, 5000)
+        }
+
+        function hideEmpty() {
+          var empty = document.getElementById('assistantLogsEmpty')
+          if (empty) empty.style.display = 'none'
+        }
+
+        function formatDateTimeLocal(isoStr) {
+          if (!isoStr) return '—'
+          try {
+            var d = new Date(isoStr)
+            if (isNaN(d.getTime())) return isoStr
+            return d.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+          } catch (e) {
+            return isoStr
+          }
+        }
+        function formatLogLineTimestamp(line) {
+          var m = line.match(/^\[([\d-]+T[\d:.]+(?:Z|[+-]\d{2}:?\d{2})?)\]\s*(.*)$/)
+          if (m) {
+            try {
+              var d = new Date(m[1])
+              if (!isNaN(d.getTime())) {
+                var local = d.toLocaleTimeString(undefined, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                return '[' + local + '] ' + m[2]
+              }
+            } catch (e) {}
+          }
+          return line
+        }
+        function createRunBlock(runId, startedAt, startedBy) {
+          hideEmpty()
+          var block = document.createElement('div')
+          block.className = 'assistant-run-block'
+          block.dataset.runId = runId
+          var dateStr = formatDateTimeLocal(startedAt) + ' — Run #' + runId
+          var badgeHtml = startedBy ? '<span class="admin-badge admin-badge-danger">' + (startedBy || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>' : ''
+          block.innerHTML = '<div class="assistant-run-date" style="font-weight:600; color:var(--admin-muted); margin-bottom:0.25rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;"><span class="assistant-run-date-text">' + dateStr + '</span>' + badgeHtml + '</div><div class="assistant-run-lines"></div>'
+          logsContent.insertBefore(block, logsContent.firstChild)
+          updateClearHistoryVisibility()
+          return block.querySelector('.assistant-run-lines')
+        }
+
+        function getOrCreateCurrentRunLines(runId, startedAt, startedBy) {
+          var block = logsContent.querySelector('.assistant-run-block[data-run-id="' + runId + '"]')
+          if (block) {
+            return block.querySelector('.assistant-run-lines')
+          }
+          return createRunBlock(runId, startedAt, startedBy)
+        }
+
+        function appendLogToRun(runId, startedAt, lines, startedBy) {
+          var container = getOrCreateCurrentRunLines(runId, startedAt, startedBy)
+          if (!container) return
+          while (container.children.length < lines.length) {
+            var div = document.createElement('div')
+            div.textContent = formatLogLineTimestamp(lines[container.children.length])
+            container.appendChild(div)
+          }
+        }
+
+        function finishRunBlock(runId) {
+          var block = logsContent.querySelector('.assistant-run-block[data-run-id="' + runId + '"]')
+          if (block && !block.querySelector('hr')) {
+            var hr = document.createElement('hr')
+            hr.style.cssText = 'margin:0.75rem 0; border:none; border-top:1px solid var(--admin-border);'
+            block.appendChild(hr)
+          }
+        }
+
+        function stopPolling() {
+          if (pollInterval) {
+            clearInterval(pollInterval)
+            pollInterval = null
+          }
+        }
+
+        function pollStatus() {
+          if (!currentAnalysisId) return
+          fetch("{% url 'admin_panel:assistant_status' 0 %}".replace('/0/', '/' + currentAnalysisId + '/'), { credentials: 'same-origin' })
+            .then(function (r) { return r.json() })
+            .then(function (data) {
+              if (!data.success) return
+              var p = data.progress || 0
+              var pct = Math.round(p)
+              if (analyzeFill) analyzeFill.style.width = pct + '%'
+              analyzeBtn.setAttribute('aria-valuenow', String(pct))
+              if (data.log_lines && data.log_lines.length) {
+                appendLogToRun(currentAnalysisId, data.started_at, data.log_lines, data.started_by)
+              }
+              if (data.status === 'completed') {
+                if (analyzeFill) {
+                  analyzeFill.style.width = '100%'
+                  analyzeFill.style.background = 'var(--admin-success, #22c55e)'
+                }
+                if (analyzeLabel) {
+                  analyzeLabel.textContent = 'Completed'
+                  analyzeLabel.style.color = ''
+                }
+                analyzeBtn.removeAttribute('aria-busy')
+                analyzeBtn.setAttribute('aria-valuenow', '100')
+                finishRunBlock(currentAnalysisId)
+                stopPolling()
+                setClearHistoryLocked(false)
+                scheduleAnalyzeButtonReset()
+                if (data.violations_count > 0) {
+                  newViolationsBtn.href = "{% url 'admin_panel:content_violations_list' %}"
+                  newViolationsBtn.style.display = 'inline-block'
+                  try { sessionStorage.setItem('admin_new_analysis_id', String(currentAnalysisId)) } catch (e) {}
+                }
+              } else if (data.status === 'failed') {
+                analyzeBtn.classList.add('is-failed')
+                if (analyzeFill) analyzeFill.style.width = '100%'
+                if (analyzeLabel) analyzeLabel.textContent = 'Failed'
+                analyzeBtn.removeAttribute('aria-busy')
+                finishRunBlock(currentAnalysisId)
+                stopPolling()
+                setClearHistoryLocked(false)
+                scheduleAnalyzeButtonReset()
+              } else {
+                if (analyzeLabel) analyzeLabel.textContent = pct + '%'
+              }
+            })
+            .catch(function () {})
+        }
+
+        var clearHistoryModal = document.getElementById('assistantClearHistoryModal')
+        var clearHistoryBackdrop = document.getElementById('assistantClearHistoryModalBackdrop')
+        var clearHistoryConfirmBtn = document.getElementById('assistantClearHistoryConfirmBtn')
+        var clearHistoryCancelBtn = document.getElementById('assistantClearHistoryCancelBtn')
+
+        function openClearHistoryModal() {
+          if (clearHistoryBtn && clearHistoryBtn.disabled) return
+          if (!clearHistoryModal) return
+          clearHistoryModal.removeAttribute('hidden')
+          clearHistoryModal.classList.add('is-open')
+          clearHistoryModal.setAttribute('aria-hidden', 'false')
+          document.body.style.overflow = 'hidden'
+        }
+        function closeClearHistoryModal() {
+          if (!clearHistoryModal) return
+          if (clearHistoryModal.contains(document.activeElement)) {
+            if (clearHistoryBtn && typeof clearHistoryBtn.focus === 'function') {
+              clearHistoryBtn.focus({ preventScroll: true })
+            } else {
+              var fallback = document.querySelector('.admin-toolbar button, .admin-card button')
+              if (fallback) fallback.focus({ preventScroll: true })
+            }
+          }
+          clearHistoryModal.classList.remove('is-open')
+          clearHistoryModal.setAttribute('aria-hidden', 'true')
+          clearHistoryModal.setAttribute('hidden', '')
+          document.body.style.overflow = ''
+        }
+
+        if (clearHistoryBtn) clearHistoryBtn.addEventListener('click', openClearHistoryModal)
+        if (clearHistoryBackdrop) clearHistoryBackdrop.addEventListener('click', closeClearHistoryModal)
+        if (clearHistoryCancelBtn) clearHistoryCancelBtn.addEventListener('click', closeClearHistoryModal)
+
+        if (clearHistoryConfirmBtn) clearHistoryConfirmBtn.addEventListener('click', function () {
+          closeClearHistoryModal()
+          fetch("{% url 'admin_panel:assistant_clear_history' %}", {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'csrfmiddlewaretoken=' + encodeURIComponent(getCsrf()),
+            credentials: 'same-origin'
+          })
+            .then(function (r) { return r.json() })
+            .then(function (data) {
+              if (data.success) {
+                var runBlocks = logsContent.querySelectorAll('.assistant-run-block')
+                runBlocks.forEach(function (b) { b.remove() })
+                var empty = document.getElementById('assistantLogsEmpty')
+                if (!empty) {
+                  empty = document.createElement('div')
+                  empty.id = 'assistantLogsEmpty'
+                  empty.style.color = 'var(--admin-muted);'
+                  empty.textContent = 'No analysis history yet.'
+                  logsContent.appendChild(empty)
+                }
+                empty.style.display = 'block'
+                updateClearHistoryVisibility()
+              }
+            })
+        })
+
+        analyzeBtn.addEventListener('click', function () {
+          var schedule = 'now'
+
+          clearAnalyzeResetTimeout()
+          if (analyzeFill) {
+            analyzeFill.style.width = '0%'
+            analyzeFill.style.removeProperty('background')
+          }
+          if (analyzeLabel) analyzeLabel.textContent = '0%'
+          analyzeBtn.classList.remove('is-failed')
+          analyzeBtn.setAttribute('aria-valuenow', '0')
+          setAnalyzeBusy(true)
+          setClearHistoryLocked(true)
+          newViolationsBtn.style.display = 'none'
+
+          var formData = new URLSearchParams()
+          formData.append('schedule', schedule)
+          formData.append('csrfmiddlewaretoken', getCsrf())
+
+          fetch("{% url 'admin_panel:assistant_analyze' %}", {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData,
+            credentials: 'same-origin'
+          })
+            .then(function (r) { return r.json() })
+            .then(function (data) {
+              if (data.success && data.analysis_id) {
+                currentAnalysisId = data.analysis_id
+                pollInterval = setInterval(pollStatus, 1000)
+                pollStatus()
+              } else {
+                resetAnalyzeButton()
+                var errId = 'err-' + Date.now()
+                appendLogToRun(errId, null, ['Error: ' + (data.error || 'Failed to start')])
+                finishRunBlock(errId)
+              }
+            })
+            .catch(function (e) {
+              resetAnalyzeButton()
+              var errId = 'err-' + Date.now()
+              appendLogToRun(errId, null, ['Error: ' + e.message])
+              finishRunBlock(errId)
+            })
+        })
+
+        ;(function convertTimestampsToLocal() {
+          updateClearHistoryVisibility()
+          document.querySelectorAll('.assistant-run-date[data-iso]').forEach(function (el) {
+            var iso = el.getAttribute('data-iso')
+            var runId = el.getAttribute('data-run-id')
+            var textEl = el.querySelector('.assistant-run-date-text') || el
+            textEl.textContent = formatDateTimeLocal(iso) + (runId ? ' — Run #' + runId : '')
+          })
+          document.querySelectorAll('.assistant-run-lines div').forEach(function (el) {
+            el.textContent = formatLogLineTimestamp(el.textContent)
+          })
+        })()
+
+        ;(function onLoad() {
+          fetch("{% url 'admin_panel:assistant_check_running' %}", { credentials: 'same-origin' })
+            .then(function (r) { return r.json() })
+            .then(function (data) {
+              if (data.success && data.running && data.analysis_id) {
+                currentAnalysisId = data.analysis_id
+                setAnalyzeBusy(true)
+                setClearHistoryLocked(true)
+                if (analyzeLabel) analyzeLabel.textContent = '0%'
+                if (analyzeFill) analyzeFill.style.width = '0%'
+                pollInterval = setInterval(pollStatus, 1000)
+                pollStatus()
+              }
+            })
+        })()
+      })()
+    </script>
+  {% endif %}
+{% endblock %}

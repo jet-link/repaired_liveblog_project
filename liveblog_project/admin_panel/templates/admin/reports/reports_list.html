@@ -1,0 +1,162 @@
+{% extends 'admin/layout/base.html' %}
+{% load mentions %}
+{% block title %}Reports{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Reports</li></ol></nav>{% endblock %}
+{% block page_title %}Reports{% endblock %}
+{% block content %}
+<div class="admin-toolbar">
+    <form class="admin-search-form" method="get">
+        <select name="target" class="admin-select">
+            <option value="">Types</option>
+            <option value="item" {% if current_target == 'item' %}selected{% endif %}>Posts</option>
+            <option value="comment" {% if current_target == 'comment' %}selected{% endif %}>Comments</option>
+        </select>
+        <select name="reason" class="admin-select">
+            <option value="">Reeasons</option>
+            <option value="spam" {% if current_reason == 'spam' %}selected{% endif %}>Spam</option>
+            <option value="abuse" {% if current_reason == 'abuse' %}selected{% endif %}>Abuse</option>
+            <option value="harassment" {% if current_reason == 'harassment' %}selected{% endif %}>Harassment</option>
+            <option value="copyright" {% if current_reason == 'copyright' %}selected{% endif %}>Copyright</option>
+            <option value="other" {% if current_reason == 'other' %}selected{% endif %}>Other</option>
+        </select>
+        <select name="sort" class="admin-select">
+            <option value="date" {% if current_sort == 'date' %}selected{% endif %}>Sort by date</option>
+            <option value="reports" {% if current_sort == 'reports' %}selected{% endif %}>Sort by reports count</option>
+        </select>
+        <button type="submit" class="admin-button">Search</button>
+    </form>
+</div>
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table admin-reports-table" data-bulk-clear-url="{% url 'admin_panel:reports_bulk_clear' %}">
+            <thead>
+                <tr><th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th><th>Status</th><th>Type</th><th>Preview</th><th>Reasons</th><th>Reporter</th><th>Details</th><th>Reports</th><th>Date</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                <tr data-report-id="{{ r.pk }}" data-status="{{ r.status }}">
+                    <td><input type="checkbox" class="admin-bulk-row-check" value="{{ r.pk }}" aria-label="Select"></td>
+                    <td class="admin-report-status-cell">
+                        {% if r.status == 'resolved' %}
+                            <span class="admin-badge admin-badge-success">Resolved</span>
+                        {% elif r.status == 'ignored' %}
+                            <span class="admin-badge admin-badge-warning">Ignored</span>
+                        {% else %}
+                            <span class="admin-badge admin-badge-pending">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{% if r.item %}Post{% else %}Comment{% endif %}</td>
+                    <td class="admin-report-preview-cell">
+                        {% if r.item %}
+                            {% if r.item.is_published %}
+                                <a href="{% url 'smart_blog:post_detail' r.item.slug %}" class="admin-link">{{ r.item.title }}</a>
+                            {% else %}
+                                <span class="admin-link admin-link-draft">{{ r.item.title }}</span>
+                            {% endif %}
+                        {% endif %}
+                        {% if r.comment %}
+                            <a href="{{ r.comment.get_comment_url }}" class="admin-link">{{ r.comment.text|strip_mentions|truncatechars:65 }}</a>
+                        {% endif %}
+                    </td>
+                    <td class="admin-report-reasons-cell">{{ r.get_reasons_display|join:", " }}</td>
+                    <td>{{ r.reporter.username|default:"—" }}</td>
+                    <td class="admin-report-details-cell">
+                        {% if r.reason == "other" or r.reasons and "other" in r.reasons %}
+                            {% if r.details %}
+                                <span title="{{ r.details }}">{% if r.details|length > 65 %}{{ r.details|truncatechars:65 }}{% else %}{{ r.details }}{% endif %}</span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ r.target_reports_count|default:1 }}</td>
+                    <td>{{ r.created_at|date:"M d, H:i" }}</td>
+                    <td class="admin-actions-cell">
+                        <div class="admin-dropdown">
+                            <button type="button" class="admin-dropdown-trigger admin-button">Actions <i class="fa-solid fa-chevron-down"></i></button>
+                            <div class="admin-dropdown-menu">
+                                {% if r.status == 'open' %}
+                                    <form method="post" class="admin-report-ajax-form" data-action="resolve" action="{% url 'admin_panel:report_resolve' r.pk %}{% if filter_qs %}?{{ filter_qs }}{% endif %}" style="margin:0">{% csrf_token %}<button type="submit" class="admin-dropdown-btn admin-action-resolve">Mark resolved</button></form>
+                                    <form method="post" class="admin-report-ajax-form" data-action="dismiss" action="{% url 'admin_panel:report_dismiss' r.pk %}{% if filter_qs %}?{{ filter_qs }}{% endif %}" style="margin:0">{% csrf_token %}<button type="submit" class="admin-dropdown-btn admin-action-dismiss">Dismiss report</button></form>
+                                {% endif %}
+                                <a href="{% url 'admin_panel:report_delete_content' r.pk %}{% if filter_qs %}?{{ filter_qs }}{% endif %}" class="admin-action-delete">Delete content</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10" class="admin-empty">No reports.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ reports.paginator.count }}</div>
+    {% if reports.has_other_pages %}
+    <div class="admin-pagination">
+        {% if reports.has_previous %}
+            <a href="?page={{ reports.previous_page_number }}{% if current_target %}&target={{ current_target }}{% endif %}{% if current_reason %}&reason={{ current_reason }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" class="admin-button admin-button-sm">Previous</a>
+        {% endif %}
+        <span class="admin-pagination-info">Page {{ reports.number }} of {{ reports.paginator.num_pages }}</span>
+        {% if reports.has_next %}
+            <a href="?page={{ reports.next_page_number }}{% if current_target %}&target={{ current_target }}{% endif %}{% if current_reason %}&reason={{ current_reason }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" class="admin-button admin-button-sm">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+<script>
+(function() {
+  var table = document.querySelector('.admin-reports-table');
+  if (!table) return;
+  function getCsrfToken(form) {
+    var input = form && form.querySelector('input[name="csrfmiddlewaretoken"]');
+    return input ? input.value : '';
+  }
+  table.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (!form || !form.classList.contains('admin-report-ajax-form')) return;
+    e.preventDefault();
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+    var action = form.dataset.action;
+    var row = form.closest('tr') || (window.adminFormAnchorRow && window.adminFormAnchorRow(form));
+    fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': getCsrfToken(form),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams(new FormData(form)),
+      credentials: 'same-origin'
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success && data.new_status && row) {
+        var statusTd = row.querySelector('.admin-report-status-cell');
+        if (statusTd) {
+          statusTd.innerHTML = data.new_status === 'resolved'
+            ? '<span class="admin-badge admin-badge-success">Resolved</span>'
+            : '<span class="admin-badge admin-badge-warning">Ignored</span>';
+        }
+        row.dataset.status = data.new_status;
+        var dd = row.querySelector('.admin-dropdown');
+        var menu = window.adminFindDropdownMenu ? window.adminFindDropdownMenu(dd) : row.querySelector('.admin-dropdown-menu');
+        if (menu) {
+          var forms = menu.querySelectorAll('.admin-report-ajax-form');
+          forms.forEach(function(f) { f.remove(); });
+        }
+        if (window.adminCloseDropdown) window.adminCloseDropdown(dd);
+      }
+    })
+    .catch(function() {
+      form.submit();
+    })
+    .finally(function() {
+      if (btn) btn.disabled = false;
+    });
+  });
+})();
+</script>
+{% endblock %}

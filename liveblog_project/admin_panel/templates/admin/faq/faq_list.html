@@ -1,0 +1,52 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}FAQ{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">FAQ</li></ol></nav>{% endblock %}
+{% block page_title %}FAQ{% endblock %}
+{% block content %}
+<div class="admin-toolbar">
+    <form class="admin-search-form" method="get" action="{% url 'admin_panel:faq_list' %}">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search..." class="admin-input admin-search-input">
+        <button type="submit" class="admin-button">Search</button>
+    </form>
+    <a href="{% url 'admin_panel:faq_create' %}" class="admin-button admin-button-primary">Add FAQ</a>
+</div>
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" data-bulk-delete-url="{% url 'admin_panel:faq_bulk_delete' %}">
+            <thead>
+                <tr><th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th><th>Order</th><th>Question</th><th>Answer</th><th>Active</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><input type="checkbox" class="admin-bulk-row-check" value="{{ item.pk }}" aria-label="Select"></td>
+                    <td>{{ item.order }}</td>
+                    <td>{{ item.question|truncatewords:10 }}</td>
+                    <td>{{ item.answer|truncatewords:6 }}</td>
+                    <td><span class="admin-badge {% if item.is_active %}admin-badge-success{% else %}admin-badge-warning{% endif %}">{% if item.is_active %}Yes{% else %}No{% endif %}</span></td>
+                    <td class="admin-actions-cell">
+                        <div class="admin-dropdown">
+                            <button type="button" class="admin-dropdown-trigger admin-button">Actions <i class="fa-solid fa-chevron-down"></i></button>
+                            <div class="admin-dropdown-menu">
+                                <a href="{% url 'admin_panel:faq_edit' item.pk %}">Edit</a>
+                                <a href="{% url 'admin_panel:faq_delete' item.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-action-delete">Delete</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="admin-empty">No FAQ items.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ items.paginator.count }}</div>
+    {% if items.has_other_pages %}
+    <div class="admin-pagination">
+        {% if items.has_previous %}<a href="?page={{ items.previous_page_number }}{% if search %}&q={{ search }}{% endif %}" class="admin-button">Previous</a>{% endif %}
+        <span class="admin-pagination-info">Page {{ items.number }} of {{ items.paginator.num_pages }}</span>
+        {% if items.has_next %}<a href="?page={{ items.next_page_number }}{% if search %}&q={{ search }}{% endif %}" class="admin-button">Next</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

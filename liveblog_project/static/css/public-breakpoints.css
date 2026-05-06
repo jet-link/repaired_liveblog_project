@@ -1,0 +1,130 @@
+/**
+ * Public site: unified breakpoints (reference for media queries)
+ * Desktop XL: min-width 1400px
+ * Desktop:    max-width 1399px
+ * Laptop:     max-width 1199px
+ * Tablet:     max-width 991px
+ * Mobile L:   max-width 767px
+ * Mobile M:   max-width 575px
+ * Mobile S:   max-width 399px
+ *
+ * Use literal px in @media — CSS variables cannot replace media conditions in older engines.
+ */
+
+:root {
+    --container-max: 1320px;
+    /* Horizontal gutters: tighter on narrow viewports so content uses more width */
+    --container-px: 24px;
+    --container-px-tablet: 16px;
+    --container-px-mobile: 12px;
+
+    /* Spacing scale (4px grid) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Responsive type — base; refined in responsive.css / media below */
+    --fs-page-title: clamp(1.5rem, 2.5vw + 1rem, 2.5rem);
+    --fs-section-title: clamp(1.25rem, 1.5vw + 0.85rem, 1.75rem);
+    --fs-card-title: clamp(1.05rem, 0.8vw + 0.9rem, 1.35rem);
+    --fs-body: clamp(0.9375rem, 0.3vw + 0.9rem, 1.125rem);
+    --fs-small: 0.875rem;
+
+    --touch-target-min: 44px;
+
+    /* Вертикальные отступы основного контента (симметрично сверху и снизу) */
+    --main-pad-y: 70px;
+    --main-pad-top: var(--main-pad-y);
+    --main-pad-bottom: var(--main-pad-y);
+
+    /* Stacking: Bootstrap modals above mobile drawer (.bottom-side-menu 1600) and categories (1700) */
+    --z-modal-backdrop: 2080;
+    --z-modal: 2090;
+}
+
+/* Main content width — use instead of Bootstrap .container on public pages */
+.container-main {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
+    box-sizing: border-box;
+}
+
+@media (max-width: 991px) {
+    .container-main {
+        padding-left: var(--container-px-tablet);
+        padding-right: var(--container-px-tablet);
+    }
+}
+
+@media (max-width: 575px) {
+    .container-main {
+        padding-left: var(--container-px-mobile);
+        padding-right: var(--container-px-mobile);
+    }
+}
+
+/* Article / editor content images — fluid, no horizontal overflow */
+.main .item-text.ck-content img,
+.main .item-text.ck-content figure img,
+.main .ck-content img,
+.main .post-body img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.main .item-gallery img,
+.main .gallery-img,
+.main .gallery-slide-img {
+    max-width: 100%;
+    display: block;
+}
+
+.main .item-gallery .gallery-img,
+.main .gallery-slide-img {
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+}
+
+.main .item-text.ck-content video,
+.main .ck-content video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Prevent stray horizontal scroll on main column */
+.main {
+    min-width: 0;
+    padding-top: var(--main-pad-y);
+    padding-bottom: var(--main-pad-y);
+    box-sizing: border-box;
+    /* Contain z-index from nested UI (e.g. comment menus) so they cannot stack above <footer> */
+    isolation: isolate;
+}
+
+/* Home / pages: inner <main class="site-main"> — space before footer (header gap via first section in pages/responsive.css) */
+.main .site-main {
+    /* padding-bottom: var(--space-8, 32px); */
+    box-sizing: border-box;
+}
+
+/* Bootstrap 5: default modal z-index (1055) is below mobile nav — lift all public modals */
+.modal-backdrop {
+    z-index: var(--z-modal-backdrop, 2080);
+}
+
+.modal {
+    z-index: var(--z-modal, 2090);
+}

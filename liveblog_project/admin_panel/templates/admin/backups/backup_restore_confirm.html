@@ -1,0 +1,27 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Restore Backup{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:backups_list' %}">Backups</a></li><li class="admin-breadcrumbs-item">Restore</li></ol></nav>{% endblock %}
+{% block page_title %}Restore {{ backup.name }}{% endblock %}
+{% block content %}
+<div class="admin-card admin-modal-card">
+    <h3>Restore from backup?</h3>
+    <p><strong>{{ backup.name }}</strong> ({{ backup.file_size_human }})</p>
+    <p class="admin-alert admin-alert-warning">This will replace current database and media. Restart server after restore.</p>
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_backup_before_restore" name="backup_before_restore" value="yes" class="admin-checkbox-input" checked>
+            <label for="id_backup_before_restore" class="admin-checkbox-label">Create safety backup before restore</label>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_confirm_text">Type RESTORE to confirm:</label>
+            <input type="text" id="id_confirm_text" name="confirm_text" class="admin-input" placeholder="RESTORE" required>
+        </div>
+        <input type="hidden" name="confirm" value="yes">
+        <div class="admin-form-actions">
+            <button type="submit" class="admin-button admin-button-danger">Restore</button>
+            <a href="{% url 'admin_panel:backups_list' %}" class="admin-button admin-button-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

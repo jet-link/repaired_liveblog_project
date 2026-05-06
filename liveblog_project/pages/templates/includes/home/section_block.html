@@ -1,0 +1,6 @@
+<div class="home-section__head">
+  <h2 class="home-section__title" {% if section_id %}id="section-{{ section_id }}"{% endif %}>{{ title }}</h2>
+  {% if subtitle %}
+    <p class="home-section__subtitle text-muted mb-0">{{ subtitle }}</p>
+  {% endif %}
+</div>

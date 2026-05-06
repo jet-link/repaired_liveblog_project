@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}
+  Searched
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block"
+    data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+    data-search-history-url="{% url 'smart_blog:api_search_history_list' %}"
+    data-search-history-clicked-pattern="{% url 'smart_blog:api_search_history_clicked' pk=999999 %}"
+    data-search-history-clear-url="{% url 'smart_blog:api_search_history_clear' %}"
+    data-search-history-delete-pattern="{% url 'smart_blog:api_search_history_delete' pk=999999 %}">
+    <h5 id="brainewsListingTitle" class="mt-5 mb-3 text-muted d-none" aria-hidden="true">BraiNews</h5>
+    <div id="filterPageContextBlock" class="filter-page-context-block filter-page-context-transition mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex gap-1 flex-wrap align-items-center">
+          <h6 class="text-muted m-0">Search results for</h6>
+          <span class="primary_ fw-semibold">{{ query }}</span>
+        </div>
+        <!-- <button type="button" class="btn-back-link back-btn text-muted small" data-return-key="search_return_url" data-fallback="{% url 'smart_blog:items_list' %}" title="Back to previous page"><i class="fa fa-angle-left me-2" aria-hidden="true"></i>Back</button> -->
+      </div>
+      <hr />
+      <div class="d-flex gap-2 text-muted small align-items-center">
+        <span>Total</span>
+        <span>found</span>
+        <span class="custom_badge badge_primary">{{ results_total }}</span>
+        {% if results_total != 1 %}
+          <span>posts</span>
+        {% else %}
+          <span>post</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div id="filterCardsWrapper" class="filter-cards-container filter-cards-transition" data-page-type="search">
+      {% if items %}
+        {% include 'includes/all_cards.html' with listing_source='search' listing_source_url=request.get_full_path listing_query=query %}
+      {% elif query %}
+        <div class="custom-alert custom-alert-info" data-auto-dismiss="3000">No results found!</div>
+      {% endif %}
+      {% include 'includes/search_pagination.html' %}
+    </div>
+  </div>
+{% endblock %}

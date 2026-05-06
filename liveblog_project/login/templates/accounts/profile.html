@@ -1,0 +1,78 @@
+<!-- templates/accounts/profile.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  {{ user_obj.username }} - profile room
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block">
+    {% url 'login_app:profile-section' user_obj.username 'created' as profile_created_url %}
+    <div class="profile-page-header d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap" data-profile-username="{{ user_obj.username }}">
+      <h5 class="m-0 primary_">{{ user_obj.username }}</h5>
+      {% if show_profile_avatar_thumbs %}
+        <button type="button" class="profile-mobile-avatar-thumb d-lg-none" title="View avatar" aria-label="View full avatar" data-username="{{ user_obj.username }}">
+          <img src="{{ user_obj.profile.get_avatar }}" alt="" width="40" height="40" loading="lazy" decoding="async" data-full="{{ user_obj.profile.get_avatar }}" data-username="{{ user_obj.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+        </button>
+      {% endif %}
+    </div>
+    {% include 'includes/personal_info.html' %}
+
+    {% if is_owner %}
+    {% with trust_score=trust_score %}
+    {% if trust_score < 5 %}
+    <p class="trust-level-message text-muted mt-3 small mb-0">
+      {% if trust_score >= 3 %}
+      <strong>Restricted:</strong> Create post is disabled. Comments and replies are allowed. Wait for moderation or recovery to restore full access.
+      {% else %}
+      <strong>Restricted:</strong> Create post, comments and replies are disabled. Wait for moderation or recovery to restore access.
+      {% endif %}
+    </p>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+
+    <div class="mt-5">
+      {% if created_items %}
+        <div class="d-flex align-items-center gap-2 mb-4">
+          <h6 class="text-muted m-0">Created posts</h6>
+          <!-- <span class="custom_badge badge_primary fw-semibold">{{ all_count }}</span> -->
+        </div>
+        {% include 'includes/profile_created_posts_grid.html' with items=created_items trending_item_ids=trending_item_ids listing_source='profile' listing_user=user_obj.username %}
+        {% if show_view_all_created %}
+          <div class="d-flex justify-content-start align-items-center mt-4 small">
+            <a href="{{ profile_created_url }}" class="text-decoration-none text-muted d-flex gap-2">
+              <span>View all created posts</span>
+              <span>→</span>
+            </a>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="fw-semibold text-muted">There are no posts yet!</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  {% if not is_owner and is_online %}
+    <script>
+      ;(function () {
+        var badge = document.getElementById('profileOnlineBadge')
+        if (!badge) return
+        var url = "{% url 'login_app:profile-online-status' user_obj.username %}"
+        function checkOnline() {
+          fetch(url, { headers: { Accept: 'application/json' } })
+            .then(function (r) {
+              return r.json()
+            })
+            .then(function (data) {
+              if (!data.online && badge) badge.style.display = 'none'
+            })
+            .catch(function () {})
+        }
+        setInterval(checkOnline, 30000)
+      })()
+    </script>
+  {% endif %}
+{% endblock %}

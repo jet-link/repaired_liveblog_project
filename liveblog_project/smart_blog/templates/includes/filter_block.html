@@ -1,0 +1,17 @@
+{% if user.is_authenticated %}
+  <div class="filter-block filter-block--scrollable w-100 min-w-0 d-flex flex-nowrap gap-2 align-items-center" data-filter-url="{% url 'smart_blog:items_filtered' %}">
+    <div class="filter-segment-outer min-w-0 flex-grow-1">
+      <div class="filter-segment-shell">
+        <div class="filter-segment-scroll filter-scroll-x">
+          <div class="filter-segment-bar" id="filterReasonList">
+            <button type="button" class="filter-reason-btn is-selected" data-filter="all">All</button>
+            <button type="button" class="filter-reason-btn" data-filter="posted">Posted</button>
+            <button type="button" class="filter-reason-btn" data-filter="liked">Liked</button>
+            <button type="button" class="filter-reason-btn" data-filter="bookmarked">Marked</button>
+            <button type="button" class="filter-reason-btn" data-filter="for_you">For you</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}

@@ -1,0 +1,8 @@
+{% comment %}items, trending_item_ids, listing_user, listing_section, listing_source{% endcomment %}
+<div class="row g-3 profile-created-posts-grid">
+  {% for item in items %}
+    <div class="col-12 col-md-6 col-lg-4 profile-created-posts-grid__col">
+      {% include 'includes/profile_created_post_tile.html' with item=item trending_item_ids=trending_item_ids listing_source=listing_source listing_user=listing_user listing_section=listing_section %}
+    </div>
+  {% endfor %}
+</div>

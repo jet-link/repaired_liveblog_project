@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Admin{% endblock %} | brainstorm.news</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}">
+    <!-- Fonts (same as smart_blog) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'admin/css/admin.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js" crossorigin="anonymous"></script>
+    <script>
+      (function(){var t=localStorage.getItem('admin_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');if(window.innerWidth>=993&&localStorage.getItem('admin_sidebar_collapsed')==='1')document.documentElement.classList.add('admin-sidebar-collapsed');})();
+    </script>
+    {% block extra_css %}{% endblock %}
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="admin-body" data-spellcheck-lang="{{ spellcheck_lang|default:'en' }}">
+    <div class="admin-layout">
+        {% include 'admin/layout/sidebar.html' %}
+        <div class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-left">
+                    <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+                    <h1 class="admin-page-title">{% block page_title %}<span class="admin-header-brand-full">brainstorm.news</span><span class="admin-header-brand-short">bstrm.news</span>{% endblock %}</h1>
+                    <span class="admin-online-badge">Now online: {{ admin_online_count|default:0 }}</span>
+                </div>
+                <div class="admin-header-right">
+                    <button type="button" class="admin-theme-toggle" id="adminThemeToggle" aria-label="Toggle theme" title="Toggle light/dark theme"><i class="admin-theme-icon fa-regular fa-moon" aria-hidden="true"></i></button>
+                    <a href="{% url 'login_app:profile' username=request.user.username %}" class="admin-button admin-button-sm admin-header-go-site">Go to site</a>
+                    <div class="comment-menu comment-menu--actions-bar admin-header-overflow-menu" id="adminHeaderOverflowMenu">
+                        <button type="button" class="comment-menu-btn overflow-more-btn" aria-label="More actions" aria-expanded="false" aria-haspopup="true">
+                            <span class="overflow-more-btn__dots" aria-hidden="true">
+                                <span class="overflow-more-btn__dot"></span>
+                                <span class="overflow-more-btn__dot"></span>
+                                <span class="overflow-more-btn__dot"></span>
+                            </span>
+                        </button>
+                        <div class="comment-actions" role="menu">
+                            <a href="{% url 'login_app:profile' username=request.user.username %}" class="comment-menu-action text-decoration-none" role="menuitem">
+                                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Go to site</span>
+                            </a>
+                            <button type="button" class="comment-menu-action admin-signout-trigger" role="menuitem" id="adminHeaderOverflowLogoutBtn" title="Logout">
+                                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            {% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li></ol></nav>{% endblock %}
+            <main class="admin-content">
+                {% if messages %}
+                <div class="admin-messages">
+                    {% for message in messages %}
+                    <div class="admin-alert admin-alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    <div class="admin-sidebar-overlay" id="adminSidebarOverlay" aria-hidden="true"></div>
+    <!-- Bulk delete confirmation modal -->
+    <div id="adminBulkDeleteModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminBulkDeleteModalTitle" aria-hidden="true" hidden>
+      <div class="admin-modal-backdrop" id="adminBulkDeleteModalBackdrop"></div>
+      <div class="admin-modal-dialog">
+        <div class="admin-modal-content">
+          <h2 class="admin-modal-title" id="adminBulkDeleteModalTitle">Are you sure you want to delete this item?</h2>
+          <div class="admin-modal-actions">
+            <button type="button" class="admin-button admin-button-danger" id="adminBulkDeleteConfirmBtn">Delete</button>
+            <button type="button" class="admin-button admin-button-outline" id="adminBulkDeleteCancelBtn">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Sign out confirmation modal -->
+    <div id="adminSignoutModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminSignoutModalTitle" aria-hidden="true" hidden>
+      <div class="admin-modal-backdrop" id="adminSignoutModalBackdrop"></div>
+      <div class="admin-modal-dialog">
+        <div class="admin-modal-content">
+          <h2 class="admin-modal-title" id="adminSignoutModalTitle">Are you sure you want to sign out?</h2>
+          <div class="admin-modal-actions">
+            <form method="post" action="{% url 'login_app:logout' %}" class="admin-signout-form" data-turbo="false">
+              {% csrf_token %}
+              <button type="submit" class="admin-button admin-button-danger" id="adminSignoutConfirmBtn">Sign out</button>
+            </form>
+            <button type="button" class="admin-button admin-button-outline" id="adminSignoutCancelBtn">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% block admin_modals %}{% endblock %}
+    <script>
+      window.ADMIN_CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+    <script src="{% static 'js/spellcheck.js' %}"></script>
+    <script src="{% static 'admin/js/admin.js' %}"></script>
+    <script src="{% static 'admin/js/admin_toolbar_filters.js' %}"></script>
+    <script src="{% static 'admin/js/admin_table_bulk.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

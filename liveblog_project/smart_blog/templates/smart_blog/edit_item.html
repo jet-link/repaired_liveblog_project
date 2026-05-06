@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+  Edit {{ item.title }}
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="preconnect" href="https://cdn.ckeditor.com" crossorigin />
+  {{ form.media }}
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block">
+    <main class="create-field mx-auto">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="m-0 text-uppercase text-muted">Edit post</h5>
+
+      </div>
+
+      <form method="post" enctype="multipart/form-data" id="itemEditForm" data-ajax="true" data-validate="true" data-require-text-or-file="true"{% if item.body_pin_original %} data-has-pinned-file="1"{% endif %} data-replace-history="{{ item.get_absolute_url }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="custom-alert custom-alert-danger mb-2" data-auto-dismiss="3000">
+            {% for err in form.non_field_errors %}
+              <div>{{ err }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- TITLE -->
+        <div class="form-floating mb-3">
+          {{ form.title }}
+          <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+        </div>
+        {% for err in form.title.errors %}
+          <div class="text-danger small mb-2">{{ err }}</div>
+        {% endfor %}
+
+        <!-- TEXT -->
+        <div class="py-3">
+          {{ form.text }}
+        </div>
+        {% for err in form.text.errors %}
+          <div class="text-danger small mb-2">{{ err }}</div>
+        {% endfor %}
+
+        <!-- Or pin File -->
+        <div class="mb-3 item-body-file-import" id="itemBodyPinRow"{% if item.body_pin_original %} data-existing-pin="1"{% endif %}>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2 item-body-pin-heading-row">
+            <label for="id_body_pin_file" class="form-label text-muted mb-0 flex-shrink-0">{% trans "Or pin File" %}</label>
+            {% if item.body_pin_original %}
+              <span class="item-body-pin-heading-sep text-muted flex-shrink-0 user-select-none" id="itemBodyPinHeadingSep" aria-hidden="true">|</span>
+              <span class="item-body-pin-existing small text-muted d-inline-flex align-items-center gap-2 flex-wrap min-w-0" id="itemBodyPinExistingName">
+                <span class="text-break">{% trans "Current file" %}: <strong class="text-body">{{ item.body_pin_original_basename }}</strong></span>
+                <button type="button"
+                        class="btn btn-sm btn-danger btn-mark-delete-body-pin flex-shrink-0"
+                        id="itemBodyPinFileClear"
+                        data-item-body-pin-clear
+                        data-title-mark="{% trans 'Mark for deletion' %}"
+                        data-title-unmark="{% trans 'Unmark deletion' %}"
+                        style="font-size:10px;padding:0.4rem 0.4rem;line-height:1"
+                        title="{% trans 'Mark for deletion' %}"
+                        aria-pressed="false"
+                        aria-label="{% trans 'Mark file for deletion' %}">
+                  <i class="fa fa-times" aria-hidden="true"></i>
+                </button>
+              </span>
+            {% endif %}
+          </div>
+          {{ form.body_pin_clear }}
+          <div class="item-images-upload item-images-upload--native">
+            {{ form.body_pin_file }}
+          </div>
+          {% for err in form.body_pin_file.errors %}
+            <div class="text-danger small mt-1 invalid-feedback d-block">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Category -->
+        <div class="mb-3">
+          <div class="custom-select-wrap category-select-custom">
+            {{ form.category }}
+          </div>
+          {% for err in form.category.errors %}
+            <div class="text-danger small mb-2">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- New tags (space-separated) -->
+        <div class="form-floating mb-3">
+          {{ form.new_tags }}
+          <label for="{{ form.new_tags.id_for_label }}" class="text-muted">{{ form.new_tags.label }}<span class="field-label-optional-suffix"> · {% trans "optional" %}</span></label>
+        </div>
+        {% for err in form.new_tags.errors %}
+          <div class="text-danger small mb-2">{{ err }}</div>
+        {% endfor %}
+
+        <!-- Existing tags (badge-style selection) -->
+        {% include 'includes/tag_badge_select.html' with form=form selected_tag_ids=selected_tag_ids %}
+        {% for err in form.tags.errors %}
+          <div class="text-danger small mb-2">{{ err }}</div>
+        {% endfor %}
+
+        {# existing images (server side) #}
+        {% if existing_images %}
+          <div id="existingImages" class="d-flex gap-2 flex-wrap mb-3">
+            {% for img in item.images.all %}
+              <div id="image-{{ img.pk }}" class="existing-image position-relative">
+                <img src="{{ img.image.url }}" alt="{{ img.alt_text }}" />
+                <button type="button" class="btn btn-sm btn-danger btn-mark-delete position-absolute" style="right:6px;top:6px;font-size:10px" data-image-id="{{ img.pk }}" aria-pressed="false" title="Mark for deletion"><i class="fa fa-times"></i></button>
+              </div>
+            {% endfor %}
+          </div>
+          <div id="deleteInputs"></div>
+        {% endif %}
+
+        {# existing videos (server side) #}
+        {% if existing_videos %}
+          <div id="existingVideos" class="d-flex gap-2 flex-wrap mb-3">
+            {% for vid in existing_videos %}
+              <div id="video-{{ vid.pk }}" class="existing-video position-relative">
+                <div class="existing-video__thumb existing-video__thumb--poster" data-video-src="{{ vid.video.url }}">
+                  <i class="fa fa-video-camera"></i>
+                  <small class="d-block text-muted mt-1">Video {{ forloop.counter }}</small>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger btn-mark-delete-video position-absolute" style="right:6px;top:6px;font-size:10px" data-video-id="{{ vid.pk }}" aria-pressed="false" title="Mark for deletion"><i class="fa fa-times"></i></button>
+              </div>
+            {% endfor %}
+          </div>
+          <div id="deleteVideoInputs"></div>
+        {% endif %}
+
+        <!-- add new images + video -->
+        <div class="mb-3">
+          <label for="{{ form.images.id_for_label }}" class="form-label text-muted mb-2">{{ form.images.label }}<span class="field-label-optional-suffix"> · {% trans "optional" %}</span></label>
+          <div class="item-media-upload-row">
+            <div class="item-images-upload item-images-upload--native item-media-upload-row__images">
+              <input id="id_images" name="images" type="file" accept="image/*" multiple class="item-images-file-input" title="Choose images" />
+            </div>
+            <button type="button" class="cstm-btn custom-secondary-btn item-media-upload-row__video-btn" id="btnAddVideo" title="{% trans 'Add video' %}">
+              <i class="fa fa-video-camera" aria-hidden="true"></i>
+            </button>
+            <input id="id_videos" name="videos" type="file" accept="video/mp4,video/webm,video/quicktime" multiple class="d-none" title="Choose videos" />
+          </div>
+          <div id="imagesHelp" class="form-text">{% trans "JPEG/PNG/WebP · up to 10 images. MP4/WebM/MOV · up to 1 video (200 MB)." %}</div>
+          <div id="preview" class="mt-3 d-flex flex-wrap gap-2"></div>
+          <div id="videoPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
+        </div>
+        <div id="postSizeWarning" class="post-size-warning" hidden></div>
+        <div class="item-form-actions d-flex gap-1 align-items-center mt-2">
+          <button class="cstm-btn custom-primary-btn" type="submit">Edit</button>
+          <a href="{{ item.get_absolute_url }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="cstm-btn custom-secondary-btn">Cancel</a>
+        </div>
+      </form>
+    </main>
+  </div>
+{% endblock %}
+
+{% block editor_scripts %}
+  <script defer src="{% static 'ckeditor/ckeditor_main.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/item_body_file_import.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    (function () {
+      try {
+        var existingUrl = sessionStorage.getItem('listing_url');
+        if (!existingUrl) {
+          var ref = document.referrer || '';
+          if (ref && !ref.includes('/edit/')) {
+            sessionStorage.setItem('listing_url', ref);
+            sessionStorage.setItem('listing_scroll', '0');
+          } else {
+            sessionStorage.setItem('listing_url', '{% url "smart_blog:items_list" %}');
+            sessionStorage.setItem('listing_scroll', '0');
+          }
+        }
+        if (!sessionStorage.getItem('listing_anchor')) {
+          sessionStorage.setItem('listing_anchor', 'item-{{ item.pk }}');
+        }
+        sessionStorage.setItem('from_detail', '1');
+      } catch (e) { /* ignore */ }
+
+      var form = document.getElementById('itemEditForm');
+      if (form) {
+        form.addEventListener('ajax:start', function () {
+          var pre = document.getElementById('brainPreloader');
+          if (!pre) return;
+          var lbl = pre.querySelector('.brain-preloader__label');
+          if (lbl) lbl.textContent = 'Editing...';
+          pre.classList.remove('hidden');
+          pre.setAttribute('aria-busy', 'true');
+          document.documentElement.classList.add('brain-preloader-active');
+        });
+        form.addEventListener('ajax:error', function () {
+          var pre = document.getElementById('brainPreloader');
+          if (pre) { pre.classList.add('hidden'); pre.removeAttribute('aria-busy'); }
+          document.documentElement.classList.remove('brain-preloader-active');
+        });
+      }
+    })();
+  </script>
+  <script defer src="{% static 'smart_blog/js/category_select.js' %}"></script>
+{% endblock %}

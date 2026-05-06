@@ -1,0 +1,21 @@
+<div class="read-progress-wrap" role="progressbar" aria-label="Reading progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+  <div class="read-progress-bar"></div>
+</div>
+<script>
+(function () {
+  var wrap = document.querySelector('.read-progress-wrap');
+  if (!wrap) return;
+  var bar = wrap.querySelector('.read-progress-bar');
+  function update() {
+    var scrollTop = window.scrollY || document.documentElement.scrollTop;
+    var docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    var pct = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+    bar.style.width = pct + '%';
+    wrap.setAttribute('aria-valuenow', Math.round(pct));
+  }
+  ['scroll', 'resize'].forEach(function (ev) {
+    window.addEventListener(ev, function () { requestAnimationFrame(update); }, { passive: true });
+  });
+  requestAnimationFrame(update);
+})();
+</script>

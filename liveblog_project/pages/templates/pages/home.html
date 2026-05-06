@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cache %}
+{% block title %}{{ home.browser_title }}{% endblock %}
+{% block meta_description %}
+  {% if meta_description %}
+    <meta name="description" content="{{ meta_description }}" />
+  {% endif %}
+{% endblock %}
+{% block content %}
+  <main class="site-main home-page home-page--v2">
+    {% if not has_any_posts %}
+      <div class="container-main py-4">
+        <p class="home-empty-banner text-muted mb-0" role="status">No content yet.</p>
+      </div>
+    {% endif %}
+
+    <section class="home-hero-split primary_section" aria-labelledby="home-hero-title">
+      <div class="container-main">
+        <div class="home-hero-split__grid">
+          <div class="home-hero-split__copy">
+            <h1 id="home-hero-title" class="home-hero-split__h1 text-muted">{{ home.hero_h1 }}</h1>
+            {% if home.hero_lede %}
+              <p class="home-hero-split__lede text-muted">{{ home.hero_lede }}</p>
+            {% endif %}
+            <div class="home-hero-split__ctas">
+              {% if home.cta_primary_label and home.cta_primary_url %}
+                <a href="{{ home.cta_primary_url }}" class="cstm-btn custom-primary-btn">{{ home.cta_primary_label }}<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
+              {% endif %}
+              {% if home.cta_secondary_label and home.cta_secondary_url %}
+                <a href="{{ home.cta_secondary_url }}" class="cstm-btn home-hero-btn-secondary">{{ home.cta_secondary_label }}<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
+              {% endif %}
+            </div>
+            {% if home.trust_line and home.trust_link_url %}
+              <p class="home-trust small text-muted mb-0 mt-3">
+                <a href="{{ home.trust_link_url }}" class="text-muted text-decoration-underline">{{ home.trust_line }}</a>
+              </p>
+            {% endif %}
+          </div>
+          <div class="home-hero-split__featured">
+            {% if hero_item %}
+              {% include 'includes/home/post_card.html' with item=hero_item variant='hero' %}
+            {% else %}
+              <div class="home-post-card home-post-card--hero home-post-card--empty">
+                <div class="home-post-card__body">
+                  <p class="text-muted mb-0">No content yet</p>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {% if quick_links %}
+      <section class="home-quick-links primary_section centered" aria-label="Quick links">
+        <div class="container-main">
+          <div class="row g-2 g-md-3 justify-content-center home-quick-links-row">
+            {% for link in quick_links %}
+              <div class="col-6 col-md-4 col-lg-auto">
+                <a href="{{ link.url }}" class="home-quick-link card h-100 text-decoration-none text-center p-3 border">
+                  {% if link.icon_class %}
+                    <span class="home-quick-link-icon d-block mb-2 text-muted" aria-hidden="true"><i class="fa {{ link.icon_class }}"></i></span>
+                  {% endif %}
+                  <span class="small fw-semibold text-muted">{{ link.label }}</span>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if home.show_in_trend %}
+      <section class="home-section cosmo_section" aria-labelledby="section-in-trend">
+        <div class="container-main">
+          {% include 'includes/home/section_block.html' with title="In Trend" section_id='in-trend' %}
+          {% if in_trend_items %}
+            <div class="home-grid home-grid--trend">
+              {% for item in in_trend_items %}
+                {% include 'includes/home/post_card.html' with item=item %}
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="home-section__empty text-muted mb-0" role="status">No content yet</p>
+          {% endif %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if home.show_for_you_section %}
+      <section class="home-section cosmo_section" aria-labelledby="section-for-you">
+        <div class="container-main">
+          {% include 'includes/home/section_block.html' with title="For you" section_id='for-you' %}
+          {% if user.is_authenticated %}
+            {% if for_you_posts %}
+              <div class="home-for-you-scroll">
+                <div class="home-for-you-row">
+                  {% for item in for_you_posts %}
+                    {% include 'includes/home/post_card.html' with item=item %}
+                  {% endfor %}
+                </div>
+              </div>
+            {% else %}
+              <p class="home-section__empty text-muted mb-0" role="status">Nothing to recommend yet. Try <a href="{% url 'smart_blog:items_list' %}">BraiNews</a> or <a href="{% url 'smart_blog:topics_list' %}">Topics</a>.</p>
+            {% endif %}
+          {% else %}
+            <div class="home-for-you-placeholder">
+              <p class="text-muted mb-3">Sign in to get personalized recommendations</p>
+              <a href="{% url 'login_app:login' %}?next={% url 'smart_blog:for_you_list' %}" class="cstm-btn custom-primary-btn">Sign in</a>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if home.show_explore_topics %}
+      <section class="home-section cosmo_section" aria-labelledby="section-topics">
+        <div class="container-main">
+          {% include 'includes/home/section_block.html' with title="Explore Topics" section_id='topics' %}
+          {% if top_categories %}
+            <div class="home-topics-grid">
+              {% for category in top_categories %}
+                {% include 'includes/home/category_card.html' %}
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="home-section__empty text-muted mb-0" role="status">No categories yet</p>
+          {% endif %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if home.show_editor_picks and editor_picks %}
+      <section class="home-section cosmo_section" aria-labelledby="section-editor">
+        <div class="container-main">
+          {% include 'includes/home/section_block.html' with title="Editor’s picks" section_id='editor' %}
+          <div class="home-grid home-grid--editor{% if editor_picks|length == 1 %} home-grid--editor-single{% endif %}">
+            {% for item in editor_picks %}
+              {% include 'includes/home/post_card.html' with item=item variant='editor' %}
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if home.show_latest_brainews %}
+      <section class="home-section cosmo_section" aria-labelledby="section-latest">
+        <div class="container-main">
+          {% include 'includes/home/section_block.html' with title="Latest in BraiNews" section_id='latest' %}
+          {% if latest_posts %}
+            <ul class="home-latest-list list-unstyled mb-4">
+              {% for item in latest_posts %}
+                <li class="home-latest-list__item">
+                  <a href="{{ item.get_absolute_url }}?from=home&amp;source_url=/" class="home-latest-list__link">
+                    <span class="home-latest-list__title">{{ item.title }}</span>
+                    <span class="home-latest-list__meta text-muted">{{ item.published_date|default:item.created|date:"M j, Y" }}</span>
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+            <div class="text-center">
+              <a href="{% url 'smart_blog:items_list' %}" class="cstm-btn home-hero-btn-secondary">View all posts</a>
+            </div>
+          {% else %}
+            <p class="home-section__empty text-muted mb-0" role="status">No content yet</p>
+          {% endif %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if home.show_bottom_cta %}
+      {% if home.cta_footer_title or home.cta_footer_label and home.cta_footer_url %}
+      <section class="home-bottom-cta primary_section centered" aria-labelledby="section-bottom-cta">
+        <div class="container-main home-bottom-cta__inner">
+          {% if home.cta_footer_title %}
+            <h2 id="section-bottom-cta" class="h5 text-muted mb-3">{{ home.cta_footer_title }}</h2>
+          {% endif %}
+          {% if home.cta_footer_label and home.cta_footer_url %}
+            <a href="{{ home.cta_footer_url }}" class="cstm-btn custom-primary-btn">{{ home.cta_footer_label }}<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
+    {% endif %}
+
+    {% if home.show_decorative_astronauts %}
+      <section class="cosmo_section centered">
+        {% cache 600 home_astronauts home.cache_bump %}
+          {% include 'includes/astronauts_cosmo.html' %}
+        {% endcache %}
+      </section>
+    {% endif %}
+  </main>
+{% endblock %}

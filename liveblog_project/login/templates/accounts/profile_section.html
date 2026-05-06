@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}
+  {{ section_title }}
+{% endblock %}
+{% block content %}
+  <div class="container-main content_block">
+    {% include 'includes/breadcrumbs.html' %}
+    {% include 'includes/created_items.html' %}
+  </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% comment %}
+  Horizontal pill links or filter buttons (topics index).
+  - categories: iterable of Category with slug + name
+  - topic_chips_mode: "filter" = buttons + client filter (topics list); else = links to topic hub
+  - current_slug: optional; marks active chip on topic detail (nav mode only)
+  - topic_sort: optional; preserved in query when switching topic (nav mode only)
+{% endcomment %}
+{% if topic_chips_mode == 'filter' %}
+<div class="filter-segment-outer mb-4">
+  <div class="filter-segment-shell">
+    <div class="filter-segment-scroll filter-scroll-x">
+      <nav
+        class="topic-category-chips topic-category-chips--filter filter-segment-bar"
+        data-topic-chips-filter
+        role="navigation"
+        aria-label="Filter topics by category"
+      >
+        <button type="button" class="filter-reason-btn topic-category-chip is-selected" data-filter="all">All</button>
+        {% for cat in categories %}
+          <button type="button" class="filter-reason-btn topic-category-chip" data-category-slug="{{ cat.slug }}">{{ cat.name }}</button>
+        {% endfor %}
+      </nav>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="filter-segment-outer mb-4">
+  <div class="filter-segment-shell">
+    <div class="filter-segment-scroll filter-scroll-x">
+      <nav
+        class="topic-category-chips filter-segment-bar"
+        role="navigation"
+        aria-label="Topics and categories"
+      >
+        {% for cat in categories %}
+          <a
+            href="{% url 'smart_blog:topic_detail' slug=cat.slug %}{% if topic_sort and topic_sort != 'latest' %}?sort={{ topic_sort }}{% endif %}"
+            class="filter-reason-btn topic-category-link{% if current_slug and current_slug == cat.slug %} is-selected{% endif %}"
+          >{{ cat.name }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+  </div>
+</div>
+{% endif %}

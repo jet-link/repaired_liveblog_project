@@ -1,0 +1,48 @@
+<div class="modal fade report-modal" id="reportModal" tabindex="-1" aria-hidden="true" data-api-post-url="{% url 'smart_blog:api_report_post' pk=0 %}" data-api-comment-url="{% url 'smart_blog:api_report_comment' pk=0 %}" data-report-post-url="{% url 'smart_blog:report_post' pk=0 %}" data-report-comment-url="{% url 'smart_blog:report_comment' pk=0 %}" data-cancel-url="{% url 'smart_blog:cancel_report' pk=0 %}">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header d-flex align-items-center justify-content-between">
+        <h5 class="modal-title text-muted">Report</h5>
+        <button type="button" class="modal-close-btn" data-bs-dismiss="modal" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="reportFormView">
+          <div class="d-flex align-items-center justify-content-between mb-3" id="reportReasonList">
+            <div class="d-flex flex-wrap gap-1">
+              <button type="button" class="report-reason-btn" data-reason="spam">Spam</button>
+              <button type="button" class="report-reason-btn" data-reason="abuse">Abuse</button>
+              <button type="button" class="report-reason-btn" data-reason="harassment">Harassment</button>
+              <button type="button" class="report-reason-btn" data-reason="copyright">Copyright</button>
+            </div>
+            <button type="button" class="report-reason-btn" data-reason="other">Other</button>
+          </div>
+          <div class="mb-2">
+            <textarea id="reportDetails" class="form-control report-details" rows="4" placeholder="Describe your reason..." disabled spellcheck="true"></textarea>
+          </div>
+          <div id="reportFeedback" class="text-muted small mt-2"></div>
+        </div>
+        <div id="reportExistsView" class="d-none report-exists-view">
+          <p id="reportExistsHeader" class="report-exists-header mb-4">Already reported!</p>
+          <div id="reportExistsReasonsWrap" class="report-exists-section mb-2 d-none text-muted">
+            <h6 class="report-exists-label mb-2">Reasons</h6>
+            <ul id="reportExistsReasonsList" class="report-exists-reasons-list mb-2"></ul>
+          </div>
+          <div id="reportExistsDetailsWrap" class="report-exists-section mb-3 d-none">
+            <div id="reportExistsDetailsBlock" class="report-exists-details-block"></div>
+          </div>
+          <div class="report-exists-meta d-flex align-items-center gap-1 mb-3 mt-2">
+            <span>Reported: </span><span id="reportExistsTime"></span>
+          </div>
+          <div class="d-flex gap-1">
+            <button type="button" id="reportUpdateBtn" class="cstm-btn-sm custom-primary-btn">Update report</button>
+            <button type="button" id="reportCancelBtn" class="cstm-btn-sm custom-secondary-btn">Cancel report</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="cstm-btn-sm custom-secondary-btn" data-bs-dismiss="modal">Close</button>
+        <button id="reportSubmitBtn" type="button" class="cstm-btn custom-danger-btn cstm-btn-sm">Report</button>
+      </div>
+    </div>
+  </div>
+</div>

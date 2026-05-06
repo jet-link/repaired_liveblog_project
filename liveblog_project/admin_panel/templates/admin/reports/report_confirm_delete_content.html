@@ -1,0 +1,14 @@
+{% extends 'admin/layout/base.html' %}
+{% load mentions %}
+{% block title %}Delete Content{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:reports_list' %}">Reports</a></li><li class="admin-breadcrumbs-item">Delete</li></ol></nav>{% endblock %}
+{% block page_title %}Delete reported content?{% endblock %}
+{% block content %}
+<div class="admin-card admin-modal-card">
+    <h3>Delete reported content?</h3>
+    {% comment %} <hr /> {% endcomment %}
+    {% if report.item %}<blockquote class="admin-comment-blockquote">Post: {{ report.item.title }}</blockquote>{% endif %}
+    {% if report.comment %}<blockquote class="admin-comment-blockquote">Comment: {{ report.comment.text|strip_mentions|truncatewords:15 }}</blockquote>{% endif %}
+    <form method="post" action="{% url 'admin_panel:report_delete_content' report.pk %}{% if next_qs %}?{{ next_qs }}{% endif %}" class="admin-form-actions">{% csrf_token %}<button type="submit" class="admin-button admin-button-danger">Delete</button><a href="{% url 'admin_panel:reports_list' %}{% if next_qs %}?{{ next_qs }}{% endif %}" class="admin-button admin-button-outline">Cancel</a></form>
+</div>
+{% endblock %}

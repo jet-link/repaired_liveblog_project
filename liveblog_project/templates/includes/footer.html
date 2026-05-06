@@ -1,0 +1,62 @@
+<div class="container-main">
+  <div class="footer-blocks d-flex flex-column flex-md-row flex-md-nowrap align-items-stretch align-items-md-end justify-content-between gap-5 pt-5 pb-3">
+    <div class="footer-links d-flex flex-column flex-sm-row gap-4 gap-sm-4">
+      <div class="footer-block">
+        <a href="{% url 'pages:sitemap_page' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.namespace == 'pages' and request.resolver_match.url_name == 'sitemap_page' %} active{% endif %}">Sitemap</a>
+      </div>
+      <div class="footer-block">
+        <a href="{% url 'pages:faq' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'faq' %} active{% endif %}">FAQ</a>
+      </div>
+       <div class="footer-block">
+        <a href="{% url 'pages:page' 'about' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'page' and request.resolver_match.kwargs.slug == 'about' %} active{% endif %}">About</a>
+      </div>
+       <div class="footer-block">
+        <a href="{% url 'pages:page' 'contacts' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'page' and request.resolver_match.kwargs.slug == 'contacts' %} active{% endif %}">Contacts</a>
+      </div>
+    </div>
+    <div class="footer-links d-flex flex-column flex-sm-row gap-2 gap-sm-2 align-items-start">
+      <div class="d-flex flex-column flex-sm-row gap-2 gap-sm- align-items-start">
+      <div class="footer-subscribe-wrap">
+        <button type="button" class="footer-subscribe-trigger text-muted text-decoration-none border-0 bg-transparent" id="footerSubscribeTrigger" aria-haspopup="true" aria-expanded="false" aria-controls="footerSubscribePopover">
+          Subscribe
+        </button>
+        <div class="footer-subscribe-popover" id="footerSubscribePopover" role="dialog" aria-label="Follow us" hidden>
+          <ul class="footer-subscribe-social list-unstyled mb-0 d-flex flex-nowrap gap-2 gap-sm-3 justify-content-center align-items-center">
+            <li class="flex-shrink-0">
+              <a href="#" class="footer-subscribe-social-link text-muted text-decoration-none" target="_blank" rel="noopener noreferrer" aria-label="brainstorm.org on X (Twitter)">
+                <i class="fa fa-twitter fa-lg footer-subscribe-social-icon" aria-hidden="true"></i>
+              </a>
+            </li>
+            <li class="flex-shrink-0">
+              <a href="#" class="footer-subscribe-social-link text-muted text-decoration-none" target="_blank" rel="noopener noreferrer" aria-label="brainstorm.org on Facebook">
+                <i class="fa fa-facebook fa-lg footer-subscribe-social-icon" aria-hidden="true"></i>
+              </a>
+            </li>
+            <li class="flex-shrink-0">
+              <a href="#" class="footer-subscribe-social-link text-muted text-decoration-none" target="_blank" rel="noopener noreferrer" aria-label="brainstorm.org on Telegram">
+                <i class="fa fa-paper-plane fa-lg footer-subscribe-social-icon" aria-hidden="true"></i>
+              </a>
+            </li>
+            <li class="flex-shrink-0">
+              <a href="#" class="footer-subscribe-social-link text-muted text-decoration-none" target="_blank" rel="noopener noreferrer" aria-label="brainstorm.org on Instagram">
+                <i class="fa fa-instagram fa-lg footer-subscribe-social-icon" aria-hidden="true"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-block">
+        <button type="button" class="footer-back-to-top text-muted text-decoration-none border-0 bg-transparent" id="footerBackToTop" aria-label="Back to top">Back to top</button>
+      </div>
+      </div>
+      <!-- <a href="#" class="footer-link-item text-muted text-decoration-none">Language<i class="fa fa-angle-down ms-2" aria-hidden="true"></i></a> -->
+    </div>
+  </div>
+  <hr />
+  <div class="footer-meta-row d-flex flex-column flex-sm-row align-items-center justify-content-sm-between pb-4 pt-4">
+    <p class="text-muted small mb-0">&copy; 2025 brainstorm.news. All rights reserved.</p>
+    <!-- <div class="d-flex align-items-center">
+      <a href="#" class="footer-link-item text-muted text-decoration-none small">Policy and rights</a>
+    </div> -->
+  </div>
+</div>

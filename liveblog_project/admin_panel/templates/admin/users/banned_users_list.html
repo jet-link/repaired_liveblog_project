@@ -1,0 +1,56 @@
+{% extends 'admin/layout/base.html' %}
+
+{% block title %}Banned Users{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Banned users</li></ol></nav>{% endblock %}
+{% block page_title %}Banned Users{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <form class="admin-search-form" method="get" action="{% url 'admin_panel:banned_users' %}">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search users..." class="admin-input admin-search-input">
+        <button type="submit" class="admin-button">Search</button>
+    </form>
+</div>
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" data-bulk-unban-url="{% url 'admin_panel:banned_users_bulk_unban' %}">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Posts</th>
+                    <th>Comments</th>
+                    <th>Join date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td><input type="checkbox" class="admin-bulk-row-check" value="{{ u.pk }}" aria-label="Select"></td>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email|default:"—" }}</td>
+                    <td>{{ u.posts_count }}</td>
+                    <td>{{ u.comments_count }}</td>
+                    <td>{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'admin_panel:user_unban' u.pk %}?from=banned{% if search %}&q={{ search }}{% endif %}{% if users.number > 1 %}&page={{ users.number }}{% endif %}" class="admin-button admin-button-sm">Unban</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="admin-empty">No banned users.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ users.paginator.count }}</div>
+    {% if users.has_other_pages %}
+    <div class="admin-pagination">
+        {% if users.has_previous %}<a href="?page={{ users.previous_page_number }}{% if search %}&q={{ search }}{% endif %}" class="admin-button admin-button-sm">Previous</a>{% endif %}
+        <span class="admin-pagination-info">Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+        {% if users.has_next %}<a href="?page={{ users.next_page_number }}{% if search %}&q={{ search }}{% endif %}" class="admin-button admin-button-sm">Next</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

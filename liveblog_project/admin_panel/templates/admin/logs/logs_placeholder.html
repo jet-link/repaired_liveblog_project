@@ -1,0 +1,10 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Logs{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Logs</li></ol></nav>{% endblock %}
+{% block page_title %}Logs{% endblock %}
+{% block content %}
+<div class="admin-card">
+    <p style="color: var(--admin-text-muted)">System logs — coming soon.</p>
+    <p>Future: activity log, AI moderation log, audit trail.</p>
+</div>
+{% endblock %}

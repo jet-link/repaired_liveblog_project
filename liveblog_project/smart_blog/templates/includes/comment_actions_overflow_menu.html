@@ -1,0 +1,54 @@
+{# Overflow (⋯): Share / Edit / Remove / Report — Reply is inline by the date #}
+{% load user_status extras %}
+{% if comment.author %}
+  {% if user.is_authenticated %}
+    {% if user == comment.author %}
+      <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+      {% if comment.is_editable %}
+        {% if user|user_shadow_banned %}
+          <span class="comment-menu-action disabled" title="You have been shadow banned"><i class="fa fa-pencil" aria-hidden="true"></i><span>Edit</span></span>
+        {% else %}
+          <button type="button" class="comment-menu-action btn-edit-comment" data-edit-url="{% url 'smart_blog:edit_comment' comment.pk %}" data-comment-id="{{ comment.pk }}"><i class="fa fa-pencil" aria-hidden="true"></i><span>Edit</span></button>
+        {% endif %}
+        <button type="button" class="comment-menu-action badge_danger btn-delete-comment" data-delete-url="{% url 'smart_blog:delete_comment' comment.pk %}" data-comment-id="{{ comment.pk }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"><i class="fa fa-trash" aria-hidden="true"></i><span>Remove</span></button>
+      {% endif %}
+    {% elif user.is_staff %}
+      {% if not thread_view or depth|default:0 > 0 %}
+        <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+        {% if comment.reports_count|default:0 >= 10 or not comment.author.is_active %}
+          <button type="button" class="comment-menu-action badge_danger btn-delete-comment" data-delete-url="{% url 'smart_blog:delete_comment' comment.pk %}" data-comment-id="{{ comment.pk }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"><i class="fa fa-trash" aria-hidden="true"></i><span>Remove</span></button>
+        {% endif %}
+      {% else %}
+        <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+        {% if not comment.author.is_active %}
+          <button type="button" class="comment-menu-action badge_danger btn-delete-comment" data-delete-url="{% url 'smart_blog:delete_comment' comment.pk %}" data-comment-id="{{ comment.pk }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"><i class="fa fa-trash" aria-hidden="true"></i><span>Remove</span></button>
+        {% endif %}
+      {% endif %}
+    {% else %}
+      {% if not thread_view or depth|default:0 > 0 %}
+        <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+        {% if not report_rate_limited %}
+          <button type="button" class="comment-menu-action badge_danger" data-action="report" data-comment-id="{{ comment.pk }}"><i class="fa fa-flag" aria-hidden="true"></i><span>Report</span></button>
+        {% endif %}
+      {% else %}
+        <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+      {% endif %}
+    {% endif %}
+  {% else %}
+    <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+  {% endif %}
+{% else %}
+  {% if user.is_authenticated %}
+    {% if user.is_staff %}
+      <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+      <button type="button" class="comment-menu-action badge_danger btn-delete-comment" data-delete-url="{% url 'smart_blog:delete_comment' comment.pk %}" data-comment-id="{{ comment.pk }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"><i class="fa fa-trash" aria-hidden="true"></i><span>Remove</span></button>
+    {% else %}
+      <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+      {% if not report_rate_limited %}
+        <button type="button" class="comment-menu-action badge_danger" data-action="report" data-comment-id="{{ comment.pk }}"><i class="fa fa-flag" aria-hidden="true"></i><span>Report</span></button>
+      {% endif %}
+    {% endif %}
+  {% else %}
+    <button type="button" class="comment-menu-action" data-action="share" data-comment-id="{{ comment.pk }}"><i class="fa fa-share" aria-hidden="true"></i><span>Share</span></button>
+  {% endif %}
+{% endif %}

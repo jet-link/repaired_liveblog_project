@@ -1,0 +1,35 @@
+{% load static %}
+{% load counters %}
+<article class="home-post-card{% if variant %} home-post-card--{{ variant }}{% endif %}">
+  <a href="{{ item.get_absolute_url }}?from=home&amp;source_url=/" class="home-post-card__link">
+    <div class="home-post-card__media">
+      {% with im=item.images.all|first %}
+        {% if im %}
+          <img
+            src="{{ im.get_thumbnail_url }}"
+            alt=""
+            class="home-post-card__img"
+            loading="lazy"
+            decoding="async"
+            width="400"
+            height="225"
+          />
+        {% else %}
+          <div class="home-post-card__placeholder" aria-hidden="true"></div>
+        {% endif %}
+      {% endwith %}
+    </div>
+    <div class="home-post-card__body">
+      {% if item.category %}
+        <span class="home-post-card__cat">{{ item.category.name }}</span>
+      {% endif %}
+      <h3 class="home-post-card__title">{{ item.title }}</h3>
+      <div class="home-post-card__meta">
+        {% with d=item.published_date|default:item.created %}
+        <time datetime="{{ d|date:'c' }}">{{ d|date:"M j, Y" }}</time>
+        {% endwith %}
+        <span class="home-post-card__likes" aria-label="Likes"><i class="fa fa-heart-o" aria-hidden="true"></i> {{ item.likes_count|human }}</span>
+      </div>
+    </div>
+  </a>
+</article>

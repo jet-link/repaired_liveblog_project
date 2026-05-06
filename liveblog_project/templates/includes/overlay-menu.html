@@ -1,0 +1,49 @@
+{% load extras %}
+<!-- overlay menu -->
+<div id="bottomMenuOverlay" class="bottom-menu-overlay hidden"></div>
+<aside id="bottomSideMenu" class="bottom-side-menu hidden" aria-hidden="true" inert>
+  <div class="bottom-menu-header d-flex align-items-center justify-content-between gap-2">
+    <div class="bottom-left-nav header-brand min-w-0">
+      <a href="/" class="brand-minimal" aria-label="brainstorm.news"><span class="brand-full">brainstorm.news</span><span class="brand-short">bstrm.news</span></a>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-shrink-0 bottom-menu-header-actions" aria-label="Menu actions">
+      <button type="button" class="theme-toggle-btn theme-toggle-overlay p-0" aria-label="Toggle theme" title="Light/Dark theme"><i class="fa fa-moon-o theme-toggle-icon theme-toggle-icon--moon" aria-hidden="true"></i><i class="fa fa-sun-o theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true"></i></button>
+      <button id="bottomMenuClose" type="button" class="bottom-menu-close-btn text-muted p-0" aria-label="Close menu">×</button>
+    </div>
+  </div>
+
+  <div class="bottom-menu-scroll">
+  <nav class="bottom-menu-nav" aria-label="Primary">
+    {% with nav_name=request.resolver_match.url_name|default:'' %}
+    <a href="{% url 'smart_blog:items_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'items_list' %} active{% endif %}"><i class="fa fa-newspaper-o header-menu-item__icon" aria-hidden="true"></i><span class="header-menu-item__label">BraiNews</span></a>
+    <a href="{% url 'smart_blog:trending_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'trending_list' %} active{% endif %}"><i class="fa fa-fire header-menu-item__icon" aria-hidden="true"></i><span class="header-menu-item__label">In trend</span></a>
+    <a href="{% url 'smart_blog:topics_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'topics_list' or nav_name == 'topic_detail' %} active{% endif %}"><i class="fa fa-folder-o header-menu-item__icon" aria-hidden="true"></i><span class="header-menu-item__label">Topics</span></a>
+    {% comment %} <a href="#" class="header-menu-item text-decoration-none text-muted categories-modal-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoriesModalDialog">Categories</a> {% endcomment %}
+    {% endwith %}
+  </nav>
+
+  <nav class="bottom-menu-nav bottom-menu-auth" aria-label="Account">
+    {% if user.is_authenticated %}
+      <a href="{% url 'login_app:profile' user.username %}" class="header-menu-item overlay-menu-profile-row text-decoration-none text-muted" aria-label="Profile {{ user.username }}">
+        <i class="fa fa-user-circle me-2" aria-hidden="true"></i><span class="overlay-menu-profile-name fw-semibold" title="{{ user.username }}">{% if user.username|length > 15 %}{{ user.username|slice:":12" }}…{% else %}{{ user.username }}{% endif %}</span>
+      </a>
+      <a href="{% url 'login_app:profile-edit' request.user.username %}" class="header-menu-item text-decoration-none text-muted"><i class="fa fa-cog me-2" aria-hidden="true"></i>Edit profile</a>
+      <a href="{% url 'login_app:notifications' user.username %}" class="header-menu-item text-decoration-none text-muted notification-btn{% if notifications_count %} has-unread{% endif %}" data-notifications-count="{{ notifications_count }}"><i class="fa fa-bell me-2" aria-hidden="true"></i>Notifications</a>
+      <a href="#" class="header-menu-item text-decoration-none danger signout-trigger"><i class="fa fa-sign-out me-2" aria-hidden="true"></i>Sign out</a>
+    {% else %}
+      <a href="{% url 'login_app:login' %}" class="header-menu-item text-decoration-none text-muted">Sign in</a>
+    {% endif %}
+  </nav>
+  </div>
+
+  <!-- <nav class="social-block">
+    <span class="text-muted">Subscribe to us</span>
+    <hr />
+    <div class="social-nav">
+      <a href="#" aria-label="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Telegram"><i class="fa fa-paper-plane" aria-hidden="true"></i></a>
+      <a href="#" aria-label="Instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a>
+    </div>
+  </nav> -->
+</aside>

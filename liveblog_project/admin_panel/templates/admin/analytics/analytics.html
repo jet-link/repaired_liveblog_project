@@ -1,0 +1,49 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Statistics{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Statistics</li></ol></nav>{% endblock %}
+{% block page_title %}Statistics{% endblock %}
+{% block content %}
+<section class="admin-analytics-section">
+    <h2 class="admin-section-title">Top Posts by Popularity</h2>
+    <div class="admin-card">
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead><tr><th>#</th><th>Title</th><th>Author</th><th>Views</th><th>Likes</th><th>Comments</th><th>Reposts</th></tr></thead>
+                <tbody>
+                    {% for post in top_posts %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{% if post.is_published %}<a href="{% url 'smart_blog:post_detail' post.slug %}" class="admin-link">{{ post.title|truncatewords:8 }}</a>{% else %}<span class="admin-link admin-link-draft">{{ post.title|truncatewords:8 }}</span>{% endif %}</td>
+                        <td>{{ post.author.username|default:"—" }}</td>
+                        <td>{{ post.views_count }}</td>
+                        <td>{{ post.likes_count }}</td>
+                        <td>{{ post.comments_count|default:0 }}</td>
+                        <td>{{ post.reposts_count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="admin-empty">No posts.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="admin-analytics-section">
+    <h2 class="admin-section-title">Growth (last 30 days)</h2>
+    <div class="admin-stats-grid">
+        <div class="admin-card admin-stat-card">
+            <div class="admin-stat-value">{{ views_growth|length }}</div>
+            <div class="admin-stat-label">Days with views</div>
+        </div>
+        <div class="admin-card admin-stat-card">
+            <div class="admin-stat-value">{{ users_growth|length }}</div>
+            <div class="admin-stat-label">Days with new users</div>
+        </div>
+        <div class="admin-card admin-stat-card">
+            <div class="admin-stat-value">{{ comments_growth|length }}</div>
+            <div class="admin-stat-label">Days with comments</div>
+        </div>
+    </div>
+</section>
+{% endblock %}

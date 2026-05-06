@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load user_status %}
+{% load counters %}
+{% load post_media %}
+{% block body_class %}page-item-detail{% endblock %}
+{% block title %}
+  {{ item.title }}
+{% endblock %}
+{% block content %}
+  <div class="container-main content_block">
+    <div id="commentsContext" class="d-none" data-item-slug="{{ item.slug }}"></div>
+    {% include 'includes/breadcrumbs.html' %}
+
+    <!-- ===== Title + images + likes + views + bookmarks ===== -->
+    <div class="d-flex align-items-start gap-2 min-w-0 flex-nowrap item-detail-head">
+      <h2 class="text-muted m-0 item-detail-title min-w-0 flex-grow-1 flex-shrink-1">{{ item.title }}</h2>
+      <div class="comment-menu comment-menu--actions-bar item-detail-head-menu flex-shrink-0">
+        {% include 'includes/overflow_more_button.html' with aria_label='More post actions' %}
+        <div class="comment-actions" role="menu">
+          <button type="button" class="comment-menu-action" data-action="post-open-share">
+            <i class="fa fa-share" aria-hidden="true"></i><span>Share</span>
+          </button>
+          {% if user.is_authenticated and user == item.author and is_editable %}
+            <a href="{% url 'smart_blog:edit_post' item.slug %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="comment-menu-action text-decoration-none">
+              <i class="fa fa-pencil" aria-hidden="true"></i><span>Edit</span>
+            </a>
+            <button type="button" class="comment-menu-action badge_danger" data-bs-toggle="modal" data-bs-target="#confirmItemDeleteModal-{{ item.pk }}" data-editable-until="{{ editable_until_iso }}">
+              <i class="fa fa-trash" aria-hidden="true"></i><span>Remove</span>
+            </button>
+          {% endif %}
+          {% if user != item.author and user.is_authenticated and not user.is_staff and not report_rate_limited and item.reports_count|default:0 < 10 %}
+            <button type="button" class="comment-menu-action badge_danger" data-action="post-report" data-item-id="{{ item.pk }}">
+              <i class="fa fa-flag" aria-hidden="true"></i><span>Report</span>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="item-detail-meta-row mt-3">
+      <div class="item-detail-meta-row__track">
+        <div class="item-detail-meta-row__cluster">
+          {% if item.category %}
+            <div class="item-detail-meta-row__badges d-inline-flex align-items-center gap-1 flex-nowrap flex-shrink-0">
+              <span class="item-category-badge" title="Category">{{ item.category.name }}</span>
+              {% if user.is_authenticated %}
+                {% if not item.author_id or user.id != item.author_id %}
+                  <span id="itemReadingBadge" class="item-reading-badge"{% if not user_bookmarked %} hidden{% endif %}>I'll read it</span>
+                {% endif %}
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="item-detail-meta-row__badges d-inline-flex align-items-center gap-1 flex-nowrap flex-shrink-0">
+              <small class="primary_ fw-semibold">No category</small>
+              {% if user.is_authenticated %}
+                {% if not item.author_id or user.id != item.author_id %}
+                  <span id="itemReadingBadge" class="item-reading-badge"{% if not user_bookmarked %} hidden{% endif %}>I'm reading</span>
+                {% endif %}
+              {% endif %}
+            </div>
+          {% endif %}
+          <div class="d-flex align-items-center VLB flex-shrink-0">
+            <div class="item-stats item-stats--feed d-inline-flex align-items-center flex-nowrap">
+              <div class="stat stat--views">
+                <span id="viewsCount">{{ item.views_count|human }}</span>
+                <i class="fa fa-eye" aria-hidden="true"></i>
+              </div>
+              <div class="stat stat--likes">
+                <span id="likesCount">{{ item.likes_count|human }}</span>
+                <i class="fa fa-heart" aria-hidden="true"></i>
+              </div>
+              <div class="stat stat--reposts">
+                <span id="repostCount">{{ item.reposts_count|human }}</span>
+                <i class="fa fa-retweet" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr />
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="text-muted d-flex align-items-center">
+        <small class="d-flex align-items-center gap-2">
+          <i class="fa fa-calendar-o" aria-hidden="true"></i>
+          <span class="fw-semibold">{{ item.human_published }}</span>
+          {% if item.is_edited %}
+            <span>/</span>
+            <span class="success_ fw-semibold">Edited</span>
+          {% endif %}
+        </small>
+      </div>
+      {% if item.author %}
+        {% if user == item.author %}
+          <small class="primary_ fw-semibold">My post</small>
+        {% else %}
+          <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+            <span class="comment-author-name fw-semibold item-detail-author-name">
+              {% if item.author.is_active %}
+                {{ item.author }}
+              {% else %}
+                {% user_status_display item.author %}
+              {% endif %}
+            </span>
+            <a href="{% url 'login_app:profile' item.author.username %}" class="d-flex align-items-center gap-1 text-decoration-none" title="{% user_status_title item.author %}">
+              <div class="little-avatar">
+                {% if item.author.is_active %}
+                  {% if item.author.profile.avatar_url or item.author.profile.avatar_file %}
+                    <img src="{{ item.author.profile.get_avatar }}" alt="{{ item.author }}" class="user-avatar clickable-avatar" data-full="{{ item.author.profile.get_avatar }}" data-username="{{ item.author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                  {% else %}
+                    <img src="{% static 'img/no_avatar.svg' %}" alt="{{ item.author }}" class="user-avatar no_avatar" data-username="{{ item.author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                  {% endif %}
+                {% else %}
+                  <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display item.author %}" class="user-avatar" width="40" height="40" loading="eager" decoding="async" />
+                {% endif %}
+              </div>
+            </a>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+          <span class="comment-author-name fw-semibold item-detail-author-name">{% user_status_display item.author %}</span>
+          <a href="{% url 'login_app:vanished' %}" class="d-flex align-items-center text-decoration-none" title="{% user_status_title item.author %}">
+            <div class="little-avatar">
+              <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display item.author %}" class="user-avatar" width="40" height="40" loading="eager" decoding="async" />
+            </div>
+          </a>
+        </div>
+      {% endif %}
+    </div>
+    <!-- ===== Body: text only inline; PDF/DOCX open from "Pinned file" modal ===== -->
+    {% if item.body_pin_original %}
+      {% if item.text|striptags %}
+        <div id="itemTextCurtain" class="post-content item-text ck-content my-5{% if item.body_sourced_from_document %} item-text--sourced-doc{% endif %}">
+          {{ item.text|safe }}
+        </div>
+      {% else %}
+        <div id="itemTextCurtain" class="my-0" hidden aria-hidden="true"></div>
+      {% endif %}
+    {% else %}
+      <div id="itemTextCurtain" class="item-text ck-content my-5{% if item.body_sourced_from_document %} item-text--sourced-doc{% endif %}">
+        {{ item.text|safe }}
+      </div>
+    {% endif %}
+    <div id="itemTextShowMoreWrap" class="item-text-show-more-wrap" style="display:none;">
+      <hr class="item-text-show-more-divider" />
+      <button type="button" id="itemTextShowMore" class="item-text-show-more-btn">
+        Show more <i class="fa fa-angle-down" aria-hidden="true"></i>
+      </button>
+    </div>
+    {% post_media_gallery item %}
+    <!-- === published row: liked users left, like/bookmark actions right === -->
+    <div class="d-flex justify-content-between align-items-center">
+    {% comment %} <div class="d-flex justify-content-between align-items-center published_block my-4"> {% endcomment %}
+      <div class="liked-users-block d-flex align-items-center">
+        <span id="noLikesYet" class="small text-muted" {% if item.likes_count|add:0 >= 1 %}style="display:none"{% endif %}>No likes yet</span>
+        <div id="likedUsersContainer" class="d-flex align-items-center gap-1" {% if item.likes_count|add:0 < 1 %}style="display:none"{% endif %}>
+          <div id="likedUsersStackTrigger" class="liked-users-stack d-flex align-items-center" role="button" tabindex="0" title="View liked users">
+            {% for like in liked_users|slice:':5' %}
+              <span class="liked-user-avatar little-avatar" title="{% user_status_title like.user %}">
+                {% if like.user %}
+                  {% if like.user.is_active %}
+                    {% if like.user.profile.avatar_url or like.user.profile.avatar_file %}
+                      <img src="{{ like.user.profile.get_avatar }}" alt="{{ like.user.username }}" class="user-avatar" width="30" height="30" loading="lazy" decoding="async" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                    {% else %}
+                      <img src="{% static 'img/no_avatar.svg' %}" alt="{{ like.user.username }}" class="user-avatar no_avatar" width="30" height="30" loading="lazy" decoding="async" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                    {% endif %}
+                  {% else %}
+                    <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display like.user %}" class="user-avatar" width="30" height="30" loading="lazy" decoding="async" />
+                  {% endif %}
+                {% else %}
+                  <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display like.user %}" class="user-avatar" width="30" height="30" loading="lazy" decoding="async" />
+                {% endif %}
+              </span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="d-flex gap-1 action-block">
+        {% if user.is_authenticated %}
+          {% if user != item.author %}
+            <button class="like-btn fs-6 round" data-url="{% url 'smart_blog:toggle_like' item.slug %}" data-item-id="{{ item.pk }}" title="Like post"><i class="fa fa-{{ user_liked|yesno:'heart,heart-o' }}"></i></button>
+            <button class="bookmark-btn fs-6 round" data-url="{% url 'smart_blog:toggle_bookmark' item.slug %}" data-item-id="{{ item.pk }}" title="I'm reading"><i class="fa fa-{{ user_bookmarked|yesno:'bookmark,bookmark-o' }}"></i></button>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    <hr />
+    <!-- ===== Tags ===== -->
+    <div class="tags">
+    {% comment %} <div class="mb-4 tags_block"> {% endcomment %}
+      <div class="tag-list w-100">
+        {% if item.tags.all %}
+          <div class="item-detail-tags-row d-flex align-items-center gap-2 mt-2 min-w-0">
+            <span class="item-detail-tags-label flex-shrink-0 d-inline-flex align-items-center gap-1 text-muted fw-semibold small" aria-hidden="true">
+              <i class="fa fa-tags"></i>
+              Tags
+            </span>
+            <div class="item-detail-tag-scroll-outer min-w-0 flex-grow-1">
+              <div class="item-detail-tag-scroll">
+                <div class="item-detail-tag-row d-flex flex-nowrap gap-1">
+                  {% for tag in item.tags.all %}
+                    <a class="tag-vlb text-decoration-none" href="{% url 'smart_blog:tag_list' tag.slug %}">{{ tag.tag_name }}</a>
+                  {% endfor %}
+                </div>
+              </div>
+              <span class="item-detail-tag-fade item-detail-tag-fade--left" aria-hidden="true"></span>
+            </div>
+          </div>
+        {% else %}
+          <span class="item-detail-tags-empty text-muted fw-semibold small mt-2 mb-0">No tags</span>
+        {% endif %}
+      </div>
+    </div>
+    {% if item.tags.all %}
+    <script>
+    (function () {
+      var sc = document.querySelector('.item-detail-tag-scroll');
+      var fade = document.querySelector('.item-detail-tag-fade--left');
+      if (!sc || !fade) return;
+      function sync() {
+        fade.classList.toggle('is-active', sc.scrollLeft > 2);
+      }
+      sc.addEventListener('scroll', sync, { passive: true });
+      window.addEventListener('resize', sync);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sync);
+      } else {
+        sync();
+      }
+    })();
+    </script>
+    {% endif %}
+    {% comment %} <hr /> {% endcomment %}
+    {% if user.is_authenticated and user.is_staff %}
+      {% if item.reports_count|default:0 >= 10 or not item.author or item.author and not item.author.is_active %}
+      <div class="d-flex justify-content-start align-items-center my-3">
+        <button type="button" class="cstm-btn custom-danger-btn cstm-btn-sm" data-bs-toggle="modal" data-bs-target="#confirmItemDeleteModal-{{ item.pk }}" aria-label="Delete post">Delete post</button>
+      </div>
+      {% endif %}
+    {% endif %}
+
+    {% if user.is_authenticated %}
+      <div id="likedUsersCurrent"
+        data-username="{{ user.username }}"
+        data-profile-url="{% url 'login_app:profile' user.username %}"
+        data-avatar="{% if user.profile.avatar_url or user.profile.avatar_file %}
+          {{ user.profile.get_avatar }}
+        {% else %}
+          {% static 'img/no_avatar.svg' %}
+        {% endif %}"
+        class="hidden"></div>
+    {% endif %}
+
+    <!-- ===== Comments: form → heading + count → preview → Read more ===== -->
+    <div id="commentsList" class="detail-comments-stack pt-4 mt-2">
+    {% if user.is_authenticated %}
+      {% include 'includes/comment_form.html' with comments_page=False comment_form_expand=True %}
+    {% endif %}
+
+    <div id="detailCommentsSection" class="{% if user.is_authenticated %}mt-4{% endif %}"{% if not has_comments %} hidden{% endif %}>
+      <div id="detailCommentsHeading" class="d-flex gap-3 align-items-center flex-wrap mb-3">
+        <h4 class="m-0 text-muted">Comments</h4>
+        <div class="vr comments-header-divider align-self-stretch flex-shrink-0 my-1" role="presentation"></div>
+        <div class="item-stats item-stats--feed item-stats--solo d-inline-flex align-items-center">
+          <div class="stat stat--comments">
+            <span class="js-item-detail-comments-count">{{ item.comments_count|human }}</span>
+            <i class="fa fa-comment" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+      <div id="commentsListPreview" data-preview-limit="{{ detail_comment_preview_limit }}">
+        {% for comment in detail_comments_preview %}
+          {% include 'includes/_comments.html' with comment=comment depth=0 report_rate_limited=report_rate_limited %}
+        {% endfor %}
+      </div>
+      <div class="mt-3" id="detailCommentsReadMoreWrap"{% if item.comments_count <= detail_comment_preview_limit %} hidden{% endif %}>
+        <a href="{% url 'smart_blog:post_comments' item.slug %}#scroll-to-11" class="text-decoration-none fw-semibold d-inline-flex align-items-center gap-3 item-all-comments-link" id="detailCommentsMoreLink">
+          <span>More comments</span>
+          <i class="fa fa-angle-right reading-angle" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+    </div>
+
+    <div id="detailCommentsEmpty" class="pt-3"{% if has_comments %} hidden{% endif %}>
+      <p class="text-muted mb-0">There are not comments yet</p>
+    </div>
+  </div>
+{% endblock %}
+
+{% block floating_comments_nav %}{% endblock %}
+
+{% block page_modals %}
+  {% include 'includes/comment_modal.html' %}
+  {% include 'includes/item_modal.html' %}
+  {% include 'includes/share_modal.html' %}
+  {% include 'includes/report_modal.html' %}
+  {% include 'includes/liked_users_modal.html' %}
+  {% if item.body_pin_original %}
+    <div class="modal fade item-pinned-file-modal" id="itemPinnedFileModal" tabindex="-1" aria-hidden="true" aria-label="{% trans 'Document preview' %}" data-bs-keyboard="true">
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content item-pinned-file-modal__content">
+          <div class="modal-body item-pinned-file-modal__body">
+            <div class="item-pinned-file-modal__viewport">
+              {% if item.body_pin_content_type == "pdf" %}
+                <div class="item-pinned-pdfjs"
+                     data-pdf-url="{{ item.body_pin_original.url }}"
+                     data-pdf-filename="{{ item.body_pin_original_basename }}">
+                  <header class="item-pinned-pdfjs__bar">
+                    <span class="item-pinned-pdfjs__name text-truncate" title="{{ item.body_pin_original_basename }}">{{ item.body_pin_original_basename }}</span>
+                    <div class="item-pinned-pdfjs__controls">
+                      <button type="button" class="item-pinned-pdfjs__btn" data-pdf-prev aria-label="{% trans 'Previous page' %}">‹</button>
+                      <span class="item-pinned-pdfjs__pages" data-pdf-page-label aria-live="polite">1 / 1</span>
+                      <button type="button" class="item-pinned-pdfjs__btn" data-pdf-next aria-label="{% trans 'Next page' %}">›</button>
+                      <span class="item-pinned-pdfjs__sep" aria-hidden="true"></span>
+                      <button type="button" class="item-pinned-pdfjs__btn" data-pdf-zoom-out aria-label="{% trans 'Zoom out' %}">−</button>
+                      <span class="item-pinned-pdfjs__zoom" data-pdf-zoom-pct>100%</span>
+                      <button type="button" class="item-pinned-pdfjs__btn" data-pdf-zoom-in aria-label="{% trans 'Zoom in' %}">+</button>
+                      <span class="item-pinned-pdfjs__sep" aria-hidden="true"></span>
+                      <a href="{{ item.body_pin_original.url }}"
+                         class="item-pinned-pdfjs__download"
+                         download
+                         title="{% trans 'Download' %}"
+                         aria-label="{% trans 'Download' %}"><i class="fa fa-download" aria-hidden="true"></i></a>
+                      <button type="button"
+                              class="item-pinned-pdfjs__btn item-pinned-pdfjs__close"
+                              data-pdf-close
+                              data-bs-dismiss="modal"
+                              aria-label="{% trans 'Close' %}"
+                              title="{% trans 'Close' %}">
+                        <i class="fa fa-times" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </header>
+                  <div class="item-pinned-pdfjs__scroll" data-pdf-scroll>
+                    <div class="item-pinned-pdfjs__pages-inner" data-pdf-pages></div>
+                  </div>
+                </div>
+              {% elif item.body_pin_content_type == "docx" %}
+                {% if item.body_pin_content_html %}
+                  <div class="doc-content item-pinned-file-modal__docx">{{ item.body_pin_content_html|safe }}</div>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  {% if item.body_pin_original and item.body_pin_content_type == "pdf" %}
+  <script defer src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  {% endif %}
+  {% if item.body_pin_original %}
+  <script defer src="{% static 'smart_blog/js/item_pinned_file_modal.js' %}"></script>
+  {% endif %}
+  <script defer src="{% static 'smart_blog/js/comment_restore_ui.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/comment_operate.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/liked_users_overlay.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/report_modal.js' %}"></script>
+  <script>
+  (function () {
+    var MOBILE_BP = 767;
+    var COLLAPSED_HEIGHT_EM = 100;
+
+    function initCurtain() {
+      var el = document.getElementById('itemTextCurtain');
+      var wrap = document.getElementById('itemTextShowMoreWrap');
+      var btn = document.getElementById('itemTextShowMore');
+      if (!el || !wrap || !btn) return;
+      if (window.innerWidth > MOBILE_BP) return;
+
+      var fontSize = parseFloat(getComputedStyle(el).fontSize) || 16;
+      var maxPx = COLLAPSED_HEIGHT_EM * fontSize;
+
+      if (el.scrollHeight <= maxPx + 8) return;
+
+      el.classList.add('item-text-curtain', 'item-text-curtain--collapsed');
+      wrap.style.display = '';
+
+      btn.addEventListener('click', function () {
+        el.classList.remove('item-text-curtain--collapsed');
+        wrap.style.display = 'none';
+      }, { once: true });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCurtain);
+    } else {
+      initCurtain();
+    }
+  })();
+  </script>
+{% endblock %}

@@ -1,0 +1,755 @@
+/* smart_blog — listings, post detail, gallery, comments, modals, filters */
+
+/* Вертикальный ритм: отступы .main (--main-pad-y) */
+
+/* iOS: avoid auto-zoom on focus when font-size < 16px */
+@media (max-width: 767.98px) {
+    textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="range"]):not([type="color"]):not([type="hidden"]):not([type="file"]),
+    select {
+        font-size: 16px !important;
+    }
+}
+
+/* ---------- Post image gallery ---------- */
+@media (max-width: 991px) {
+    .gallery-grid {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+    }
+
+    .gallery-cell {
+        height: auto;
+    }
+
+    .gallery-img {
+        height: auto;
+        object-fit: cover;
+        transform: none;
+    }
+}
+
+@media (max-width: 575px) {
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1199px) {
+    .gallery-slideshow {
+        height: 420px;
+    }
+}
+
+@media (max-width: 575px) {
+    .gallery-slideshow {
+        height: 320px;
+    }
+}
+
+@media (min-width: 1500px) {
+    .gallery-overlay-img {
+        max-width: calc(100% - 30px);
+        max-height: calc(100% - 20px);
+    }
+}
+
+@media (max-width: 1199px) {
+    .gallery-overlay-img {
+        max-width: calc(100% - 80px);
+        max-height: calc(100% - 80px);
+    }
+}
+
+@media (max-width: 991px) {
+    .gallery-overlay-inner {
+        padding: 28px;
+    }
+
+    .gallery-overlay-img {
+        max-width: calc(100% - 30px);
+        max-height: calc(100% - 30px);
+    }
+}
+
+@media (max-width: 767px) {
+    .gallery-overlay-inner {
+        padding: 16px;
+    }
+
+    .gallery-overlay-img {
+        max-width: calc(100% - 30px);
+        max-height: calc(100% - 30px);
+    }
+}
+
+@media (max-width: 991px) {
+    .gallery-grid,
+    .gallery-grid.flex {
+        display: grid !important;
+        grid-template-columns: 1fr;
+        gap: var(--gap);
+        align-items: stretch;
+    }
+
+    .gallery-cell {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        box-shadow: var(--card-shadow);
+        border-radius: var(--card-radius);
+        overflow: hidden;
+    }
+
+    .gallery-img,
+    .gallery-slide-img {
+        width: 100% !important;
+        height: auto !important;
+        object-fit: cover;
+        object-position: 50% 40%;
+        border-radius: 0;
+        transform: none !important;
+    }
+
+    .gallery-slideshow {
+        display: none !important;
+    }
+
+    .item-gallery {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+/* Floating search + fullscreen search overlay (do not use old centered-panel rules) */
+@media (max-width: 575px) {
+    .overlay-search-root {
+        max-width: 100%;
+    }
+
+    .overlay-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        top: auto !important;
+        padding: 0 !important;
+    }
+
+    .overlay-search-content {
+        max-width: none;
+        width: 100%;
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+        padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+        padding-top: max(1rem, env(safe-area-inset-top, 0px));
+    }
+
+    .overlay-search-topbar {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-top: 0;
+    }
+
+    .overlay-search-body {
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        margin-top: 0.5rem;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y !important;
+    }
+
+    .overlay-search-history .search-history-header-row {
+        flex-wrap: wrap;
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .overlay-search-history .search-history-clear-btn {
+        padding: 6px 12px;
+        font-size: 0.65rem;
+    }
+
+    .overlay-search-history .search-history-item {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 6px 8px;
+    }
+
+    .overlay-search-history .search-history-item-icon {
+        margin-top: 2px;
+        order: 0;
+    }
+
+    .overlay-search-history .search-history-item-text {
+        order: 1;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .overlay-search-history .search-history-item-remove {
+        order: 2;
+        margin-left: auto;
+        align-self: flex-start;
+    }
+
+    .overlay-search-history .search-history-item-meta {
+        order: 3;
+        flex: 1 1 100%;
+        margin-left: 0;
+        padding-left: 1.5rem;
+        font-size: 0.68rem;
+        box-sizing: border-box;
+    }
+}
+
+@media (min-width: 768px) {
+    .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+    }
+}
+
+/* Mobile slide menu — full width; dimmed overlay restores contrast (was display:none → looked broken on iOS) */
+@media (max-width: 575px) {
+    .bottom-side-menu {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Card columns: listing cards — comfortable padding on phones */
+@media (max-width: 575px) {
+    .item_block .card-body {
+        padding: 1.15rem 1rem;
+    }
+}
+
+/* ---------- Item text "Show more" curtain ---------- */
+@media (min-width: 768px) {
+    .item-text-curtain--collapsed {
+        max-height: none !important;
+    }
+
+    .item-text-curtain--collapsed::after {
+        display: none !important;
+    }
+
+    .item-text-show-more-wrap {
+        display: none !important;
+    }
+}
+
+/* ---------- Item detail typography ---------- */
+@media (max-width: 991px) {
+    .item-detail-title {
+        font-size: var(--fs-page-title);
+    }
+}
+
+@media (max-width: 767px) {
+    .VLB {
+        /* padding: 10px 14px; */
+        font-size: 0.78rem;
+        border-radius: var(--radius-md, 8px);
+    }
+
+    .VLB .item-stats {
+        gap: 5px;
+    }
+
+    .VLB .item-stats .stat {
+        gap: 6px;
+    }
+
+    .VLB .item-stats .stat span {
+        font-size: 0.76rem;
+    }
+
+    .VLB .item-stats .stat i {
+        font-size: 0.88rem;
+    }
+
+    .main .item-text.ck-content {
+        font-size: 0.95rem;
+        line-height: 1.65;
+    }
+}
+
+@media (max-width: 575px) {
+    .item-detail-title {
+        font-size: clamp(1.15rem, 4.5vw, 1.65rem);
+    }
+
+    .item-detail-head {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .item-detail-head .item-detail-title {
+        min-width: 0;
+        flex: 1 1 auto;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .VLB {
+        /* padding: 9px 12px; */
+        font-size: 0.74rem;
+        line-height: 1.25;
+        border-radius: var(--radius-md, 8px);
+    }
+
+    .VLB .item-stats {
+        gap: 5px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        row-gap: 6px;
+    }
+
+    .item-detail-meta-row .VLB .item-stats {
+        flex-wrap: nowrap;
+    }
+
+    .item-detail-meta-row__track {
+        scrollbar-width: none;
+    }
+
+    .item-detail-meta-row__track::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    .VLB .item-stats .stat {
+        gap: 6px;
+    }
+
+    .VLB .item-stats .stat span {
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+    .VLB .item-stats .stat .fa {
+        font-size: 0.82rem;
+    }
+
+    .main .item-text.ck-content {
+        font-size: 0.88rem !important;
+        line-height: 1.58;
+        margin-top: 1.25rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .main .item-text.ck-content h1 {
+        font-size: 1.35rem !important;
+    }
+
+    .main .item-text.ck-content h2 {
+        font-size: 1.2rem !important;
+    }
+
+    .main .item-text.ck-content h3 {
+        font-size: 1.08rem !important;
+    }
+
+    .main .item-text.ck-content h4 {
+        font-size: 1rem !important;
+    }
+
+    .main .item-text.ck-content p,
+    .main .item-text.ck-content li {
+        font-size: 0.88rem !important;
+    }
+
+    .main .item-text.ck-content small {
+        font-size: 0.8rem !important;
+    }
+
+    #commentsHeader h5 {
+        font-size: 1rem !important;
+    }
+
+
+
+    .comment_likes_badge {
+        font-size: 0.68rem;
+        padding: 3px 7px;
+        right: 4px;
+        top: -6px;
+        gap: 3px !important;
+        line-height: 1.2;
+        border-radius: 5px;
+    }
+
+    .comment_likes_badge span {
+        font-weight: 600;
+    }
+}
+
+/* ---------- Comments: nesting depth + overflow ---------- */
+@media (max-width: 767px) {
+    /* .replies {
+        padding-left: 0.75rem;
+    } */
+
+    /* .replies .replies {
+        padding-left: 0.75rem;
+    } */
+
+    .comment-text {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    .comment-block {
+        min-width: 0;
+    }
+
+    .comment-meta-row {
+        align-items: center;
+    }
+
+    .comment-layout {
+        grid-template-columns: 36px minmax(0, 1fr);
+        column-gap: 0.55rem;
+        row-gap: 0.25rem;
+    }
+
+}
+
+@media (max-width: 575px) {
+    .comment-form-btn {
+        min-height: 0 !important;
+        min-width: 0 !important;
+        width: 30px;
+        height: 30px;
+    }
+}
+
+@media (max-width: 767px) {
+    .comment-menu-action {
+        padding: 5px 11px;
+        font-size: 0.68rem;
+    }
+
+    .comment-menu-btn:not(.overflow-more-btn) {
+        padding: 5px 11px;
+        font-size: 0.7rem;
+    }
+
+    .comment-menu--actions-bar > .comment-menu-btn.overflow-more-btn {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px;
+    }
+
+    .comment-menu--actions-bar .comment-actions::before {
+        right: 11px;
+    }
+
+    /* Dark theme: inner fill triangle must track ::before (see styles.css 6px/7px on desktop). */
+    html[data-theme="dark"] .comment-menu--actions-bar .comment-actions::after {
+        right: 12px;
+    }
+
+    .overflow-more-btn__dots {
+        gap: 4px;
+    }
+
+    .overflow-more-btn__dot {
+        width: 4px;
+        height: 4px;
+    }
+}
+
+/* ---------- Modals (public) ---------- */
+@media (max-width: 575px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    .modal-content {
+        max-height: min(90vh, 100%);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .categories-modal-dialog {
+        max-width: calc(100vw - 32px);
+        margin: 1rem auto;
+    }
+
+    .categories-modal-body {
+        max-height: min(70vh, 560px);
+        overflow-y: auto;
+    }
+}
+
+/* ---------- Topics grid ---------- */
+@media (max-width: 991px) {
+    .topics-page .topics-grid,
+    /* Do not apply min-width:0 to category chip strip — it was shrinking pill labels */
+    .topics-page [class*="topic"]:not([class*="topic-category"]) {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 575px) {
+    .topic-tile,
+    .profile-created-post-tile,
+    .topic-hub-card {
+        min-width: 0;
+    }
+}
+
+/* ---------- Filters / toolbar ---------- */
+@media (max-width: 767px) {
+    .filter-block:not(.filter-scroll-x),
+    .brainews-filter-bar:not(.filter-scroll-x) {
+        flex-wrap: wrap;
+        gap: var(--space-2, 8px);
+    }
+
+    .filter-block.filter-scroll-x {
+        flex-wrap: nowrap !important;
+    }
+}
+
+/* Long code blocks in posts */
+@media (max-width: 767px) {
+    .main .item-text.ck-content pre,
+    .main .ck-content pre {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+}
+
+/* Touch targets: размеры задаёт --header-icon-size в styles.css */
+
+/*
+ * Post gallery on small phones: strict 2-column rows; when count is odd, the last
+ * cell spans both columns so there is never a half-empty row (no “holes”).
+ */
+@media (max-width: 576px) {
+    .item-gallery {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .item-gallery .gallery-grid,
+    .item-gallery .gallery-grid.flex {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0;
+        grid-auto-flow: row;
+    }
+
+    .item-gallery .gallery-cell {
+        grid-column: auto;
+        aspect-ratio: 1;
+        min-height: 108px !important;
+        box-shadow: none !important;
+    }
+
+    .item-gallery .gallery-cell:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        aspect-ratio: 16 / 10;
+        min-height: 160px !important;
+    }
+
+    .item-gallery .gallery-img {
+        height: 100% !important;
+        min-height: 100%;
+        object-fit: cover;
+    }
+}
+
+@media (max-width: 767px) {
+    .item-form-actions {
+        width: 100%;
+    }
+
+    .item-form-actions > .cstm-btn,
+    .item-form-actions > a.cstm-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        text-align: center;
+        box-sizing: border-box;
+    }
+}
+
+/* Pinned media links responsive: one row, full-size chips, horizontal scroll */
+@media (max-width: 575px) {
+    .post-media-pinned {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+        /* Space below chips so the scrollbar track sits lower, not on the dashed underlines */
+        padding-bottom: 0.65rem;
+        margin-bottom: 0.15rem;
+        box-sizing: border-box;
+        /* Firefox: thin, low-contrast bar */
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--text-muted, #6c757d) 35%, transparent) transparent;
+    }
+
+    .post-media-pinned::-webkit-scrollbar {
+        height: 5px;
+    }
+
+    .post-media-pinned::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 0 0.25rem;
+    }
+
+    .post-media-pinned::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, var(--text-muted, #6c757d) 40%, transparent);
+        border-radius: 999px;
+    }
+
+    .post-media-pinned::-webkit-scrollbar-thumb:hover {
+        background: color-mix(in srgb, var(--text-muted, #6c757d) 55%, transparent);
+    }
+
+    .post-media-pinned__links {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        width: max-content;
+        max-width: none;
+        box-sizing: border-box;
+    }
+
+    .post-media-pinned__link {
+        flex: 0 0 auto;
+        justify-content: center;
+        box-sizing: border-box;
+        white-space: nowrap;
+    }
+}
+
+/* Video gallery overlay responsive */
+@media (max-width: 767px) {
+    .video-gallery-overlay-inner {
+        width: 96vw;
+        max-height: 75vh;
+    }
+
+    .video-gallery-overlay .plyr {
+        border-radius: 6px;
+        max-height: 75vh;
+    }
+
+    .video-gallery-overlay .plyr__video-wrapper {
+        max-height: calc(75vh - 46px);
+    }
+
+    .video-gallery-overlay .plyr__video-wrapper video {
+        max-height: calc(75vh - 46px);
+    }
+
+    .video-gallery-player {
+        border-radius: 6px;
+    }
+
+    .video-gallery-overlay .plyr--fullscreen-active,
+    .video-gallery-overlay .plyr--fullscreen-fallback {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+    }
+
+    .video-gallery-overlay .plyr--fullscreen-active .plyr__video-wrapper,
+    .video-gallery-overlay .plyr--fullscreen-fallback .plyr__video-wrapper {
+        max-height: none;
+        height: calc(100vh - 46px);
+    }
+
+    .video-gallery-overlay .plyr--fullscreen-active .plyr__video-wrapper video,
+    .video-gallery-overlay .plyr--fullscreen-fallback .plyr__video-wrapper video {
+        max-height: none;
+    }
+
+    /* Taller control bar + bigger icons in mobile fullscreen */
+    .plyr--fullscreen-active .plyr__controls,
+    .plyr--fullscreen-fallback .plyr__controls {
+        padding: 14px 16px !important;
+        min-height: 62px !important;
+        font-size: 16px !important;
+        gap: 6px;
+        padding-bottom: max(14px, env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    .plyr--fullscreen-active .plyr__controls button,
+    .plyr--fullscreen-fallback .plyr__controls button {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px !important;
+    }
+
+    .plyr--fullscreen-active .plyr__controls button svg,
+    .plyr--fullscreen-fallback .plyr__controls button svg {
+        width: 22px !important;
+        height: 22px !important;
+    }
+
+    .plyr--fullscreen-active .plyr__controls .plyr__time,
+    .plyr--fullscreen-fallback .plyr__controls .plyr__time {
+        font-size: 14px !important;
+    }
+
+    .plyr--fullscreen-active .plyr__progress__container,
+    .plyr--fullscreen-fallback .plyr__progress__container {
+        min-height: 24px;
+    }
+
+    .plyr--fullscreen-active .plyr__progress input[type="range"],
+    .plyr--fullscreen-fallback .plyr__progress input[type="range"] {
+        height: 24px !important;
+    }
+
+    .video-gallery-overlay .plyr--fullscreen-active .plyr__video-wrapper,
+    .video-gallery-overlay .plyr--fullscreen-fallback .plyr__video-wrapper {
+        height: calc(100vh - 62px);
+    }
+
+    /* Ensure controls show/hide properly with mobile tap logic */
+    .plyr--mobile-fs-controls-visible .plyr__controls {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transform: translateY(0) !important;
+        visibility: visible !important;
+    }
+}
+
+/* Media upload row responsive */
+@media (max-width: 575px) {
+    .item-media-upload-row__video-btn {
+        width: 50px;
+        min-width: 50px;
+        font-size: 0.95rem;
+    }
+
+}

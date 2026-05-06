@@ -1,0 +1,10 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}Delete Tag{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:tags_list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Tags</a></li><li class="admin-breadcrumbs-item">Delete</li></ol></nav>{% endblock %}
+{% block page_title %}Delete {{ tag.tag_name }}?{% endblock %}
+{% block content %}
+<div class="admin-card admin-modal-card">
+    <h3>Delete tag "{{ tag.tag_name }}"?</h3>
+    <form method="post" action="{% url 'admin_panel:tag_delete' tag.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-form-actions">{% csrf_token %}<button type="submit" class="admin-button admin-button-danger">Delete</button><a href="{% url 'admin_panel:tags_list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-button admin-button-outline">Cancel</a></form>
+</div>
+{% endblock %}

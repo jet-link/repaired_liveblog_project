@@ -1,0 +1,82 @@
+{% extends 'admin/layout/base.html' %}
+{% block title %}About{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">About</li></ol></nav>{% endblock %}
+{% block page_title %}About{% endblock %}
+{% block content %}
+<div class="admin-card">
+    <p class="text-muted small mb-3">Public URL: <a href="{% url 'pages:page' 'about' %}" target="_blank" rel="noopener">/about/</a></p>
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+        <div class="admin-form-group">
+            <label for="id_browser_title">Browser title (tab)</label>
+            <input type="text" id="id_browser_title" name="browser_title" value="{{ page.browser_title }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_title_h1">Heading (H1)</label>
+            <input type="text" id="id_title_h1" name="title_h1" value="{{ page.title_h1 }}" class="admin-input" maxlength="200">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_lede">Lead paragraph</label>
+            <textarea id="id_lede" name="lede" class="admin-textarea" rows="4" spellcheck="true">{{ page.lede }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_mission_heading">Mission section heading</label>
+            <input type="text" id="id_mission_heading" name="mission_heading" value="{{ page.mission_heading }}" class="admin-input" maxlength="200">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_mission_item_1">Mission bullet 1</label>
+            <textarea id="id_mission_item_1" name="mission_item_1" class="admin-textarea" rows="2" spellcheck="true">{{ page.mission_item_1 }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_mission_item_2">Mission bullet 2</label>
+            <textarea id="id_mission_item_2" name="mission_item_2" class="admin-textarea" rows="2" spellcheck="true">{{ page.mission_item_2 }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_mission_item_3">Mission bullet 3</label>
+            <textarea id="id_mission_item_3" name="mission_item_3" class="admin-textarea" rows="2" spellcheck="true">{{ page.mission_item_3 }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_facts_heading_hidden">Facts block heading (screen readers only)</label>
+            <input type="text" id="id_facts_heading_hidden" name="facts_heading_hidden" value="{{ page.facts_heading_hidden }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_fact1_label">Fact 1 label</label>
+            <input type="text" id="id_fact1_label" name="fact1_label" value="{{ page.fact1_label }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_fact1_value">Fact 1 value</label>
+            <textarea id="id_fact1_value" name="fact1_value" class="admin-textarea" rows="2" spellcheck="true">{{ page.fact1_value }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_fact2_label">Fact 2 label</label>
+            <input type="text" id="id_fact2_label" name="fact2_label" value="{{ page.fact2_label }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_fact2_value">Fact 2 value</label>
+            <textarea id="id_fact2_value" name="fact2_value" class="admin-textarea" rows="2" spellcheck="true">{{ page.fact2_value }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_fact3_label">Fact 3 label</label>
+            <input type="text" id="id_fact3_label" name="fact3_label" value="{{ page.fact3_label }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_fact3_value">Fact 3 value</label>
+            <textarea id="id_fact3_value" name="fact3_value" class="admin-textarea" rows="2" spellcheck="true">{{ page.fact3_value }}</textarea>
+        </div>
+        <div class="admin-form-group">
+            <label for="id_cta_link_text">CTA link text</label>
+            <input type="text" id="id_cta_link_text" name="cta_link_text" value="{{ page.cta_link_text }}" class="admin-input" maxlength="120">
+        </div>
+        <div class="admin-form-group">
+            <label for="id_cta_hint">CTA hint (after link)</label>
+            <input type="text" id="id_cta_hint" name="cta_hint" value="{{ page.cta_hint }}" class="admin-input" maxlength="255">
+        </div>
+        {% if page.updated_at %}
+        <p class="text-muted small">Last updated: {{ page.updated_at }}{% if page.updated_by %} · {{ page.updated_by.get_username }}{% endif %}</p>
+        {% endif %}
+        <div class="admin-form-actions">
+            <button type="submit" class="admin-button admin-button-primary">Save</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% if messages %}
+  {% for message in messages %}
+    <div class="custom-alert custom-alert-{{ message.tags }} mt-3" role="alert" data-auto-dismiss="3000">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}

@@ -1,0 +1,43 @@
+{% if breadcrumbs %}
+  <nav aria-label="breadcrumb" class="breadcrumb-trail mb-5">
+    {% for crumb in breadcrumbs %}
+      {% if not forloop.first %}
+        <span class="breadcrumb-sep">›</span>
+      {% endif %}
+      {% if crumb.title == "brainstorm.news" %}
+        {% if crumb.url %}
+          <a class="breadcrumb-link" href="{{ crumb.url }}" aria-label="brainstorm.news">
+            <span class="breadcrumb-brand-full" aria-hidden="true">brainstorm.news</span>
+            <span class="breadcrumb-brand-short" aria-hidden="true">bstrm.news</span>
+          </a>
+        {% else %}
+          <span class="breadcrumb-current" aria-current="page" aria-label="brainstorm.news">
+            <span class="breadcrumb-brand-full" aria-hidden="true">brainstorm.news</span>
+            <span class="breadcrumb-brand-short" aria-hidden="true">bstrm.news</span>
+          </span>
+        {% endif %}
+      {% elif crumb.url %}
+        <a class="breadcrumb-link" href="{{ crumb.url }}">{{ crumb.title }}</a>
+      {% else %}
+        <span class="breadcrumb-current" aria-current="page">{{ crumb.title }}</span>
+      {% endif %}
+    {% endfor %}
+  </nav>
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {% for crumb in breadcrumbs|slice:":-1" %}
+        {
+          "@type": "ListItem",
+          "position": {{ forloop.counter }},
+          "name": "{{ crumb.title|escapejs }}",
+          "item": "{{ request.scheme }}://{{ request.get_host }}{{ crumb.url }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+  </script>
+{% endif %}

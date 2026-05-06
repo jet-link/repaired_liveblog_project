@@ -1,0 +1,10 @@
+{% if items %}
+  {% include 'includes/all_cards.html' with listing_source='topic' listing_source_url=listing_source_url listing_category=category.name listing_category_slug=category.slug %}
+  <div id="itemsListPagination" class="brainews-pagination filter-pagination-extra">
+    {% include 'smart_blog/includes/topic_pagination.html' %}
+  </div>
+{% else %}
+  <div class="filter-cards-wrapper" data-filter-type="">
+    <div class="filter-empty-message filter-empty-message--category">No posts in this topic yet.</div>
+  </div>
+{% endif %}

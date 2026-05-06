@@ -1,0 +1,7 @@
+{
+  "remote.SSH.connectTimeout": 120,
+  "remote.SSH.useLocalServer": true,
+  "remote.SSH.remotePlatform": {
+    "brainstorm-server": "linux"
+  }
+}

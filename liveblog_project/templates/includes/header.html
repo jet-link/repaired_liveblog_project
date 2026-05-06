@@ -1,0 +1,55 @@
+{% load extras %}
+<div class="header-wrapper">
+  <header class="header">
+    <div class="container-main">
+      <nav class="nav header-nav" aria-label="Primary">
+        <div class="bottom-left-nav header-brand">
+          <a href="/" class="brand-minimal" aria-label="brainstorm.news"><span class="brand-full">brainstorm.news</span><span class="brand-short">bstrm.news</span></a>
+        </div>
+        <div class="header-menu d-flex align-items-center small">
+          {% with nav_name=request.resolver_match.url_name|default:'' %}
+          <a href="{% url 'smart_blog:items_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'items_list' %} active{% endif %}"><span class="header-menu-item__label">BraiNews</span></a>
+          <a href="{% url 'smart_blog:trending_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'trending_list' %} active{% endif %}"><span class="header-menu-item__label">In trend</span></a>
+          <a href="{% url 'smart_blog:topics_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'topics_list' or nav_name == 'topic_detail' %} active{% endif %}"><span class="header-menu-item__label">Topics</span></a>
+          {% comment %} <a href="#" class="header-menu-item text-decoration-none text-muted categories-modal-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoriesModalDialog">
+            Categories
+            <i class="fa fa-angle-down ms-1" aria-hidden="true"></i>
+            <i class="fa fa-angle-up ms-1 hidden" aria-hidden="true"></i>
+          </a> {% endcomment %}
+          {% endwith %}
+        </div>
+        <div class="d-flex align-items-center gap-3 header-actions">
+          <div class="header-utility-segment" role="group" aria-label="Search and theme">
+            <div class="header-utility-segment__bar filter-segment-bar">
+              <button type="button" class="search-btn" aria-label="Search"><i class="fa fa-search" aria-hidden="true"></i></button>
+              <button type="button" id="themeToggle" class="theme-toggle-btn" aria-label="Toggle theme" title="Light/Dark theme"><i class="fa fa-moon-o theme-toggle-icon theme-toggle-icon--moon" aria-hidden="true"></i><i class="fa fa-sun-o theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true"></i></button>
+            </div>
+          </div>
+          <div class="header-actions-desktop d-flex align-items-center gap-2">
+            {% if user.is_authenticated %}
+              <div class="user-menu" id="userMenu">
+                <a href="{% url 'login_app:profile' user.username %}" class="text-decoration-none user-avatar-btn">{% include 'includes/thumb_avatar.html' with user=user %}</a>
+                <div class="user-tooltip">
+                  <a href="{% url 'login_app:profile' user.username %}" class="user-tooltip-profile-row text-muted">
+                    <i class="fa fa-user-circle me-3" aria-hidden="true"></i><span class="user-tooltip-profile-name fw-semibold" title="{{ user.username }}">{% if user.username|length > 15 %}{{ user.username|slice:":12" }}…{% else %}{{ user.username }}{% endif %}</span>
+                  </a>
+                  <a href="{% url 'login_app:notifications' user.username %}" class="text-muted notification-btn{% if notifications_count %} has-unread{% endif %}" data-notifications-count="{{ notifications_count }}">
+                    <i class="fa fa-bell me-2" aria-hidden="true"></i>
+                    Notifications
+                  </a>
+                  <a href="{% url 'smart_blog:create_post' %}" class="text-muted"><i class="fa fa-plus me-3" aria-hidden="true"></i>Create post</a>
+                  <a href="{% url 'login_app:profile-edit' request.user.username %}" class="text-muted"><i class="fa fa-cog me-3" aria-hidden="true"></i>Edit profile</a>
+                  <a href="#" class="danger signout-trigger"><i class="fa fa-sign-out me-3" aria-hidden="true"></i>Sign out</a>
+                </div>
+              </div>
+            {% else %}
+              <a href="{% url 'login_app:login' %}" class="cstm-btn-sm custom-secondary-btn">Sign in</a>
+            {% endif %}
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+</div>
+{% comment %}Overlay slide menu — replaced by mobile bottom nav for now.{% endcomment %}
+{% comment %}{% include 'includes/overlay-menu.html' %}{% endcomment %}

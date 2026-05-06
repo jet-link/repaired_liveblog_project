@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+
+# Django
+*.log
+db.sqlite3
+/media/
+/staticfiles/
+backup_archives/
+celerybeat-schedule
+.env
+.env.local
+
+# IDE / OS
+.idea/
+*.swp
+*.swo
+.DS_Store

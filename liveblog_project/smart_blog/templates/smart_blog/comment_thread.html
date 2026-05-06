@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body_class %}thread-comment-page{% endblock %}
+{% block title %}
+  Replies thread
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block">
+    <div class="thread-page-back mb-3">
+      <button type="button" class="btn-back-link back-btn btn btn-sm thread-back-btn d-inline-flex align-items-center gap-1" data-return-key="comment_thread_return_url" data-fallback="{% url 'smart_blog:post_comments' comment.item.slug %}" title="Back to previous page"><i class="fa fa-angle-left me-2" aria-hidden="true"></i>Back</button>
+    </div>
+    <div id="threadViewMarker" class="d-none" data-parent-id="{{ comment.pk }}" data-item-slug="{{ comment.item.slug }}" data-back-url="{{ thread_back_url }}"></div>
+
+    <div id="commentsList" class="mb-3">
+      {% include 'includes/_comments.html' with comment=comment depth=0 thread_view=true hide_reply=true no_mentions=true %}
+    </div>
+
+    <div id="threadEmpty" class="text-muted{% if comment.replies.all %} d-none{% endif %}">There are no replies yet!</div>
+  </div>
+{% endblock %}
+
+{% block floating_comments_nav %}
+  {% comment %}Back to comments top — disabled until we use it again.{% endcomment %}
+  {% comment %}<button id="commentsBackToTop" type="button" aria-label="Back to comments top" title="Back to comments top"><span>↑</span></button>{% endcomment %}
+{% endblock %}
+
+{% block page_modals %}
+  {% include 'includes/comment_modal.html' %}
+  {% include 'includes/report_modal.html' %}
+{% endblock %}
+
+{% block extra_js %}
+  <script defer src="{% static 'smart_blog/js/comment_restore_ui.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/comment_operate.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/report_modal.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'admin/layout/base.html' %}
+
+{% block title %}Posts{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Posts</li></ol></nav>{% endblock %}
+{% block page_title %}Posts{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <form class="admin-search-form" method="get" action="{% url 'admin_panel:posts_list' %}">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search posts..." class="admin-input admin-search-input">
+        <select name="category" class="admin-select">
+            <option value="">Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if current_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="status" class="admin-select">
+            <option value="">Posts</option>
+            <option value="published" {% if current_status == 'published' %}selected{% endif %}>Published</option>
+            <option value="draft" {% if current_status == 'draft' %}selected{% endif %}>Draft</option>
+        </select>
+        <select name="sort" class="admin-select">
+            <option value="date" {% if current_sort == 'date' %}selected{% endif %}>By date</option>
+            <option value="views" {% if current_sort == 'views' %}selected{% endif %}>By views</option>
+            <option value="likes" {% if current_sort == 'likes' %}selected{% endif %}>By likes</option>
+            <option value="comments" {% if current_sort == 'comments' %}selected{% endif %}>By comments</option>
+        </select>
+        <button type="submit" class="admin-button">Search</button>
+    </form>
+    {% comment %} <a href="{% url 'admin_panel:post_create' %}" class="admin-button admin-button-primary">New Post</a> {% endcomment %}
+</div>
+
+<div class="admin-card">
+    <div class="admin-table-wrapper">
+        <table class="admin-table" data-bulk-delete-url="{% url 'admin_panel:posts_bulk_delete' %}">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Published</th>
+                    <th>Likes</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                <tr>
+                    <td><input type="checkbox" class="admin-bulk-row-check" value="{{ post.pk }}" aria-label="Select"></td>
+                    <td>{% if post.is_published %}{% if post.slug %}<a href="{% url 'smart_blog:post_detail' post.slug %}" class="admin-link">{{ post.title|truncatewords:8 }}</a>{% else %}{{ post.title|truncatewords:8 }}{% endif %}{% else %}<span class="admin-link admin-link-draft">{{ post.title|truncatewords:8 }}</span>{% endif %}</td>
+                    <td>{{ post.author.username|default:"—" }}</td>
+                    <td>{{ post.category.name|default:"—" }}</td>
+                    <td>{{ post.published_date|date:"M d, Y" }}</td>
+                    <td>{{ post.likes_count|default:0 }}</td>
+                    <td>
+                        <span class="admin-badge {% if post.is_published %}admin-badge-success{% else %}admin-badge-warning{% endif %}">
+                            {% if post.is_published %}Published{% else %}Draft{% endif %}
+                        </span>
+                    </td>
+                    <td class="admin-actions-cell">
+                        <div class="admin-dropdown">
+                            <button type="button" class="admin-dropdown-trigger admin-button">Actions <i class="fa-solid fa-chevron-down"></i></button>
+                            <div class="admin-dropdown-menu">
+                                <a href="{% url 'admin_panel:post_edit' post.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Edit</a>
+                                <a href="{% url 'admin_panel:post_stats' post.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Stats</a>
+                                <a href="{% url 'admin_panel:post_delete' post.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-action-delete">Delete</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="admin-empty">No posts found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="admin-table-total">Total: {{ posts.paginator.count }}</div>
+    {% if posts.has_other_pages %}
+    <div class="admin-pagination">
+        {% if posts.has_previous %}
+        <a href="?page={{ posts.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}&sort={{ current_sort }}" class="admin-button admin-button-sm">Previous</a>
+        {% endif %}
+        <span class="admin-pagination-info">Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+        {% if posts.has_next %}
+        <a href="?page={{ posts.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}&sort={{ current_sort }}" class="admin-button admin-button-sm">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
