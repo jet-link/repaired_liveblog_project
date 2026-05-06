@@ -15,42 +15,41 @@
   >
     {% include 'includes/breadcrumbs.html' %}
 
-    <!-- <div class="mb-4">
-      <h5 class="text-muted m-0">{{ category.name }}</h5>
-      {% comment %} <p class="text-muted small mb-0">{{ page_obj.paginator.count }} post{{ page_obj.paginator.count|pluralize }}</p> {% endcomment %}
-    </div> -->
-
-    <div class="filter-segment-outer mb-4">
-      <div class="filter-segment-shell">
-        <div class="filter-segment-scroll filter-scroll-x">
-          <div id="topicSortBar" class="topic-sort-bar filter-segment-bar" role="tablist" aria-label="Sort posts">
-            {% url 'smart_blog:topic_detail' slug=category.slug as topic_base %}
-            <button
-              type="button"
-              class="filter-reason-btn topic-sort-btn{% if topic_sort == 'latest' %} is-selected{% endif %}"
-              data-sort="latest"
-              data-topic-base="{{ topic_base }}"
-            >Latest</button>
-            <button
-              type="button"
-              class="filter-reason-btn topic-sort-btn{% if topic_sort == 'liked' %} is-selected{% endif %}"
-              data-sort="liked"
-              data-topic-base="{{ topic_base }}"
-            >Most liked</button>
-            <button
-              type="button"
-              class="filter-reason-btn topic-sort-btn{% if topic_sort == 'discussed' %} is-selected{% endif %}"
-              data-sort="discussed"
-              data-topic-base="{{ topic_base }}"
-            >Most discussed</button>
+    <div class="listing-filter-sticky-scope">
+      <div class="filter-segment-sticky-wrap">
+        <div class="filter-segment-outer mb-4">
+          <div class="filter-segment-shell">
+            <div class="filter-segment-scroll filter-scroll-x">
+              <div id="topicSortBar" class="topic-sort-bar filter-segment-bar" role="tablist" aria-label="Sort posts">
+                {% url 'smart_blog:topic_detail' slug=category.slug as topic_base %}
+                <button
+                  type="button"
+                  class="filter-reason-btn topic-sort-btn{% if topic_sort == 'latest' %} is-selected{% endif %}"
+                  data-sort="latest"
+                  data-topic-base="{{ topic_base }}"
+                >Latest</button>
+                <button
+                  type="button"
+                  class="filter-reason-btn topic-sort-btn{% if topic_sort == 'liked' %} is-selected{% endif %}"
+                  data-sort="liked"
+                  data-topic-base="{{ topic_base }}"
+                >Most liked</button>
+                <button
+                  type="button"
+                  class="filter-reason-btn topic-sort-btn{% if topic_sort == 'discussed' %} is-selected{% endif %}"
+                  data-sort="discussed"
+                  data-topic-base="{{ topic_base }}"
+                >Most discussed</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div id="filterCardsWrapper" class="filter-cards-container filter-cards-transition" data-page-type="topic" data-category-slug="{{ category.slug }}">
-      <div id="topicHubFeedRoot">
-        {% include 'smart_blog/includes/topic_hub_feed.html' %}
+      <div id="filterCardsWrapper" class="filter-cards-container filter-cards-transition" data-page-type="topic" data-category-slug="{{ category.slug }}">
+        <div id="topicHubFeedRoot">
+          {% include 'smart_blog/includes/topic_hub_feed.html' %}
+        </div>
       </div>
     </div>
   </div>

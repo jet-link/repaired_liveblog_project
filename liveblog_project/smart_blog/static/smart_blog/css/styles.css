@@ -4979,7 +4979,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
     gap: 0.35rem;
     padding: 0.32rem 0.55rem;
     border-radius: var(--radius-md);
-    border: 1px solid color-mix(in srgb, #14b8a6 45%, var(--border-default));
+    border: 1.5px solid color-mix(in srgb, #14b8a6 45%, var(--border-default));
     /* background: color-mix(in srgb, #14b8a6 14%, var(--card-bg)); */
     color: #0f766e;
     font-size: 0.8rem;

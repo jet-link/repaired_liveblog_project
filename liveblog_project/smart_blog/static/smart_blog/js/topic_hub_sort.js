@@ -64,6 +64,12 @@
   function runSortFromButton(btn) {
     if (!btn || !document.getElementById('topicHubFeedRoot')) return;
 
+    if (btn.classList.contains('is-selected')) return;
+
+    if (typeof window.scrollPageToTopForListingFilter === 'function') {
+      window.scrollPageToTopForListingFilter();
+    }
+
     var sort = btn.dataset.sort || 'latest';
     var base = btn.dataset.topicBase || '';
     if (!base) return;
@@ -88,6 +94,9 @@
           requestAnimationFrame(function () {
             requestAnimationFrame(window.scrollFilterSegmentSelectedIntoView);
           });
+        }
+        if (typeof window.updateFilterSegmentEvenMobile === 'function') {
+          requestAnimationFrame(window.updateFilterSegmentEvenMobile);
         }
         try {
           var path = base.replace(/\/?$/, '/');
