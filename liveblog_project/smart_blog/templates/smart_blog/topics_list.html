@@ -8,7 +8,10 @@
     </div>
 
     {% if topics_all %}
+    <div class="listing-filter-sticky-scope">
+    <div class="filter-segment-sticky-wrap">
     {% include 'includes/topic_category_chips.html' with categories=topics_all topic_chips_mode='filter' %}
+    </div>
 
     <div id="topicsFilterEmpty" class="custom-alert custom-alert-info d-none" role="status">
       No topics match this filter.
@@ -42,6 +45,7 @@
           {% endfor %}
         </div>
     </section>
+    </div>
     {% else %}
       <p class="text-muted mb-0">No topics with posts yet</p>
     {% endif %}

@@ -522,7 +522,8 @@ html {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    overflow-x: hidden;
+    /* clip — горизонтальный клип без «оси прокрутки» как у hidden; иначе sticky ломается (Chrome/Safari). */
+    overflow-x: clip;
 }
 
 html {
@@ -3174,6 +3175,33 @@ a.filter-reason-btn.topic-category-link:hover {
     min-width: 0;
 }
 
+/* BraiNews / Topics: sticky filter row — parent .listing-filter-sticky-scope must wrap filters + grids */
+.listing-filter-sticky-scope {
+    min-width: 0;
+}
+
+.filter-segment-sticky-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 95;
+    /* Bootstrap py-4 */
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    margin-bottom: 0;
+    /* background: var(--bg-default); */
+    box-sizing: border-box;
+}
+
+.filter-segment-sticky-wrap .filter-segment-outer {
+    margin-bottom: 0;
+}
+
+@media (max-width: 575px) {
+    .filter-segment-sticky-wrap {
+        padding-top: max(1.5rem, calc(1.5rem + env(safe-area-inset-top, 0px)));
+    }
+}
+
 /* BraiNews / Topics filter pill: dark = liquid glass; light = flat chip rail (no shadow), как на /topics/ */
 .filter-segment-shell {
     display: inline-block;
@@ -3225,9 +3253,9 @@ html[data-theme="light"] .filter-segment-shell::before {
 html[data-theme="dark"] .filter-segment-shell {
     background: rgba(20, 20, 20, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
+    /* box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        inset 0 1px 0 rgba(255, 255, 255, 0.05); */
 }
 
 html[data-theme="dark"] .filter-segment-shell::before {
@@ -3326,9 +3354,10 @@ html[data-theme="dark"] .filter-segment-shell::before {
     cursor: pointer;
     position: relative;
     z-index: 1;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     font-weight: 600;
-    letter-spacing: .02rem;
+    letter-spacing: .015rem;
+    font-size: .9rem;
 }
 
 .filter-segment-bar .filter-reason-btn.is-selected,
@@ -8498,6 +8527,45 @@ html[data-theme="dark"] .item-text.ck-content pre.item-doc-faithful-block {
     overscroll-behavior-x: contain;
     position: relative;
     z-index: 2;
+}
+
+/*
+ * Mobile: shell + chip row fill container; equal flex only when JS adds .filter-segment-scroll--even-mobile
+ * (row fits without horizontal scroll — see filter_segment_scroll.js).
+ */
+@media (max-width: 575px) {
+    .filter-segment-shell:has(.filter-segment-scroll--even-mobile) {
+        width: 100%;
+        max-width: 100%;
+        display: block;
+        box-sizing: border-box;
+    }
+
+    .filter-segment-scroll.filter-segment-scroll--even-mobile {
+        overflow-x: hidden;
+    }
+
+    .filter-segment-scroll.filter-segment-scroll--even-mobile .filter-segment-bar {
+        display: flex;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .filter-segment-scroll.filter-segment-scroll--even-mobile .filter-segment-bar .filter-reason-btn,
+    .filter-segment-scroll.filter-segment-scroll--even-mobile .filter-segment-bar a.filter-reason-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        flex-shrink: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .topic-category-chips {

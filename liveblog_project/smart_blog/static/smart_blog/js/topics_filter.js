@@ -38,6 +38,14 @@
     var nav = document.querySelector('[data-topic-chips-filter]');
     if (!nav) return;
 
+    var current = nav.querySelector('.topic-category-chip.is-selected');
+    var curSlug = current ? slugFromChip(current) : null;
+    if (curSlug === slug) return;
+
+    if (typeof window.scrollPageToTopForListingFilter === 'function') {
+      window.scrollPageToTopForListingFilter();
+    }
+
     var chips = nav.querySelectorAll('.topic-category-chip');
     var featuredRow = document.querySelector('.topics-featured-row');
     var grid = document.getElementById('topicsAllGrid');
@@ -106,6 +114,9 @@
       requestAnimationFrame(function () {
         requestAnimationFrame(window.scrollFilterSegmentSelectedIntoView);
       });
+    }
+    if (typeof window.updateFilterSegmentEvenMobile === 'function') {
+      requestAnimationFrame(window.updateFilterSegmentEvenMobile);
     }
   }
 

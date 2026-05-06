@@ -315,6 +315,11 @@
         const btn = e.target.closest('.filter-block .filter-reason-btn');
         if (!btn) return;
         if (!isFilterablePage()) return;
+        if (btn.classList.contains('is-selected')) return;
+
+        if (typeof window.scrollPageToTopForListingFilter === 'function') {
+            window.scrollPageToTopForListingFilter();
+        }
 
         const value = btn.dataset.filter;
         if (value === 'all') {
