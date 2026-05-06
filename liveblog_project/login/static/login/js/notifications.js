@@ -172,10 +172,11 @@
   }
 
   function hideActionsIfEmpty() {
-    if (!actions) return;
     const remaining = document.querySelectorAll('.notification-row').length;
     if (remaining === 0) {
-      actions.classList.add('d-none');
+      const pageHeader = document.getElementById('notificationsPageHeader');
+      if (pageHeader) pageHeader.classList.add('d-none');
+      if (actions) actions.classList.add('d-none');
       if (emptyState) emptyState.classList.remove('d-none');
       const wrapper = document.getElementById('notificationsShowMoreWrapper');
       if (wrapper) wrapper.classList.add('d-none');

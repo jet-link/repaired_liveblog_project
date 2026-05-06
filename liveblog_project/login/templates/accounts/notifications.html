@@ -7,7 +7,8 @@
 
 {% block content %}
   <div class="container-main content_block">
-    <div class="d-flex justify-content-between align-items-center">
+    {% if notifications %}
+    <div id="notificationsPageHeader" class="d-flex justify-content-between align-items-center mb-3">
       <div class="d-flex align-items-center gap-2">
         <h4 class="text-muted m-0">Notifications</h4>
         <button type="button" class="button notification-dropdown-info-btn" aria-expanded="false" aria-controls="notificationsLegend">
@@ -20,16 +21,15 @@
           {% endif %}
         </span>
       </div>
-      {% if notifications %}
-        <div id="notificationsActions" class="d-flex align-items-center gap-2">
-          {% if unread_count > 0 %}
-            <button id="notificationsReadAll" type="button" class="read-all-btn d-flex align-items-center">Read all</button>
-          {% endif %}
-          <button id="notificationsDelete" type="button" class="text-muted btn btn-link text-decoration-none p-0 btn-sm ps-1"><i class="fa fa-trash-o fs-5"></i></button>
-        </div>
-      {% endif %}
+      <div id="notificationsActions" class="d-flex align-items-center gap-2">
+        {% if unread_count > 0 %}
+          <button id="notificationsReadAll" type="button" class="read-all-btn d-flex align-items-center">Read all</button>
+        {% endif %}
+        <button id="notificationsDelete" type="button" class="text-muted btn btn-link text-decoration-none p-0 btn-sm"><i class="fa fa-trash-o fs-5"></i></button>
+      </div>
     </div>
-    <hr />
+    {% endif %}
+    {% comment %} <hr /> {% endcomment %}
     {% if notifications %}
       <div id="notificationsLegend" class="notifications-legend text-muted">
         <div class="d-flex align-items-center gap-2 my-1">

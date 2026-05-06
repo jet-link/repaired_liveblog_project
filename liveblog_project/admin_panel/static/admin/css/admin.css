@@ -3073,11 +3073,22 @@ a.admin-link {
   vertical-align: top;
   max-width: 100%;
   min-width: 0;
+  position: relative;
   border: 1px solid var(--admin-border);
   border-radius: 999px;
   background: var(--admin-bg-elevated);
   box-sizing: border-box;
   overflow: hidden;
+  /* Flat admin chrome — not public-site liquid glass */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  transform: none;
+  transition: none;
+}
+
+.admin-content .filter-segment-shell::before {
+  display: none !important;
 }
 
 .admin-content .filter-segment-scroll {

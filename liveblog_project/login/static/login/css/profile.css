@@ -261,7 +261,7 @@
 .user-tooltip {
     --user-tooltip-caret-x: calc(var(--header-icon-size, 38px) / 2);
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 15px);
     right: -18px;
     min-width: 170px;
     background: var(--card-bg);
@@ -297,8 +297,10 @@ html[data-theme="dark"] .user-tooltip {
     pointer-events: auto;
 }
 
-/* Caret points up at avatar; --user-tooltip-caret-x is set in profile_opener.js (px from tooltip left) */
-.user-menu.open .user-tooltip::before {
+/* Caret points up at avatar; --user-tooltip-caret-x is set in profile_opener.js (px from tooltip left).
+   Pseudo-elements must exist whenever the tooltip exists (not only when .open), so opacity/transform
+   on .user-tooltip fades the arrow together with the panel — same pattern as .comment-actions::before. */
+.user-menu .user-tooltip::before {
     content: '';
     position: absolute;
     left: var(--user-tooltip-caret-x);
@@ -314,12 +316,12 @@ html[data-theme="dark"] .user-tooltip {
     z-index: 1;
 }
 
-html[data-theme="dark"] .user-menu.open .user-tooltip::before {
+html[data-theme="dark"] .user-menu .user-tooltip::before {
     border-bottom-color: var(--border-strong, #484f58);
     filter: none;
 }
 
-html[data-theme="dark"] .user-menu.open .user-tooltip::after {
+html[data-theme="dark"] .user-menu .user-tooltip::after {
     content: '';
     position: absolute;
     left: var(--user-tooltip-caret-x);

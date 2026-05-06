@@ -368,16 +368,16 @@ html[data-theme="dark"] .tag-badge-option:hover {
 }
 
 .tag-badge-option.tag-badge-selected {
-    color: #0d1117 !important;
+    color: #ffffff !important;
     border-color: color-mix(in srgb, #212529 70%, var(--border-default)) !important;
-    background: color-mix(in srgb, #495057 38%, var(--card-bg)) !important;
+    background: color-mix(in srgb, #212529 70%, var(--border-default)) !important;
 }
 
-.tag-badge-option.tag-badge-selected:hover {
+/* .tag-badge-option.tag-badge-selected:hover {
     color: #0d1117 !important;
     border-color: color-mix(in srgb, #212529 78%, var(--border-default)) !important;
     background: color-mix(in srgb, #495057 45%, var(--card-bg)) !important;
-}
+} */
 
 html[data-theme="dark"] .tag-badge-option.tag-badge-selected {
     color: #0d1117 !important;
@@ -3174,16 +3174,108 @@ a.filter-reason-btn.topic-category-link:hover {
     min-width: 0;
 }
 
+/* BraiNews / Topics filter pill: dark = liquid glass; light = flat chip rail (no shadow), как на /topics/ */
 .filter-segment-shell {
     display: inline-block;
     vertical-align: top;
     max-width: 100%;
     min-width: 0;
-    border: 1px solid var(--border-strong);
+    position: relative;
     border-radius: 999px;
-    background: var(--bg-default);
     box-sizing: border-box;
     overflow: hidden;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: background 0.3s ease;
+    transform: translateZ(0);
+}
+
+.filter-segment-shell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.25),
+        rgba(255, 255, 255, 0.05)
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+html[data-theme="light"] .filter-segment-shell {
+    /* Плоская плашка как на Topics / BraiNews: без glass и без box-shadow на белом фоне */
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-subtle, #e8e8ec);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+
+html[data-theme="light"] .filter-segment-shell::before {
+    display: none;
+}
+
+html[data-theme="dark"] .filter-segment-shell {
+    background: rgba(20, 20, 20, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .filter-segment-shell::before {
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.12),
+        rgba(255, 255, 255, 0.03)
+    );
+}
+
+@supports not (backdrop-filter: blur(10px)) {
+    .filter-segment-shell {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: rgba(20, 20, 20, 0.9);
+    }
+
+    .filter-segment-shell::before {
+        display: none;
+    }
+
+    html:not([data-theme="dark"]) .filter-segment-shell {
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-default, #e6e6e6);
+        box-shadow: none;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .filter-segment-shell {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-default, #e6e6e6);
+        box-shadow: none;
+    }
+
+    .filter-segment-shell::before {
+        display: none;
+    }
+
+    html[data-theme="dark"] .filter-segment-shell {
+        background: var(--card-bg, #161b22);
+        border: 1px solid var(--border-default);
+        box-shadow:
+            0 12px 32px rgba(0, 0, 0, 0.4),
+            0 2px 10px rgba(0, 0, 0, 0.25);
+    }
 }
 
 /* Scrollport: fixed width = shell inner; only the chip row (.filter-segment-bar) pans inside */
@@ -3192,6 +3284,8 @@ a.filter-reason-btn.topic-category-link:hover {
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
+    position: relative;
+    z-index: 1;
 }
 
 /* Subtitle under the segment pill (e.g. For you) — not uppercase like chips */
@@ -3214,7 +3308,7 @@ a.filter-reason-btn.topic-category-link:hover {
     width: max-content;
     max-width: none;
     position: relative;
-    z-index: 0;
+    z-index: 1;
     white-space: normal;
 }
 
@@ -3252,7 +3346,17 @@ html[data-theme="light"] .filter-segment-bar a.filter-reason-btn.is-selected {
 
 .filter-segment-bar .filter-reason-btn:hover:not(.is-selected):not(:disabled),
 .filter-segment-bar a.filter-reason-btn:hover:not(.is-selected) {
-    background: var(--bg-subtle);
+    background: rgba(255, 255, 255, 0.35);
+}
+
+html[data-theme="light"] .filter-segment-bar .filter-reason-btn:hover:not(.is-selected):not(:disabled),
+html[data-theme="light"] .filter-segment-bar a.filter-reason-btn:hover:not(.is-selected) {
+    background: rgba(0, 0, 0, 0.055);
+}
+
+html[data-theme="dark"] .filter-segment-bar .filter-reason-btn:hover:not(.is-selected):not(:disabled),
+html[data-theme="dark"] .filter-segment-bar a.filter-reason-btn:hover:not(.is-selected) {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 /* Dark: active segment = grey pill (same token as filter chip hover lift), white label */
@@ -3432,6 +3536,24 @@ html[data-theme="dark"] .filter-segment-bar a.filter-reason-btn.is-selected {
         );
         pointer-events: none;
         z-index: 0;
+    }
+
+    html[data-theme="light"] .mobile-bottom-nav__inner {
+        background: rgba(255, 255, 255, 0.52);
+        border: 1px solid rgba(0, 0, 0, 0.09);
+        -webkit-backdrop-filter: blur(14px) saturate(165%);
+        backdrop-filter: blur(14px) saturate(165%);
+        box-shadow:
+            0 6px 22px rgba(0, 0, 0, 0.07),
+            inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    html[data-theme="light"] .mobile-bottom-nav__inner::before {
+        background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.72),
+            rgba(255, 255, 255, 0.2)
+        );
     }
 
     .mobile-bottom-nav__scroll {
@@ -3736,8 +3858,9 @@ html[data-theme="dark"] .filter-segment-bar a.filter-reason-btn.is-selected {
         pointer-events: auto;
     }
 
-    /* Arrow points down toward More; horizontal position follows anchor via --popover-caret-x (px from popover left) */
-    .mobile-nav-account-popover.is-open::after {
+    /* Arrow points down toward More; horizontal position follows anchor via --popover-caret-x (px from popover left).
+       Pseudo-elements apply in all states so opacity/visibility transitions keep arrow + panel in sync. */
+    .mobile-nav-account-popover::after {
         content: '';
         position: absolute;
         left: var(--popover-caret-x);
@@ -3759,12 +3882,12 @@ html[data-theme="dark"] .filter-segment-bar a.filter-reason-btn.is-selected {
         box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    html[data-theme="dark"] .mobile-nav-account-popover.is-open::after {
+    html[data-theme="dark"] .mobile-nav-account-popover::after {
         border-top-color: var(--border-strong, #484f58);
         filter: none;
     }
 
-    html[data-theme="dark"] .mobile-nav-account-popover.is-open::before {
+    html[data-theme="dark"] .mobile-nav-account-popover::before {
         content: '';
         position: absolute;
         left: var(--popover-caret-x);
@@ -4828,7 +4951,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
     padding: 0.32rem 0.55rem;
     border-radius: var(--radius-md);
     border: 1px solid color-mix(in srgb, #14b8a6 45%, var(--border-default));
-    background: color-mix(in srgb, #14b8a6 14%, var(--card-bg));
+    /* background: color-mix(in srgb, #14b8a6 14%, var(--card-bg)); */
     color: #0f766e;
     font-size: 0.8rem;
     font-weight: 600;
@@ -4838,7 +4961,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
 html[data-theme="dark"] .comment-actions-bar__likes[role="group"] {
     color: #5eead4;
     border-color: color-mix(in srgb, #2dd4bf 38%, var(--border-default));
-    background: color-mix(in srgb, #2dd4bf 14%, var(--card-bg));
+    /* background: color-mix(in srgb, #2dd4bf 14%, var(--card-bg)); */
 }
 
 .comment-actions-bar__like-btn {

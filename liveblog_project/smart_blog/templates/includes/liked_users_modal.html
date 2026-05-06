@@ -33,7 +33,7 @@
                 <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display like.user %}" class="user-avatar" width="30" height="30" loading="lazy" decoding="async" />
               {% endif %}
             </div>
-            <span class="custom_badge badge_primary">{% user_status_display like.user %}</span>
+            <span class="comment-author-name fw-semibold">{% user_status_display like.user %}</span>
           </a>
       {% endfor %}
       </div>
