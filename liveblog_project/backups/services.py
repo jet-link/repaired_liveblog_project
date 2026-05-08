@@ -1,10 +1,11 @@
 """
-Сервис создания backup: опционально pg_dump, media, settings в tar.gz.
+Сервис создания backup: опционально дамп БД (PostgreSQL / SQLite), media, settings в tar.gz.
 Выполняется асинхронно в отдельном потоке.
 """
 import logging
 import os
 import shutil
+import sqlite3
 import subprocess
 import tarfile
 import tempfile
@@ -37,16 +38,63 @@ def _dir_has_files(path):
     return any(f.is_file() for f in p.rglob('*'))
 
 
+def _engine_is_postgresql(db_settings):
+    return 'postgresql' in (db_settings.get('ENGINE') or '')
+
+
+def _engine_is_sqlite(db_settings):
+    return 'sqlite' in (db_settings.get('ENGINE') or '')
+
+
+def _sqlite_database_path(db_settings):
+    """Путь к файлу SQLite (NAME может быть str или Path)."""
+    name = db_settings.get('NAME')
+    if name in (None, ''):
+        return Path()
+    path = Path(name).expanduser()
+    if not path.is_absolute():
+        path = Path(settings.BASE_DIR) / path
+    return path.resolve()
+
+
+def _dump_sqlite(db_settings, output_path):
+    """Пишет SQL-дамп SQLite (iterdump), совместимый с восстановлением через executescript."""
+    db_path = _sqlite_database_path(db_settings)
+    if not db_path.is_file():
+        raise RuntimeError(f'SQLite database file not found: {db_path}')
+    conn = sqlite3.connect(str(db_path))
+    try:
+        with open(output_path, 'w', encoding='utf-8') as out_f:
+            for line in conn.iterdump():
+                out_f.write(f'{line}\n')
+    finally:
+        conn.close()
+
+
+def _dump_database(db_settings, output_path):
+    """Дамп default-БД: PostgreSQL (pg_dump) или SQLite."""
+    if _engine_is_postgresql(db_settings):
+        _run_pg_dump(db_settings, output_path)
+        return
+    if _engine_is_sqlite(db_settings):
+        _dump_sqlite(db_settings, output_path)
+        return
+    raise RuntimeError(
+        f'Database ENGINE is not supported for backup dump: '
+        f'{db_settings.get("ENGINE")!r}. Supported: PostgreSQL, SQLite.'
+    )
+
+
 def _run_pg_dump(db_settings, output_path):
     """Выполняет pg_dump и сохраняет в output_path."""
     env = os.environ.copy()
-    env['PGPASSWORD'] = db_settings.get('PASSWORD', '')
+    env['PGPASSWORD'] = db_settings.get('PASSWORD') or ''
     cmd = [
         'pg_dump',
-        '-h', db_settings.get('HOST', 'localhost'),
-        '-p', str(db_settings.get('PORT', '5432')),
-        '-U', db_settings.get('USER', 'postgres'),
-        '-d', db_settings.get('NAME', ''),
+        '-h', db_settings.get('HOST') or 'localhost',
+        '-p', str(db_settings.get('PORT') or '5432'),
+        '-U', db_settings.get('USER') or 'postgres',
+        '-d', str(db_settings.get('NAME') or ''),
         '-F', 'p',  # plain SQL
         '-f', str(output_path),
         '--no-owner',
@@ -127,7 +175,7 @@ def _create_backup_archive(backup_obj):
         media_root = Path(settings.MEDIA_ROOT)
 
         if include_database:
-            _run_pg_dump(db_settings, db_sql)
+            _dump_database(db_settings, db_sql)
             logger.info('Database dump created: %s', db_sql)
             if db_sql.exists() and db_sql.stat().st_size > 0:
                 content_blocks.append('database')

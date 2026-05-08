@@ -95,6 +95,14 @@ def repost_created(sender, instance, created, **kwargs):
         _invalidate_trending_api_cache()
 
 
+@receiver(post_delete, sender=PostRepost)
+def repost_deleted(sender, instance, **kwargs):
+    Item.objects.filter(pk=instance.item_id).update(
+        reposts_count=Greatest(F('reposts_count') - 1, 0)
+    )
+    _invalidate_trending_api_cache()
+
+
 @receiver(post_save, sender=Comment)
 def comment_changed_trending_cache(sender, instance, **kwargs):
     _invalidate_trending_api_cache()

@@ -50,23 +50,31 @@ _VALID_REASONS = {'obscenity', 'spam', 'harassment', 'abuse', 'other'}
 
 _client = None
 _client_failed = False
+# Status reason for diagnostics (rendered in AnalysisRun logs by content_analyzer).
+# One of: '', 'no_key', 'no_sdk', 'init_error'.
+_client_status = ''
 
 
 def _get_client():
     """Lazy, cached OpenAI client. Returns ``None`` if key missing or SDK absent."""
-    global _client, _client_failed
+    global _client, _client_failed, _client_status
     if _client is not None:
         return _client
     if _client_failed:
         return None
     api_key = getattr(settings, 'OPENAI_API_KEY', '') or ''
     if not api_key:
+        _client_status = 'no_key'
         return None
     try:
         from openai import OpenAI
     except ImportError:
-        logger.warning('openai package not installed; AI moderation disabled.')
+        logger.warning(
+            'openai package not installed; AI moderation disabled. '
+            'Run `pip install -r requirements.txt` to enable it.'
+        )
         _client_failed = True
+        _client_status = 'no_sdk'
         return None
     try:
         _client = OpenAI(
@@ -76,8 +84,20 @@ def _get_client():
     except Exception as exc:
         logger.exception('Failed to construct OpenAI client: %s', exc)
         _client_failed = True
+        _client_status = 'init_error'
         return None
+    _client_status = ''
     return _client
+
+
+def get_client_status() -> str:
+    """Force a probe and return the current client diagnostic status.
+
+    Empty string means the client is usable (or has not been probed yet but
+    the configuration looks valid). Otherwise one of the codes above.
+    """
+    _get_client()
+    return _client_status
 
 
 def _truncate_for_ai(text: str) -> str:

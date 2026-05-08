@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mindset theme #{{ theme.pk }}{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'mindset/css/mindset.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block mindset-page"
+       data-mindset-feed
+       data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+       data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
+       data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
+    <div class="listing-filter-sticky-scope">
+      <div class="d-flex align-items-center justify-content-between mb-4 mindset-page__head">
+        <a href="{% url 'mindset:theme_list' %}" class="text-muted text-decoration-none"><i class="fa fa-angle-left me-3" aria-hidden="true"></i>Go back</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'mindset:theme_create' %}" class="cstm-btn-sm custom-secondary-btn mindset-new-btn">
+            <span class="d-none d-sm-inline">New theme</span>
+            <i class="fa fa-plus" aria-hidden="true"></i>
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="mindset-layout">
+        <section class="mindset-feed" data-mindset-feed-list>
+          {% include 'mindset/_theme_card.html' with theme=theme %}
+        </section>
+        <aside class="mindset-sidebar d-none d-lg-block">
+          <div class="mindset-sidebar__sticky">
+            {% include 'mindset/_sidebar.html' with sidebar=sidebar %}
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block page_modals %}
+  {% if user.is_authenticated %}
+    {% include 'mindset/_confirm_delete_modal.html' %}
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  <script defer src="{% static 'mindset/js/mindset_feed.js' %}"></script>
+{% endblock %}

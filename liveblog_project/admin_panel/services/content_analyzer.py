@@ -17,6 +17,7 @@ from admin_panel.services.openai_moderator import (
     openai_moderate,
     openai_classify,
     batch_moderate,
+    get_client_status,
     _truncate_for_ai,
 )
 
@@ -351,11 +352,26 @@ def run_content_analysis(schedule='now', analysis_run=None, log_callback=None, u
 
     try:
         if use_ai is None:
-            ai_enabled = bool(getattr(settings, 'OPENAI_API_KEY', '') or '')
+            ai_requested = bool(getattr(settings, 'OPENAI_API_KEY', '') or '')
         else:
-            ai_enabled = bool(use_ai)
+            ai_requested = bool(use_ai)
         use_classifier = bool(getattr(settings, 'OPENAI_USE_CLASSIFIER', True))
         batch_size = max(1, int(getattr(settings, 'OPENAI_BATCH_SIZE', 32) or 32))
+
+        # Probe SDK + key once so the operator sees the actual reason in the run log
+        # (instead of silent no-op API calls). ai_enabled stays False if the probe
+        # discovers the SDK is missing or the client constructor failed.
+        ai_enabled = ai_requested
+        if ai_requested:
+            client_status = get_client_status()
+            if client_status == 'no_sdk':
+                ai_enabled = False
+            elif client_status == 'init_error':
+                ai_enabled = False
+            elif client_status == 'no_key':
+                ai_enabled = False
+        else:
+            client_status = 'no_key'
 
         log('Start Analysis!')
         forbidden_words = list(ForbiddenWord.objects.filter(is_active=True))
@@ -368,7 +384,15 @@ def run_content_analysis(schedule='now', analysis_run=None, log_callback=None, u
                 f'GPT classifier {classifier_state})'
             )
         else:
-            log('OpenAI moderation: disabled (OPENAI_API_KEY not set) — using deterministic checks only')
+            reason_msg = {
+                'no_key': 'OPENAI_API_KEY not set',
+                'no_sdk': 'openai SDK not installed (pip install -r requirements.txt)',
+                'init_error': 'OpenAI client init failed (see server logs)',
+            }.get(client_status, 'AI layer disabled')
+            log(
+                f'OpenAI moderation: disabled ({reason_msg}) '
+                f'— using deterministic checks only'
+            )
         if not forbidden_words and not forbidden_patterns and not ai_enabled:
             log('Warning: no active forbidden words/patterns and OpenAI is off; nothing will flag content.')
 

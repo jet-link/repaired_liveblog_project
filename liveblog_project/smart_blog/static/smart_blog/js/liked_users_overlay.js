@@ -199,8 +199,8 @@
     items.forEach(function (item) {
       const rawUsername = item.getAttribute('data-like-user') || '';
       const username = rawUsername.toLowerCase().trim().replace(/\s+/g, ' ');
-      const badge = item.querySelector('.custom_badge');
-      const rawLabel = badge ? badge.textContent : '';
+      const nameEl = item.querySelector('.comment-author-name') || item.querySelector('.custom_badge');
+      const rawLabel = nameEl ? nameEl.textContent : '';
       const label = rawLabel.trim().toLowerCase().replace(/\s+/g, ' ');
       const exact = q && (username === q || label === q);
       const partial = !q || username.indexOf(q) !== -1 || label.indexOf(q) !== -1;
@@ -297,11 +297,11 @@
     img.loading = 'lazy';
     img.onerror = function () { this.onerror = null; this.classList.add('avatar-load-failed'); };
     avatarWrap.appendChild(img);
-    const badge = document.createElement('span');
-    badge.className = 'custom_badge badge_primary';
-    badge.textContent = username;
+    const nameEl = document.createElement('span');
+    nameEl.className = 'comment-author-name fw-semibold';
+    nameEl.textContent = username;
     row.appendChild(avatarWrap);
-    row.appendChild(badge);
+    row.appendChild(nameEl);
     list.prepend(row);
     initialOrder.unshift(row);
   }

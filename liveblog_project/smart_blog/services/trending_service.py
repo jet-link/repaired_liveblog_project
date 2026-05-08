@@ -8,7 +8,6 @@ ViewEvent provides non-unique page-view counts for real velocity.
 from __future__ import annotations
 
 import math
-from collections import defaultdict
 from datetime import timedelta
 
 from django.core.cache import cache
@@ -74,7 +73,7 @@ def trend_score_from_stats(
     raw = views * 0.5 + likes * 3.0 + comments * 5.0 + bookmarks * 4.0 + reposts * 6.0
     base = math.log10(max(raw, 1))
     age_penalty = math.pow(max(hours_since_post, 0.0) + 2.0, 1.5)
-    velocity_bonus = engagement_1h / max(engagement_prev_1h, 1) if engagement_prev_1h >= 0 else 0
+    velocity_bonus = engagement_1h / max(engagement_prev_1h, 1)
     score = (base * (1.0 + 0.3 * min(velocity_bonus, 3.0))) / age_penalty
     return score
 

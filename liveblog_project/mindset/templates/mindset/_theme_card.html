@@ -1,0 +1,95 @@
+{% load mindset_extras %}
+{% load counters %}
+<article class="mindset-theme" data-mindset-theme="{{ theme.pk }}" id="mindset-theme-{{ theme.pk }}">
+  <header class="mindset-theme__head">
+    <a href="{% url 'login_app:profile' theme.author.username %}" class="mindset-author-link text-decoration-none">
+      {% include 'includes/user_avatar.html' with author=theme.author %}
+    </a>
+    <small class="text-muted mindset-theme__date">
+      <i class="fa fa-clock-o" aria-hidden="true"></i>
+      <span class="ms-1">{{ theme.human_published }}</span>
+    </small>
+  </header>
+  <hr class="mindset-theme__sep" />
+  <div class="mindset-theme__body" data-mindset-body>{{ theme.body|mindset_body }}</div>
+
+  <div class="mindset-theme__actions">
+    <div class="mindset-theme__counters">
+      <span class="mindset-counter" data-counter="replies">
+        <i class="fa fa-comment-o" aria-hidden="true"></i>
+        <span class="mindset-counter__val" data-counter-val>{{ theme.replies_count|human }}</span>
+      </span>
+      <span class="mindset-counter" data-counter="likes">
+        <i class="fa fa-heart-o" aria-hidden="true"></i>
+        <span class="mindset-counter__val" data-counter-val>{{ theme.likes_count|human }}</span>
+      </span>
+      <span class="mindset-counter" data-counter="reposts">
+        <i class="fa fa-retweet" aria-hidden="true"></i>
+        <span class="mindset-counter__val" data-counter-val>{{ theme.reposts_count|human }}</span>
+      </span>
+    </div>
+
+    <div class="mindset-theme__buttons">
+      {% if user.is_authenticated %}
+        {% if user.id != theme.author_id %}
+          <button type="button" class="mindset-action-btn" data-action="reply" data-theme-id="{{ theme.pk }}" aria-expanded="false">
+            <i class="fa fa-reply" aria-hidden="true"></i>
+            <span>Reply</span>
+          </button>
+          <button type="button"
+            class="mindset-action-btn{% if theme.user_liked %} is-active{% endif %}"
+            data-action="like"
+            data-theme-id="{{ theme.pk }}"
+            data-url="{% url 'mindset:api_theme_like' theme.pk %}"
+            aria-pressed="{% if theme.user_liked %}true{% else %}false{% endif %}">
+            <i class="fa fa-heart{% if not theme.user_liked %}-o{% endif %}" aria-hidden="true"></i>
+            <span>Like</span>
+          </button>
+        {% endif %}
+        <button type="button"
+          class="mindset-action-btn{% if theme.user_reposted %} is-active{% endif %}"
+          data-action="repost"
+          data-theme-id="{{ theme.pk }}"
+          data-url="{% url 'mindset:api_theme_repost' theme.pk %}"
+          aria-pressed="{% if theme.user_reposted %}true{% else %}false{% endif %}">
+          <i class="fa fa-retweet" aria-hidden="true"></i>
+          <span>{% if theme.user_reposted %}Reposted{% else %}Repost{% endif %}</span>
+        </button>
+        {% if user.id == theme.author_id and theme.is_editable %}
+          <button type="button"
+            class="mindset-action-btn mindset-action-btn--danger"
+            data-bs-toggle="modal"
+            data-bs-target="#mindsetConfirmDeleteModal"
+            data-mindset-delete-kind="theme"
+            data-mindset-delete-id="{{ theme.pk }}"
+            data-mindset-delete-url="{% url 'mindset:api_theme_delete' theme.pk %}"
+            aria-label="Delete theme">
+            <i class="fa fa-trash" aria-hidden="true"></i>
+            <span>Delete</span>
+          </button>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  {% if user.is_authenticated and user.id != theme.author_id %}
+    <form class="mindset-theme__reply-form" data-mindset-reply-form data-theme-id="{{ theme.pk }}" hidden
+          action="{% url 'mindset:api_theme_reply' theme.pk %}" method="post">
+      {% csrf_token %}
+      <textarea name="body" rows="1" class="form-control auto-grow mindset-reply-input" placeholder="Write a reply…"></textarea>
+      <div class="mindset-theme__reply-actions">
+        <button type="button" class="cstm-btn-sm custom-secondary-btn" data-mindset-reply-cancel>Cancel</button>
+        <button type="submit" class="cstm-btn-sm custom-primary-btn">Reply</button>
+      </div>
+      <div class="mindset-form-error text-danger small" data-mindset-reply-error hidden></div>
+    </form>
+  {% endif %}
+
+  <div class="mindset-theme__replies" data-mindset-replies="{{ theme.pk }}">
+    {% for reply in theme.replies.all %}
+      {% if not reply.is_deleted and not reply.parent_id %}
+        {% include 'mindset/_reply.html' with reply=reply %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</article>

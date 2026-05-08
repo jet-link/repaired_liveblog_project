@@ -4,7 +4,7 @@
 Запуск: python manage.py restore_backup /path/to/backup.tar.gz
 
 Структура архива (префикс backup/):
-  - backup/database.sql — дамп PostgreSQL (опционально)
+  - backup/database.sql — дамп PostgreSQL (pg_dump) или SQLite (опционально)
   - backup/media/ — файлы MEDIA (опционально)
   - backup/settings_snapshot/liveblog_project/settings.py — копия settings (опционально)
   - backup/settings_snapshot/.env — копия .env из корня репозитория (опционально; секреты!)
@@ -15,6 +15,7 @@
 import logging
 import os
 import shutil
+import sqlite3
 import subprocess
 import tarfile
 import tempfile
@@ -25,7 +26,45 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
 
+from backups.services import (
+    _engine_is_postgresql,
+    _engine_is_sqlite,
+    _sqlite_database_path,
+)
+
 logger = logging.getLogger('backups')
+
+
+def _restore_postgresql_db(db_sql, db_settings, log_lines):
+    """Применяет database.sql через psql к текущей БД Postgres."""
+    env = os.environ.copy()
+    env['PGPASSWORD'] = db_settings.get('PASSWORD') or ''
+    cmd = [
+        'psql',
+        '-h', db_settings.get('HOST') or 'localhost',
+        '-p', str(db_settings.get('PORT') or '5432'),
+        '-U', db_settings.get('USER') or 'postgres',
+        '-d', str(db_settings.get('NAME') or ''),
+        '-f', str(db_sql),
+        '-v', 'ON_ERROR_STOP=1',
+    ]
+    result = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=3600)
+    if result.returncode != 0:
+        logger.error('psql restore failed: %s', result.stderr or result.stdout)
+        raise RuntimeError(f'Database restore failed: {result.stderr or result.stdout}')
+    log_lines.append('PostgreSQL database restored.')
+
+
+def _restore_sqlite_db(db_sql, db_settings):
+    """Применяет database.sql к файлу SQLite."""
+    db_path = _sqlite_database_path(db_settings)
+    sql_text = Path(db_sql).read_text(encoding='utf-8', errors='strict')
+    conn = sqlite3.connect(str(db_path))
+    try:
+        conn.executescript(sql_text)
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def _restore_settings_snapshot(backup_dir, log_lines):
@@ -92,21 +131,15 @@ def restore_backup(archive_path):
             connection.close()
             log_lines.append('Database connections closed.')
 
-            env = os.environ.copy()
-            env['PGPASSWORD'] = db_settings.get('PASSWORD', '')
-            cmd = [
-                'psql',
-                '-h', db_settings.get('HOST', 'localhost'),
-                '-p', str(db_settings.get('PORT', '5432')),
-                '-U', db_settings.get('USER', 'postgres'),
-                '-d', db_settings.get('NAME', ''),
-                '-f', str(db_sql),
-                '-v', 'ON_ERROR_STOP=1',
-            ]
-            result = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=3600)
-            if result.returncode != 0:
-                logger.error('psql restore failed: %s', result.stderr or result.stdout)
-                raise RuntimeError(f'Database restore failed: {result.stderr or result.stdout}')
+            if _engine_is_postgresql(db_settings):
+                _restore_postgresql_db(db_sql, db_settings, log_lines)
+            elif _engine_is_sqlite(db_settings):
+                _restore_sqlite_db(db_sql, db_settings)
+                log_lines.append('SQLite database restored.')
+            else:
+                raise RuntimeError(
+                    f'Database ENGINE not supported for restore: {db_settings.get("ENGINE")!r}'
+                )
 
             log_lines.append(f'Database restored. Tables (approx): {tables_count}')
             logger.info('Database restored successfully')

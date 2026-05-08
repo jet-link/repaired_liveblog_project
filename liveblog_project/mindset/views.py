@@ -1,0 +1,626 @@
+"""Mindset views: listing, theme creation, theme detail and JSON APIs.
+
+Live updates use a hybrid model:
+- Author of an action sees DOM injection immediately via the JSON response from
+  ``api_theme_reply`` / ``api_theme_like`` / ``api_theme_repost``.
+- Other tabs poll ``api_theme_state`` and ``api_themes_state`` for new replies
+  and refreshed counters every few seconds.
+"""
+from __future__ import annotations
+
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import (
+    BooleanField,
+    Exists,
+    ExpressionWrapper,
+    F,
+    FloatField,
+    OuterRef,
+    Value,
+)
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST
+
+from smart_blog.utils import count_convert
+
+from .body_html import (
+    extract_hashtags,
+    html_to_plain_text,
+    normalise_hashtags,
+)
+from .forms import ReplyForm, ThemeForm
+from .models import (
+    Hashtag,
+    Reply,
+    ReplyLike,
+    ReplyRepost,
+    Theme,
+    ThemeLike,
+    ThemeRepost,
+)
+
+THEME_PAGE_SIZE = 20
+SIDEBAR_LIMIT = 5
+REPLY_COOLDOWN_SECONDS = 5
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _annotate_user_state(qs, user):
+    """Add user_liked / user_reposted booleans to a Theme/Reply queryset."""
+    if not user.is_authenticated:
+        return qs.annotate(
+            user_liked=Value(False, output_field=BooleanField()),
+            user_reposted=Value(False, output_field=BooleanField()),
+        )
+
+    model = qs.model
+    if model is Theme:
+        like_qs = ThemeLike.objects.filter(theme=OuterRef('pk'), user=user)
+        repost_qs = ThemeRepost.objects.filter(theme=OuterRef('pk'), user=user)
+    else:
+        like_qs = ReplyLike.objects.filter(reply=OuterRef('pk'), user=user)
+        repost_qs = ReplyRepost.objects.filter(reply=OuterRef('pk'), user=user)
+
+    return qs.annotate(
+        user_liked=Exists(like_qs),
+        user_reposted=Exists(repost_qs),
+    )
+
+
+def _annotate_popularity(qs):
+    """Discussion popularity = replies + 0.5*reposts + 0.2*likes, with a recency
+    factor (older themes decay slowly)."""
+    return qs.annotate(
+        popularity=ExpressionWrapper(
+            (F('replies_count') * 1.0)
+            + (F('reposts_count') * 0.5)
+            + (F('likes_count') * 0.2),
+            output_field=FloatField(),
+        )
+    )
+
+
+def _theme_base_qs():
+    return Theme.objects.filter(is_deleted=False).select_related('author', 'author__profile')
+
+
+def _persist_hashtags(theme: Theme) -> None:
+    """Parse #tags from the saved theme body and replace M2M with canonical Hashtag rows."""
+    plain = html_to_plain_text(theme.body)
+    names = extract_hashtags(plain)
+    pairs = normalise_hashtags(names)
+    if not pairs:
+        theme.hashtags.clear()
+        return
+    tags: list[Hashtag] = []
+    for name, slug in pairs:
+        tag, _created = Hashtag.objects.get_or_create(slug=slug, defaults={'name': name})
+        tags.append(tag)
+    theme.hashtags.set(tags)
+
+
+def _render_theme_card(theme: Theme, request) -> str:
+    annotated = _annotate_user_state(
+        _theme_base_qs().filter(pk=theme.pk),
+        request.user,
+    ).first()
+    return render_to_string(
+        'mindset/_theme_card.html',
+        {'theme': annotated or theme, 'request': request, 'user': request.user},
+        request=request,
+    )
+
+
+def _render_reply(reply: Reply, request) -> str:
+    annotated = _annotate_user_state(
+        Reply.objects.filter(pk=reply.pk).select_related('author', 'author__profile'),
+        request.user,
+    ).first()
+    return render_to_string(
+        'mindset/_reply.html',
+        {'reply': annotated or reply, 'request': request, 'user': request.user},
+        request=request,
+    )
+
+
+def _theme_state_payload(theme: Theme, request) -> dict:
+    return {
+        'id': theme.pk,
+        'replies_count': theme.replies_count,
+        'replies_count_human': count_convert(theme.replies_count),
+        'likes_count': theme.likes_count,
+        'likes_count_human': count_convert(theme.likes_count),
+        'reposts_count': theme.reposts_count,
+        'reposts_count_human': count_convert(theme.reposts_count),
+        'user_liked': bool(getattr(theme, 'user_liked', False)),
+        'user_reposted': bool(getattr(theme, 'user_reposted', False)),
+    }
+
+
+def _reply_state_payload(reply: Reply) -> dict:
+    return {
+        'id': reply.pk,
+        'theme_id': reply.theme_id,
+        'parent_id': reply.parent_id,
+        'replies_count': reply.replies_count,
+        'replies_count_human': count_convert(reply.replies_count),
+        'likes_count': reply.likes_count,
+        'likes_count_human': count_convert(reply.likes_count),
+        'reposts_count': reply.reposts_count,
+        'reposts_count_human': count_convert(reply.reposts_count),
+        'user_liked': bool(getattr(reply, 'user_liked', False)),
+        'user_reposted': bool(getattr(reply, 'user_reposted', False)),
+    }
+
+
+def _sidebar_payload() -> dict:
+    last = list(
+        _theme_base_qs()
+        .order_by('-created_at')[:SIDEBAR_LIMIT]
+    )
+    top = list(
+        _annotate_popularity(_theme_base_qs())
+        .order_by('-popularity', '-created_at')[:SIDEBAR_LIMIT]
+    )
+    return {
+        'last': [
+            {
+                'id': t.pk,
+                'preview': t.preview,
+                'likes': t.likes_count,
+                'likes_human': count_convert(t.likes_count),
+                'replies': t.replies_count,
+                'replies_human': count_convert(t.replies_count),
+                'url': f'/mindset/theme/{t.pk}/',
+            }
+            for t in last
+        ],
+        'top': [
+            {
+                'id': t.pk,
+                'preview': t.preview,
+                'likes': t.likes_count,
+                'likes_human': count_convert(t.likes_count),
+                'replies': t.replies_count,
+                'replies_human': count_convert(t.replies_count),
+                'url': f'/mindset/theme/{t.pk}/',
+            }
+            for t in top
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Page views
+# ---------------------------------------------------------------------------
+
+
+def _resolve_filter(request) -> tuple[str, Hashtag | None]:
+    fil = (request.GET.get('filter') or '').strip().lower()
+    if fil not in ('latest', 'popular'):
+        fil = 'latest'
+    tag_slug = (request.GET.get('tag') or '').strip().lower() or None
+    tag = None
+    if tag_slug:
+        tag = Hashtag.objects.filter(slug=tag_slug).first()
+    return fil, tag
+
+
+def theme_list(request, *, active_tag: Hashtag | None = None):
+    fil, tag = _resolve_filter(request)
+    if active_tag is not None:
+        tag = active_tag
+
+    qs = _theme_base_qs()
+    if tag is not None:
+        qs = qs.filter(hashtags=tag)
+    qs = _annotate_user_state(qs, request.user)
+    qs = _annotate_popularity(qs)
+
+    if fil == 'popular':
+        qs = qs.order_by('-popularity', '-created_at')
+    else:
+        qs = qs.order_by('-created_at')
+
+    paginator = Paginator(qs, THEME_PAGE_SIZE)
+    page_number = request.GET.get('page') or 1
+    page_obj = paginator.get_page(page_number)
+
+    sidebar = _sidebar_payload()
+
+    return render(
+        request,
+        'mindset/theme_list.html',
+        {
+            'page_obj': page_obj,
+            'themes': page_obj.object_list,
+            'sidebar': sidebar,
+            'active_filter': fil,
+            'active_tag': tag,
+        },
+    )
+
+
+def theme_list_by_tag(request, slug):
+    tag = get_object_or_404(Hashtag, slug=slug)
+    return theme_list(request, active_tag=tag)
+
+
+def theme_detail(request, pk):
+    theme = get_object_or_404(_theme_base_qs(), pk=pk)
+    annotated = _annotate_user_state(_theme_base_qs().filter(pk=theme.pk), request.user).first()
+    return render(
+        request,
+        'mindset/theme_detail.html',
+        {
+            'theme': annotated or theme,
+            'sidebar': _sidebar_payload(),
+        },
+    )
+
+
+@login_required
+def theme_create(request):
+    if request.method == 'POST':
+        form = ThemeForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                theme = form.save(commit=False)
+                theme.author = request.user
+                theme.body_text = html_to_plain_text(theme.body)
+                theme.save()
+                _persist_hashtags(theme)
+            return redirect('mindset:theme_list')
+    else:
+        form = ThemeForm()
+
+    return render(
+        request,
+        'mindset/create_theme.html',
+        {'form': form},
+    )
+
+
+# ---------------------------------------------------------------------------
+# JSON APIs
+# ---------------------------------------------------------------------------
+
+
+@require_GET
+def api_themes_state(request):
+    """Return state for visible themes (counters + flags) for polling.
+
+    ``ids`` query param is comma-separated theme ids the client cares about.
+    """
+    ids_raw = request.GET.get('ids') or ''
+    ids: list[int] = []
+    for chunk in ids_raw.split(','):
+        chunk = chunk.strip()
+        if chunk.isdigit():
+            ids.append(int(chunk))
+            if len(ids) >= 100:
+                break
+    if not ids:
+        return JsonResponse({'ok': True, 'themes': []})
+
+    qs = _annotate_user_state(_theme_base_qs().filter(pk__in=ids), request.user)
+    payload = [_theme_state_payload(t, request) for t in qs]
+    return JsonResponse({'ok': True, 'themes': payload})
+
+
+@require_GET
+def api_sidebar(request):
+    return JsonResponse({'ok': True, **_sidebar_payload()})
+
+
+@require_GET
+def api_theme_state(request, pk):
+    theme = get_object_or_404(_theme_base_qs(), pk=pk)
+    annotated = _annotate_user_state(_theme_base_qs().filter(pk=pk), request.user).first() or theme
+    payload = _theme_state_payload(annotated, request)
+
+    since_id = request.GET.get('since_id')
+    new_replies_html: list[str] = []
+    if since_id and since_id.isdigit():
+        new_qs = (
+            _annotate_user_state(
+                Reply.objects.filter(theme_id=pk, pk__gt=int(since_id), is_deleted=False)
+                .select_related('author', 'author__profile')
+                .order_by('created_at'),
+                request.user,
+            )[:50]
+        )
+        new_ids: list[int] = []
+        for reply in new_qs:
+            new_replies_html.append(
+                render_to_string(
+                    'mindset/_reply.html',
+                    {'reply': reply, 'request': request, 'user': request.user},
+                    request=request,
+                )
+            )
+            new_ids.append(reply.pk)
+        payload['new_replies_html'] = new_replies_html
+        payload['new_reply_ids'] = new_ids
+
+    return JsonResponse({'ok': True, **payload})
+
+
+@login_required
+@require_POST
+def api_theme_reply(request, pk):
+    theme = get_object_or_404(_theme_base_qs(), pk=pk)
+    if theme.author_id == request.user.id:
+        return JsonResponse({'ok': False, 'error': 'You cannot reply to your own theme.'}, status=403)
+
+    cooldown_key = f'mindset_reply_cooldown_theme_{pk}'
+    now_ts = timezone.now().timestamp()
+    last_ts = request.session.get(cooldown_key)
+    if last_ts and (now_ts - float(last_ts)) < REPLY_COOLDOWN_SECONDS:
+        remaining = int(REPLY_COOLDOWN_SECONDS - (now_ts - float(last_ts)))
+        return JsonResponse(
+            {'ok': False, 'error': f'Please wait {max(remaining, 1)}s before replying again.'},
+            status=429,
+        )
+
+    form = ReplyForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+    body = form.cleaned_data['body']
+    reply = Reply.objects.create(
+        theme=theme,
+        author=request.user,
+        body=body,
+    )
+    request.session[cooldown_key] = now_ts
+
+    annotated = _annotate_user_state(
+        Reply.objects.filter(pk=reply.pk).select_related('author', 'author__profile'),
+        request.user,
+    ).first() or reply
+
+    html = render_to_string(
+        'mindset/_reply.html',
+        {'reply': annotated, 'request': request, 'user': request.user},
+        request=request,
+    )
+
+    theme.refresh_from_db(fields=['replies_count', 'likes_count', 'reposts_count'])
+    return JsonResponse({
+        'ok': True,
+        'reply_html': html,
+        'reply_id': reply.pk,
+        'theme': _theme_state_payload(
+            _annotate_user_state(_theme_base_qs().filter(pk=theme.pk), request.user).first() or theme,
+            request,
+        ),
+    })
+
+
+@login_required
+@require_POST
+def api_reply_reply(request, pk):
+    parent = get_object_or_404(Reply.objects.filter(is_deleted=False), pk=pk)
+    if parent.author_id == request.user.id:
+        return JsonResponse({'ok': False, 'error': 'You cannot reply to your own reply.'}, status=403)
+
+    cooldown_key = f'mindset_reply_cooldown_reply_{pk}'
+    now_ts = timezone.now().timestamp()
+    last_ts = request.session.get(cooldown_key)
+    if last_ts and (now_ts - float(last_ts)) < REPLY_COOLDOWN_SECONDS:
+        remaining = int(REPLY_COOLDOWN_SECONDS - (now_ts - float(last_ts)))
+        return JsonResponse(
+            {'ok': False, 'error': f'Please wait {max(remaining, 1)}s before replying again.'},
+            status=429,
+        )
+
+    form = ReplyForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+    reply = Reply.objects.create(
+        theme=parent.theme,
+        parent=parent,
+        author=request.user,
+        body=form.cleaned_data['body'],
+    )
+    request.session[cooldown_key] = now_ts
+
+    annotated = _annotate_user_state(
+        Reply.objects.filter(pk=reply.pk).select_related('author', 'author__profile'),
+        request.user,
+    ).first() or reply
+
+    html = render_to_string(
+        'mindset/_reply.html',
+        {'reply': annotated, 'request': request, 'user': request.user},
+        request=request,
+    )
+
+    parent.refresh_from_db(fields=['replies_count', 'likes_count', 'reposts_count'])
+    return JsonResponse({
+        'ok': True,
+        'reply_html': html,
+        'reply_id': reply.pk,
+        'parent_id': parent.pk,
+        'parent': _reply_state_payload(parent),
+    })
+
+
+def _toggle(model, *, lookup_kwargs, user) -> bool:
+    """Return True when a new like/repost was created, False when an existing
+    one was removed."""
+    obj = model.objects.filter(user=user, **lookup_kwargs).first()
+    if obj:
+        obj.delete()
+        return False
+    model.objects.create(user=user, **lookup_kwargs)
+    return True
+
+
+def _fresh_theme_state(theme_pk: int, request) -> dict:
+    """Re-annotate user_liked / user_reposted from DB so toggle responses don't
+    accidentally un-toggle the OTHER button on the client."""
+    annotated = _annotate_user_state(_theme_base_qs().filter(pk=theme_pk), request.user).first()
+    if annotated is None:
+        annotated = Theme.objects.get(pk=theme_pk)
+    return _theme_state_payload(annotated, request)
+
+
+def _fresh_reply_state(reply_pk: int, request) -> dict:
+    annotated = _annotate_user_state(
+        Reply.objects.filter(pk=reply_pk).select_related('author'),
+        request.user,
+    ).first()
+    if annotated is None:
+        annotated = Reply.objects.get(pk=reply_pk)
+    return _reply_state_payload(annotated)
+
+
+@login_required
+@require_POST
+def api_theme_like(request, pk):
+    theme = get_object_or_404(_theme_base_qs(), pk=pk)
+    if theme.author_id == request.user.id:
+        return JsonResponse({'ok': False, 'error': 'You cannot like your own theme.'}, status=403)
+    created = _toggle(ThemeLike, lookup_kwargs={'theme': theme}, user=request.user)
+    return JsonResponse({
+        'ok': True,
+        'liked': created,
+        'theme': _fresh_theme_state(theme.pk, request),
+    })
+
+
+@login_required
+@require_POST
+def api_theme_repost(request, pk):
+    theme = get_object_or_404(_theme_base_qs(), pk=pk)
+    created = _toggle(ThemeRepost, lookup_kwargs={'theme': theme}, user=request.user)
+    return JsonResponse({
+        'ok': True,
+        'reposted': created,
+        'theme': _fresh_theme_state(theme.pk, request),
+    })
+
+
+@login_required
+@require_POST
+def api_reply_like(request, pk):
+    reply = get_object_or_404(Reply.objects.filter(is_deleted=False), pk=pk)
+    if reply.author_id == request.user.id:
+        return JsonResponse({'ok': False, 'error': 'You cannot like your own reply.'}, status=403)
+    created = _toggle(ReplyLike, lookup_kwargs={'reply': reply}, user=request.user)
+    return JsonResponse({
+        'ok': True,
+        'liked': created,
+        'reply': _fresh_reply_state(reply.pk, request),
+    })
+
+
+@login_required
+@require_POST
+def api_reply_repost(request, pk):
+    reply = get_object_or_404(Reply.objects.filter(is_deleted=False), pk=pk)
+    created = _toggle(ReplyRepost, lookup_kwargs={'reply': reply}, user=request.user)
+    return JsonResponse({
+        'ok': True,
+        'reposted': created,
+        'reply': _fresh_reply_state(reply.pk, request),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Edit / delete (12-hour window, owner only)
+# ---------------------------------------------------------------------------
+
+
+@login_required
+@require_POST
+def api_theme_edit(request, pk):
+    theme = get_object_or_404(_theme_base_qs(), pk=pk)
+    if theme.author_id != request.user.id:
+        return JsonResponse({'ok': False, 'error': 'Permission denied.'}, status=403)
+    if not theme.is_editable:
+        return JsonResponse({'ok': False, 'error': 'Editing window has expired.'}, status=403)
+
+    form = ThemeForm(request.POST, instance=theme)
+    if not form.is_valid():
+        return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+    with transaction.atomic():
+        updated = form.save(commit=False)
+        updated.body_text = html_to_plain_text(updated.body)
+        updated.save()
+        _persist_hashtags(updated)
+
+    return JsonResponse({
+        'ok': True,
+        'theme_html': _render_theme_card(updated, request),
+        'theme': _fresh_theme_state(updated.pk, request),
+    })
+
+
+@login_required
+@require_POST
+def api_theme_delete(request, pk):
+    theme = get_object_or_404(_theme_base_qs(), pk=pk)
+    if theme.author_id != request.user.id:
+        return JsonResponse({'ok': False, 'error': 'Permission denied.'}, status=403)
+    if not theme.is_editable:
+        return JsonResponse({'ok': False, 'error': 'Delete window has expired.'}, status=403)
+    theme.delete()
+    return JsonResponse({'ok': True, 'deleted_theme_id': pk})
+
+
+@login_required
+@require_POST
+def api_reply_edit(request, pk):
+    reply = get_object_or_404(Reply.objects.filter(is_deleted=False), pk=pk)
+    if reply.author_id != request.user.id:
+        return JsonResponse({'ok': False, 'error': 'Permission denied.'}, status=403)
+    if not reply.is_editable:
+        return JsonResponse({'ok': False, 'error': 'Editing window has expired.'}, status=403)
+
+    form = ReplyForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+    reply.body = form.cleaned_data['body']
+    reply.save(update_fields=['body', 'updated_at'])
+
+    annotated = _annotate_user_state(
+        Reply.objects.filter(pk=reply.pk).select_related('author', 'author__profile'),
+        request.user,
+    ).first() or reply
+    html = render_to_string(
+        'mindset/_reply.html',
+        {'reply': annotated, 'request': request, 'user': request.user},
+        request=request,
+    )
+    return JsonResponse({
+        'ok': True,
+        'reply_html': html,
+        'reply': _fresh_reply_state(reply.pk, request),
+    })
+
+
+@login_required
+@require_POST
+def api_reply_delete(request, pk):
+    reply = get_object_or_404(Reply.objects.filter(is_deleted=False), pk=pk)
+    if reply.author_id != request.user.id:
+        return JsonResponse({'ok': False, 'error': 'Permission denied.'}, status=403)
+    if not reply.is_editable:
+        return JsonResponse({'ok': False, 'error': 'Delete window has expired.'}, status=403)
+    reply.delete()
+    return JsonResponse({'ok': True, 'deleted_reply_id': pk})

@@ -2,6 +2,23 @@
 {% block title %}Home{% endblock %}
 {% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Home</li></ol></nav>{% endblock %}
 {% block page_title %}Home{% endblock %}
+
+{% block admin_modals %}
+{{ block.super }}
+<div id="homeQuickLinkDeleteModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="homeQuickLinkDeleteModalTitle" aria-hidden="true" hidden>
+    <div class="admin-modal-backdrop" id="homeQuickLinkDeleteModalBackdrop"></div>
+    <div class="admin-modal-dialog">
+        <div class="admin-modal-content">
+            <h2 class="admin-modal-title" id="homeQuickLinkDeleteModalTitle">Delete this quick link?</h2>
+            <div class="admin-modal-actions">
+                <button type="button" class="admin-button admin-button-danger" id="homeQuickLinkDeleteConfirm">Delete</button>
+                <button type="button" class="admin-button admin-button-outline" id="homeQuickLinkDeleteCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="admin-card">
     <p class="text-muted small mb-3">Public URL: <a href="/" target="_blank" rel="noopener">/</a></p>
@@ -209,19 +226,6 @@
             <button type="submit" class="admin-button admin-button-primary">Add quick link</button>
         </div>
     </form>
-</div>
-
-<div id="homeQuickLinkDeleteModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="homeQuickLinkDeleteModalTitle" aria-hidden="true" hidden>
-    <div class="admin-modal-backdrop" id="homeQuickLinkDeleteModalBackdrop"></div>
-    <div class="admin-modal-dialog">
-        <div class="admin-modal-content">
-            <h2 class="admin-modal-title" id="homeQuickLinkDeleteModalTitle">Delete this quick link?</h2>
-            <div class="admin-modal-actions">
-                <button type="button" class="admin-button admin-button-danger" id="homeQuickLinkDeleteConfirm">Delete</button>
-                <button type="button" class="admin-button admin-button-outline" id="homeQuickLinkDeleteCancel">Cancel</button>
-            </div>
-        </div>
-    </div>
 </div>
 {% endblock %}
 

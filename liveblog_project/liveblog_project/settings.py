@@ -120,6 +120,7 @@ INSTALLED_APPS = [
     'admin_panel',
     'smart_blog.apps.SmartBlogConfig',
     'login',
+    'mindset.apps.MindsetConfig',
     'pages.apps.PagesConfig',
     'backups',
 ]

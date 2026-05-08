@@ -1,0 +1,384 @@
+/* Mindset (Threads/Twitter-like discussions) */
+
+.mindset-page {
+  padding-top: 1rem;
+  padding-bottom: 4rem;
+}
+
+.mindset-page__head {
+  gap: 0.75rem;
+}
+
+.mindset-new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.mindset-new-btn i {
+  font-size: 0.95em;
+}
+
+/* Two-column layout */
+.mindset-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 992px) {
+  .mindset-layout {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+}
+
+/* Feed column */
+.mindset-feed {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mindset-empty {
+  border: 1px dashed var(--border-default, #ddd);
+  border-radius: 12px;
+  padding: 2rem 1rem;
+}
+
+/* Theme card */
+.mindset-theme {
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 14px;
+  background: var(--card-bg, #fff);
+  color: var(--text-default, inherit);
+  padding: 1rem 1.1rem 0.85rem;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.mindset-theme__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.mindset-theme__date {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.mindset-theme__sep {
+  margin: 0.55rem 0 0.85rem;
+  border-color: var(--border-default, #e5e7eb);
+  opacity: 0.7;
+}
+
+.mindset-theme__body,
+.mindset-reply__body {
+  font-size: 0.97rem;
+  line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  color: var(--text-default, inherit);
+}
+
+.mindset-theme__body p,
+.mindset-reply__body p {
+  margin: 0 0 0.55rem;
+}
+
+.mindset-theme__body p:last-child,
+.mindset-reply__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Avatar link wrapping */
+.mindset-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: inherit;
+}
+
+.mindset-author-link:hover small {
+  text-decoration: underline;
+}
+
+/* Action row */
+.mindset-theme__actions,
+.mindset-reply__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.65rem;
+}
+
+.mindset-theme__counters,
+.mindset-reply__counters {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--text-muted, #6c757d);
+  font-size: 0.88rem;
+}
+
+.mindset-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mindset-counter i {
+  font-size: 0.95em;
+  opacity: 0.85;
+}
+
+.mindset-theme__buttons,
+.mindset-reply__buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.mindset-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  color: var(--text-muted, #6c757d);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  text-decoration: none;
+}
+
+.mindset-action-btn:hover {
+  background: rgba(13, 110, 253, 0.08);
+  color: var(--bs-primary, #0d6efd);
+  border-color: rgba(13, 110, 253, 0.18);
+}
+
+.mindset-action-btn.is-active {
+  color: #e0245e;
+}
+
+.mindset-action-btn[data-action="repost"].is-active,
+.mindset-action-btn[data-action="reply-repost"].is-active {
+  color: #17bf63;
+}
+
+.mindset-action-btn--danger {
+  color: #dc3545;
+}
+
+.mindset-action-btn--danger:hover {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border-color: rgba(220, 53, 69, 0.25);
+}
+
+.mindset-action-btn--sm {
+  font-size: 0.78rem;
+  padding: 0.22rem 0.55rem;
+}
+
+.mindset-action-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Reply form (under theme) */
+.mindset-theme__reply-form {
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed var(--border-default, #e5e7eb);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.mindset-reply-input {
+  resize: vertical;
+  min-height: 38px;
+  background: var(--card-bg, #fff);
+  color: var(--text-default, inherit);
+  border-color: var(--border-default, #ced4da);
+}
+
+.mindset-theme__reply-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-end;
+}
+
+/* Replies (nested) */
+.mindset-theme__replies {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.mindset-reply {
+  margin-left: 1.5rem;
+  padding: 0.55rem 0.8rem 0.45rem;
+  border-left: 2px solid var(--border-default, #e5e7eb);
+  background: rgba(0, 0, 0, 0.015);
+  border-radius: 0 10px 10px 0;
+}
+
+html[data-theme="dark"] .mindset-reply {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.mindset-reply__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+@media (max-width: 575px) {
+  .mindset-reply {
+    margin-left: 0.85rem;
+    padding-left: 0.6rem;
+  }
+}
+
+/* Sidebar */
+.mindset-sidebar {
+  min-width: 0;
+}
+
+.mindset-sidebar__sticky {
+  position: sticky;
+  top: 1rem;
+  z-index: 20;
+}
+
+.mindset-sidebar-card {
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 14px;
+  padding: 1rem 1rem 0.75rem;
+  background: var(--card-bg, #fff);
+}
+
+.mindset-sidebar-card__title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bs-primary, #0d6efd);
+  font-weight: 700;
+  margin: 0 0 0.55rem;
+  border-bottom: 1px solid var(--border-default, #e5e7eb);
+  padding-bottom: 0.35rem;
+}
+
+.mindset-sidebar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.mindset-sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.mindset-sidebar-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-decoration: underline;
+  color: var(--text-default, inherit);
+  font-size: 0.88rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mindset-sidebar-link:hover {
+  color: var(--bs-primary, #0d6efd);
+}
+
+/* Hashtag links */
+.mindset-hashtag {
+  color: var(--bs-primary, #0d6efd);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.mindset-hashtag:hover {
+  text-decoration: underline;
+}
+
+.mindset-active-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Pagination */
+.mindset-pagination .page-link {
+  border-radius: 999px;
+}
+
+/* Create page */
+.mindset-create-page .create-field {
+  max-width: 720px;
+}
+
+.mindset-create__editor .ckeditor,
+.mindset-create__editor textarea.ckeditor {
+  width: 100%;
+}
+
+/* Dark theme tweaks (most of the layout already adapts via CSS tokens) */
+html[data-theme="dark"] .mindset-theme {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .mindset-theme__sep {
+  opacity: 0.5;
+}
+
+html[data-theme="dark"] .mindset-action-btn:hover {
+  background: rgba(88, 166, 255, 0.12);
+  color: #58a6ff;
+  border-color: rgba(88, 166, 255, 0.25);
+}
+
+html[data-theme="dark"] .mindset-action-btn--danger {
+  color: #f85149;
+}
+
+html[data-theme="dark"] .mindset-action-btn--danger:hover {
+  background: rgba(248, 81, 73, 0.18);
+  color: #f85149;
+  border-color: rgba(248, 81, 73, 0.3);
+}
+
+html[data-theme="dark"] .mindset-hashtag {
+  color: #58a6ff;
+}
+
+html[data-theme="dark"] .mindset-sidebar-card__title {
+  color: #58a6ff;
+}

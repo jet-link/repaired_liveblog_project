@@ -3355,7 +3355,7 @@ html[data-theme="dark"] .filter-segment-shell::before {
     position: relative;
     z-index: 1;
     /* text-transform: uppercase; */
-    font-weight: 600;
+    /* font-weight: 600; */
     letter-spacing: .015rem;
     font-size: .9rem;
 }
@@ -3394,6 +3394,28 @@ html[data-theme="dark"] .filter-segment-bar a.filter-reason-btn.is-selected {
     border-color: transparent;
     color: var(--btn-primary-fg);
     background: var(--btn-secondary-hover-bg);
+}
+
+/* Mobile: selected filter chip = same pill + glow as .mobile-bottom-nav__slide + active link (see ≤991px nav block) */
+@media (max-width: 991px) {
+    html[data-theme="light"] .filter-segment-bar .filter-reason-btn.is-selected,
+    html[data-theme="light"] .filter-segment-bar a.filter-reason-btn.is-selected {
+        border-color: transparent;
+        color: var(--btn-primary-bg);
+        background: color-mix(in srgb, var(--btn-primary-bg) 16%, rgba(255, 255, 255, 0.55));
+        text-shadow: 0 0 12px color-mix(in srgb, var(--btn-primary-bg) 45%, transparent);
+    }
+
+    html[data-theme="dark"] .filter-segment-bar .filter-reason-btn.is-selected,
+    html[data-theme="dark"] .filter-segment-bar a.filter-reason-btn.is-selected {
+        border-color: transparent;
+        color: #fff;
+        background: color-mix(in srgb, #ffffff 18%, rgba(255, 255, 255, 0.08));
+        box-shadow: none;
+        text-shadow:
+            0 0 10px rgba(255, 255, 255, 0.8),
+            0 0 22px rgba(255, 255, 255, 0.35);
+    }
 }
 
 /* `.topic-category-chips` elsewhere uses width 100%; inner row must stay max-content for horizontal scroll */
@@ -4979,8 +5001,8 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
     gap: 0.35rem;
     padding: 0.32rem 0.55rem;
     border-radius: var(--radius-md);
-    border: 1.5px solid color-mix(in srgb, #14b8a6 45%, var(--border-default));
-    /* background: color-mix(in srgb, #14b8a6 14%, var(--card-bg)); */
+    border: 1px solid color-mix(in srgb, #14b8a6 45%, var(--border-default));
+    background: color-mix(in srgb, #14b8a6 14%, var(--card-bg));
     color: #0f766e;
     font-size: 0.8rem;
     font-weight: 600;
@@ -4990,7 +5012,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
 html[data-theme="dark"] .comment-actions-bar__likes[role="group"] {
     color: #5eead4;
     border-color: color-mix(in srgb, #2dd4bf 38%, var(--border-default));
-    /* background: color-mix(in srgb, #2dd4bf 14%, var(--card-bg)); */
+    background: color-mix(in srgb, #2dd4bf 14%, var(--card-bg));
 }
 
 .comment-actions-bar__like-btn {

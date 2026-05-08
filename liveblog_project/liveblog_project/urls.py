@@ -42,6 +42,9 @@ urlpatterns = [
     # Auth at /login/, /register/; profile at /profile/<username>/
     path('', include('login.urls')),
 
+    # Mindset (Threads/Twitter-like discussions) at /mindset/
+    path('mindset/', include('mindset.urls', namespace='mindset')),
+
     # Pages last so slug patterns do not shadow other routes
     path('', include('pages.urls', namespace='pages')),
 ]

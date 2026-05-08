@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}New Mindset theme{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'mindset/css/mindset.css' %}" />
+  <link rel="preconnect" href="https://cdn.ckeditor.com" crossorigin />
+  {{ form.media }}
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block mindset-create-page">
+    <main class="create-field mx-auto">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-muted text-uppercase m-0">New theme</h5>
+      </div>
+
+      <form method="post" id="mindsetThemeForm" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="custom-alert custom-alert-danger mb-2" data-auto-dismiss="3000">
+            {% for err in form.non_field_errors %}
+              <div>{{ err }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="py-3 mindset-create__editor">
+          {{ form.body }}
+          {% for err in form.body.errors %}
+            <div class="text-danger small mb-2">{{ err }}</div>
+          {% endfor %}
+          <div class="form-text text-small text-muted mt-2">
+            Tip: use <code>#hashtags</code> to make this theme discoverable. Links are auto-detected.
+          </div>
+        </div>
+
+        <div class="mindset-create__actions d-flex gap-1 align-items-center mt-2">
+          <button class="cstm-btn custom-primary-btn" type="submit">Create theme</button>
+          <a href="{% url 'mindset:theme_list' %}" class="cstm-btn custom-secondary-btn">Cancel</a>
+        </div>
+      </form>
+    </main>
+  </div>
+{% endblock %}
+
+{% block editor_scripts %}
+  <script defer src="{% static 'ckeditor/ckeditor_main.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+  <script defer src="{% static 'mindset/js/mindset_create.js' %}"></script>
+{% endblock %}

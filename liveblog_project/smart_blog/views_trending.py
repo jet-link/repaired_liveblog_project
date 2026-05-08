@@ -41,14 +41,26 @@ def _base_qs():
 
 
 def _get_trending_page_data(page=1):
-    """Returns (hot_rows, rising_rows, feed_page) from a single base queryset."""
+    """Returns (hot_rows, rising_rows, feed_page) from a single base queryset.
+
+    Hot: posts with current-hour views, padded with top-by-score if needed.
+    Rising: top by growth_rate (engagement velocity).
+    Feed: paginated all-by-score.
+    """
     all_by_score = list(_base_qs().order_by("-trend_score")[:200])
 
     hot_rows = [t for t in all_by_score if t.views_last_hour >= 1][:HOT_LIMIT]
     if len(hot_rows) < HOT_LIMIT:
-        hot_rows = all_by_score[:HOT_LIMIT]
+        seen = {t.pk for t in hot_rows}
+        for t in all_by_score:
+            if len(hot_rows) >= HOT_LIMIT:
+                break
+            if t.pk not in seen:
+                hot_rows.append(t)
 
-    rising_rows = sorted(all_by_score, key=lambda t: t.growth_rate, reverse=True)[:RISING_LIMIT]
+    rising_rows = sorted(
+        all_by_score, key=lambda t: t.growth_rate, reverse=True
+    )[:RISING_LIMIT]
 
     paginator = Paginator(all_by_score, FEED_PER_PAGE)
     feed_page = paginator.get_page(page)

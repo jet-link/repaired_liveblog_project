@@ -11,6 +11,9 @@
           <a href="{% url 'smart_blog:items_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'items_list' %} active{% endif %}"><span class="header-menu-item__label">BraiNews</span></a>
           <a href="{% url 'smart_blog:trending_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'trending_list' %} active{% endif %}"><span class="header-menu-item__label">In trend</span></a>
           <a href="{% url 'smart_blog:topics_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'topics_list' or nav_name == 'topic_detail' %} active{% endif %}"><span class="header-menu-item__label">Topics</span></a>
+          {% with nav_ns=request.resolver_match.namespace|default:'' %}
+          <a href="{% url 'mindset:theme_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_ns == 'mindset' %} active{% endif %}"><span class="header-menu-item__label">Mindset</span></a>
+          {% endwith %}
           {% comment %} <a href="#" class="header-menu-item text-decoration-none text-muted categories-modal-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoriesModalDialog">
             Categories
             <i class="fa fa-angle-down ms-1" aria-hidden="true"></i>
