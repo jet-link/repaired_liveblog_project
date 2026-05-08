@@ -1,7 +1,7 @@
 {% load mindset_extras %}
 {% load counters %}
 <article class="mindset-theme" data-mindset-theme="{{ theme.pk }}" id="mindset-theme-{{ theme.pk }}">
-  <header class="mindset-theme__head">
+  <header class="mindset-theme__head mb-4">
     <a href="{% url 'login_app:profile' theme.author.username %}" class="mindset-author-link text-decoration-none">
       {% include 'includes/user_avatar.html' with author=theme.author %}
     </a>
@@ -10,9 +10,10 @@
       <span class="ms-1">{{ theme.human_published }}</span>
     </small>
   </header>
-  <hr class="mindset-theme__sep" />
+  {% comment %} <hr class="mindset-theme__sep" /> {% endcomment %}
   <div class="mindset-theme__body" data-mindset-body>{{ theme.body|mindset_body }}</div>
 
+  
   <div class="mindset-theme__actions">
     <div class="mindset-theme__counters">
       <span class="mindset-counter" data-counter="replies">
@@ -77,19 +78,19 @@
           action="{% url 'mindset:api_theme_reply' theme.pk %}" method="post">
       {% csrf_token %}
       <textarea name="body" rows="1" class="form-control auto-grow mindset-reply-input" placeholder="Write a reply…"></textarea>
-      <div class="mindset-theme__reply-actions">
-        <button type="button" class="cstm-btn-sm custom-secondary-btn" data-mindset-reply-cancel>Cancel</button>
-        <button type="submit" class="cstm-btn-sm custom-primary-btn">Reply</button>
+      <div class="mindset-theme__reply-footer">
+        <div class="mindset-form-error text-danger small" data-mindset-reply-error hidden></div>
+        <div class="mindset-theme__reply-actions">
+          <button type="button" class="cstm-btn-sm custom-secondary-btn" data-mindset-reply-cancel>Cancel</button>
+          <button type="submit" class="cstm-btn-sm custom-primary-btn">Reply</button>
+        </div>
       </div>
-      <div class="mindset-form-error text-danger small" data-mindset-reply-error hidden></div>
     </form>
   {% endif %}
 
   <div class="mindset-theme__replies" data-mindset-replies="{{ theme.pk }}">
-    {% for reply in theme.replies.all %}
-      {% if not reply.is_deleted and not reply.parent_id %}
-        {% include 'mindset/_reply.html' with reply=reply %}
-      {% endif %}
+    {% for reply in theme.annotated_replies %}
+      {% include 'mindset/_reply.html' with reply=reply %}
     {% endfor %}
   </div>
 </article>

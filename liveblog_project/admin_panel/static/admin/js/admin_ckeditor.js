@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!el.id) el.id = textareaId;
     ClassicEditor
       .create(el, {
-        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'blockQuote', 'undo', 'redo']
+        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'blockQuote', 'undo', 'redo'],
+        removePlugins: ['MediaEmbed', 'MediaEmbedToolbar', 'AutoMediaEmbed']
       })
       .then(function (editor) {
         el.id = textareaId;

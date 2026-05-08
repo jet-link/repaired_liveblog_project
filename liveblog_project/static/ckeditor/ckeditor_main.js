@@ -32,7 +32,8 @@
 						'blockQuote',
 						'undo',
 						'redo'
-					]
+					],
+					removePlugins: ['MediaEmbed', 'MediaEmbedToolbar', 'AutoMediaEmbed']
 				})
 				.then(function (editor) {
 					el.removeAttribute('data-ck-initializing');

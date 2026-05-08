@@ -1,10 +1,65 @@
 /**
- * Mindset — new theme form. CKEditor 5 (Classic) writes back to the underlying
- * <textarea> via a public-ckeditor-ready listener, so a normal POST submit works.
- * We also do a small client-side guard against empty submissions.
+ * Mindset — new theme form. Uses CKEditor 5 (Classic) but with a custom,
+ * minimal toolbar (bold / italic / link / undo / redo) — much smaller than
+ * the project's shared editor used for posts and comments. We piggy-back on
+ * the global ckeditor_main.js loader (which fetches the UMD bundle once),
+ * but skip its auto-init by using the .mindset-ckeditor class instead of
+ * the generic .ckeditor.
  */
 (function () {
   'use strict';
+
+  var TOOLBAR = ['bold', 'italic', 'link', '|', 'undo', 'redo'];
+
+  function waitForClassicEditor(cb, attempts) {
+    if (typeof window.ClassicEditor !== 'undefined') {
+      cb(window.ClassicEditor);
+      return;
+    }
+    if ((attempts || 0) > 200) return; // ~10s ceiling
+    setTimeout(function () { waitForClassicEditor(cb, (attempts || 0) + 1); }, 50);
+  }
+
+  function bindEditorWriteback(editor, ta, form) {
+    editor.model.document.on('change:data', function () {
+      try { ta.value = editor.getData(); } catch (e) { /* ignore */ }
+    });
+    if (form) {
+      form.addEventListener('submit', function () {
+        try { ta.value = editor.getData(); } catch (e) { /* ignore */ }
+      });
+    }
+  }
+
+  function initEditor(ta, form) {
+    if (!ta || ta.dataset.mindsetCkInit === '1') return;
+    if (ta.closest('.ck-editor')) return;
+    ta.dataset.mindsetCkInit = '1';
+
+    waitForClassicEditor(function (ClassicEditor) {
+      ClassicEditor
+        .create(ta, {
+          toolbar: TOOLBAR,
+          removePlugins: ['MediaEmbed', 'MediaEmbedToolbar', 'AutoMediaEmbed'],
+        })
+        .then(function (editor) {
+          ta._mindsetCkEditor = editor;
+          bindEditorWriteback(editor, ta, form);
+          var editable = editor.ui && editor.ui.getEditableElement
+            ? editor.ui.getEditableElement()
+            : null;
+          if (editable) {
+            editable.setAttribute('spellcheck', 'true');
+            var lang = document.documentElement.getAttribute('lang') || 'en';
+            editable.setAttribute('lang', lang);
+          }
+        })
+        .catch(function (err) {
+          ta.dataset.mindsetCkInit = '';
+          console.error('Mindset CKEditor failed to init', err);
+        });
+    });
+  }
 
   function init() {
     var form = document.getElementById('mindsetThemeForm');
@@ -13,22 +68,7 @@
     var ta = form.querySelector('textarea#id_theme_body, textarea[name="body"]');
     if (!ta) return;
 
-    document.addEventListener('public-ckeditor-ready', function (ev) {
-      var detail = ev && ev.detail;
-      if (!detail || detail.el !== ta) return;
-      var editor = detail.editor;
-      if (!editor) return;
-      editor.model.document.on('change:data', function () {
-        try {
-          ta.value = editor.getData();
-        } catch (e) { /* ignore */ }
-      });
-      form.addEventListener('submit', function () {
-        try {
-          ta.value = editor.getData();
-        } catch (e) { /* ignore */ }
-      });
-    });
+    initEditor(ta, form);
 
     form.addEventListener('submit', function (ev) {
       var raw = (ta.value || '').replace(/<[^>]+>/g, ' ').trim();

@@ -142,7 +142,7 @@
 .mindset-reply__buttons {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  /* gap: 0.4rem; */
   flex-wrap: wrap;
 }
 
@@ -176,6 +176,20 @@
   color: #17bf63;
 }
 
+.mindset-action-btn.is-blocked,
+.mindset-action-btn.is-blocked:hover {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: transparent;
+  color: var(--text-muted, #6c757d);
+  border-color: transparent;
+}
+
+.mindset-action-btn[disabled],
+.mindset-action-btn:disabled {
+  cursor: not-allowed;
+}
+
 .mindset-action-btn--danger {
   color: #dc3545;
 }
@@ -207,18 +221,35 @@
 }
 
 .mindset-reply-input {
-  resize: vertical;
   min-height: 38px;
   background: var(--card-bg, #fff);
   color: var(--text-default, inherit);
   border-color: var(--border-default, #ced4da);
 }
 
+.mindset-theme__reply-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.mindset-theme__reply-footer .mindset-form-error {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mindset-theme__reply-footer .mindset-form-error[hidden] {
+  display: none !important;
+}
+
 .mindset-theme__reply-actions {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  align-self: flex-end;
+  margin-left: auto;
 }
 
 /* Replies (nested) */
@@ -231,9 +262,9 @@
 
 .mindset-reply {
   margin-left: 1.5rem;
-  padding: 0.55rem 0.8rem 0.45rem;
+  padding: 0.55rem 0.8rem;
   border-left: 2px solid var(--border-default, #e5e7eb);
-  background: rgba(0, 0, 0, 0.015);
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 0 10px 10px 0;
 }
 
@@ -267,6 +298,12 @@ html[data-theme="dark"] .mindset-reply {
   z-index: 20;
 }
 
+.mindset-sidebar-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
 .mindset-sidebar-card {
   border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 14px;
@@ -275,14 +312,14 @@ html[data-theme="dark"] .mindset-reply {
 }
 
 .mindset-sidebar-card__title {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 1rem;
+  /* text-transform: uppercase; */
+  /* letter-spacing: 0.08em; */
   color: var(--bs-primary, #0d6efd);
   font-weight: 700;
   margin: 0 0 0.55rem;
-  border-bottom: 1px solid var(--border-default, #e5e7eb);
-  padding-bottom: 0.35rem;
+  /* border-bottom: 1px solid var(--border-default, #e5e7eb); */
+  /* padding-bottom: 0.35rem; */
 }
 
 .mindset-sidebar-list {
@@ -291,7 +328,7 @@ html[data-theme="dark"] .mindset-reply {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: .8rem;
 }
 
 .mindset-sidebar-item {
@@ -304,7 +341,7 @@ html[data-theme="dark"] .mindset-reply {
 .mindset-sidebar-link {
   flex: 1 1 auto;
   min-width: 0;
-  text-decoration: underline;
+  text-decoration: none;
   color: var(--text-default, inherit);
   font-size: 0.88rem;
   line-height: 1.35;
@@ -312,6 +349,7 @@ html[data-theme="dark"] .mindset-reply {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* font-weight: 600; */
 }
 
 .mindset-sidebar-link:hover {
@@ -327,6 +365,75 @@ html[data-theme="dark"] .mindset-reply {
 
 .mindset-hashtag:hover {
   text-decoration: underline;
+}
+
+/* Embedded media (YouTube poster preview — always works, even when the
+   uploader disabled embedding for the video). Clicking opens youtube.com. */
+.mindset-embed {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin: 0.6rem 0;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+/* .mindset-embed:hover,
+.mindset-embed:focus-visible {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+} */
+
+.mindset-embed__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: 0;
+}
+
+.mindset-embed__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: transform 0.15s ease;
+}
+
+.mindset-embed:hover .mindset-embed__play,
+.mindset-embed:focus-visible .mindset-embed__play {
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.mindset-embed__play svg {
+  width: 100%;
+  height: 100%;
+}
+
+.mindset-embed__play-bg {
+  fill: #212121;
+  fill-opacity: 0.82;
+  transition: fill 0.15s ease, fill-opacity 0.15s ease;
+}
+
+.mindset-embed:hover .mindset-embed__play-bg,
+.mindset-embed:focus-visible .mindset-embed__play-bg {
+  fill: #ff0000;
+  fill-opacity: 1;
 }
 
 .mindset-active-tag {
@@ -345,8 +452,8 @@ html[data-theme="dark"] .mindset-reply {
   max-width: 720px;
 }
 
-.mindset-create__editor .ckeditor,
-.mindset-create__editor textarea.ckeditor {
+.mindset-create__editor .mindset-ckeditor,
+.mindset-create__editor textarea.mindset-ckeditor {
   width: 100%;
 }
 

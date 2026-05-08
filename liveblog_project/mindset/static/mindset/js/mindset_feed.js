@@ -13,6 +13,8 @@
   var ROOT_SELECTOR = '[data-mindset-feed]';
   var THEME_POLL_MS = 7000;
   var SIDEBAR_POLL_MS = 30000;
+  var REPLY_COOLDOWN_SEC = 30;
+  var REPLY_COOLDOWN_KEY_PREFIX = 'mindset_reply_cooldown_until_';
 
   function humanize(n) {
     n = Number(n);
@@ -150,7 +152,127 @@
   function appendReplyHtml(themeId, html) {
     var container = document.querySelector('[data-mindset-replies="' + themeId + '"]');
     if (!container) return;
-    container.insertAdjacentHTML('beforeend', html);
+    container.insertAdjacentHTML('afterbegin', html);
+  }
+
+  // ---- auto-grow textarea (mirror of comment_operate behaviour) -----------
+
+  function autoResizeTextarea(ta) {
+    if (!ta) return;
+    var cs = window.getComputedStyle(ta);
+    var minH = parseFloat(cs.minHeight) || 0;
+    ta.style.height = 'auto';
+    var next = Math.max(minH, ta.scrollHeight);
+    ta.style.height = next + 'px';
+  }
+
+  function bindAutoGrow(ta) {
+    if (!ta || ta.dataset.mindsetAutoGrowBound === '1') return;
+    ta.dataset.mindsetAutoGrowBound = '1';
+    autoResizeTextarea(ta);
+    ta.addEventListener('input', function () { autoResizeTextarea(ta); });
+    ta.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      requestAnimationFrame(function () { autoResizeTextarea(ta); });
+    });
+  }
+
+  // ---- reply cooldown (per user + theme, 30s) ------------------------------
+
+  function getUserId(root) {
+    var r = root || document.querySelector(ROOT_SELECTOR);
+    return r ? (r.getAttribute('data-user-id') || '') : '';
+  }
+
+  function replyCooldownStorageKey(themeId, userId) {
+    if (!themeId || !userId) return null;
+    return REPLY_COOLDOWN_KEY_PREFIX + userId + '_' + themeId;
+  }
+
+  function getReplyCooldownRemaining(themeId, userId) {
+    var key = replyCooldownStorageKey(themeId, userId);
+    if (!key) return 0;
+    var until = Number(localStorage.getItem(key) || 0);
+    var diff = Math.ceil((until - Date.now()) / 1000);
+    return diff > 0 ? diff : 0;
+  }
+
+  function paintReplyButtonCooldown(btn, themeId, userId) {
+    if (!btn || !themeId) return;
+    if (!btn.dataset.originalReplyText) {
+      var labelSpan = btn.querySelector('span');
+      btn.dataset.originalReplyText =
+        (labelSpan && labelSpan.textContent.trim()) || 'Reply';
+    }
+    var original = btn.dataset.originalReplyText || 'Reply';
+    var remaining = getReplyCooldownRemaining(themeId, userId);
+
+    var labelEl = btn.querySelector('span');
+
+    if (remaining > 0) {
+      btn.disabled = true;
+      btn.classList.add('is-blocked');
+      btn.setAttribute('aria-disabled', 'true');
+      if (labelEl) labelEl.textContent = 'Wait ' + remaining + 's';
+
+      if (!btn.__replyCooldownTimer) {
+        btn.__replyCooldownTimer = setInterval(function () {
+          var left = getReplyCooldownRemaining(themeId, userId);
+          if (left <= 0) {
+            clearInterval(btn.__replyCooldownTimer);
+            btn.__replyCooldownTimer = null;
+            var key = replyCooldownStorageKey(themeId, userId);
+            if (key) localStorage.removeItem(key);
+            btn.disabled = false;
+            btn.classList.remove('is-blocked');
+            btn.removeAttribute('aria-disabled');
+            if (labelEl) labelEl.textContent = original;
+            return;
+          }
+          if (labelEl) labelEl.textContent = 'Wait ' + left + 's';
+        }, 1000);
+      }
+      return;
+    }
+
+    if (btn.__replyCooldownTimer) {
+      clearInterval(btn.__replyCooldownTimer);
+      btn.__replyCooldownTimer = null;
+    }
+    btn.disabled = false;
+    btn.classList.remove('is-blocked');
+    btn.removeAttribute('aria-disabled');
+    if (labelEl) labelEl.textContent = original;
+  }
+
+  function startReplyCooldown(themeId, userId, seconds) {
+    if (!themeId || !userId) return;
+    var key = replyCooldownStorageKey(themeId, userId);
+    if (!key) return;
+    var sec = Number(seconds) || REPLY_COOLDOWN_SEC;
+    localStorage.setItem(key, String(Date.now() + sec * 1000));
+    document
+      .querySelectorAll('[data-action="reply"][data-theme-id="' + themeId + '"]')
+      .forEach(function (btn) { paintReplyButtonCooldown(btn, themeId, userId); });
+  }
+
+  function initAllReplyCooldowns(root) {
+    var userId = getUserId(root);
+    if (!userId) return;
+    document
+      .querySelectorAll('[data-action="reply"][data-theme-id]')
+      .forEach(function (btn) {
+        var tid = btn.getAttribute('data-theme-id');
+        if (tid) paintReplyButtonCooldown(btn, tid, userId);
+      });
+  }
+
+  function parseCooldownSeconds(message) {
+    if (!message) return null;
+    var match = String(message).match(/(\d+)\s*s/);
+    if (!match) return null;
+    var n = parseInt(match[1], 10);
+    return isNaN(n) ? null : n;
   }
 
   // ---- action handlers (instant for the actor) -----------------------------
@@ -176,13 +298,23 @@
 
       if (action === 'reply') {
         if (!card) return;
+        var themeIdAttr = btn.getAttribute('data-theme-id') || card.getAttribute('data-mindset-theme');
+        var userIdRoot = getUserId(root);
+        if (themeIdAttr && userIdRoot && getReplyCooldownRemaining(themeIdAttr, userIdRoot) > 0) {
+          paintReplyButtonCooldown(btn, themeIdAttr, userIdRoot);
+          return;
+        }
         var form = card.querySelector(':scope > [data-mindset-reply-form]');
         if (form) {
           form.hidden = !form.hidden;
           btn.setAttribute('aria-expanded', form.hidden ? 'false' : 'true');
           if (!form.hidden) {
             var ta = form.querySelector('textarea');
-            if (ta) ta.focus();
+            if (ta) {
+              bindAutoGrow(ta);
+              autoResizeTextarea(ta);
+              ta.focus();
+            }
           }
         }
         return;
@@ -274,6 +406,7 @@
             } else {
               var node = document.querySelector('[data-mindset-reply="' + ctx.id + '"]');
               if (node) node.remove();
+              if (resp.data.theme) applyThemeState(resp.data.theme);
             }
             refreshSidebar();
             try {
@@ -303,20 +436,31 @@
     if (submitBtn) submitBtn.disabled = true;
 
     var fd = new FormData(form);
+    var themeIdForm = form.getAttribute('data-theme-id');
+    var userIdForm = getUserId();
     postForm(form.action, fd).then(function (resp) {
       if (submitBtn) submitBtn.disabled = false;
       if (!resp.ok || !resp.data || !resp.data.ok) {
         var msg = (resp.data && (resp.data.error || (resp.data.errors && JSON.stringify(resp.data.errors)))) || 'Could not post reply.';
         if (errBox) { errBox.textContent = msg; errBox.hidden = false; }
+        if (resp.status === 429 && themeIdForm && userIdForm) {
+          var secs = parseCooldownSeconds(resp.data && resp.data.error) || REPLY_COOLDOWN_SEC;
+          startReplyCooldown(themeIdForm, userIdForm, secs);
+        }
         return;
       }
       var html = resp.data.reply_html;
-      var themeId = form.getAttribute('data-theme-id');
-      appendReplyHtml(themeId, html);
+      appendReplyHtml(themeIdForm, html);
       if (resp.data.theme) applyThemeState(resp.data.theme);
       refreshSidebar();
-      if (ta) ta.value = '';
+      if (ta) {
+        ta.value = '';
+        autoResizeTextarea(ta);
+      }
       form.hidden = true;
+      if (themeIdForm && userIdForm) {
+        startReplyCooldown(themeIdForm, userIdForm, REPLY_COOLDOWN_SEC);
+      }
     }).catch(function () {
       if (submitBtn) submitBtn.disabled = false;
       if (errBox) { errBox.textContent = 'Network error. Try again.'; errBox.hidden = false; }
@@ -379,6 +523,7 @@
       var preview = (e.preview || '').replace(/[<>&]/g, function (c) { return ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]; }) || '(no text)';
       return ''
         + '<li class="mindset-sidebar-item">'
+        +   '<span class="fw-semibold">@</span> '
         +   '<a class="mindset-sidebar-link" href="' + e.url + '">' + preview + '</a>'
         + '</li>';
     }).join('');
@@ -392,6 +537,7 @@
     if (!root) return;
     bindRoot(root);
     bindDeleteModal();
+    initAllReplyCooldowns(root);
 
     if (!root.__mindsetTimers) {
       root.__mindsetTimers = true;

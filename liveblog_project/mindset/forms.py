@@ -6,7 +6,11 @@ import re
 from django import forms
 from django.core.exceptions import ValidationError
 
-from smart_blog.comment_html import expand_bare_domains, sanitize_and_linkify_comment_html
+from smart_blog.comment_html import (
+    comment_html_for_template,
+    expand_bare_domains,
+    sanitize_and_linkify_comment_html,
+)
 
 from .body_html import html_to_plain_text
 from .models import Theme
@@ -23,7 +27,7 @@ class ThemeForm(forms.ModelForm):
         fields = ['body']
         widgets = {
             'body': forms.Textarea(attrs={
-                'class': 'ckeditor',
+                'class': 'mindset-ckeditor',
                 'id': 'id_theme_body',
                 'rows': 6,
                 'placeholder': 'Share your thoughts… Use #hashtags to group similar themes.',
@@ -71,7 +75,7 @@ class ReplyForm(forms.Form):
             raise ValidationError('Reply cannot be empty.')
 
         expanded = expand_bare_domains(raw)
-        cleaned = sanitize_and_linkify_comment_html(expanded)
+        cleaned = comment_html_for_template(expanded)
         plain = html_to_plain_text(cleaned)
 
         if len(plain) < self.MIN_LEN:

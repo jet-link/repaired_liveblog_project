@@ -11,6 +11,7 @@
   <div class="container-main content_block mindset-page"
        data-mindset-feed
        data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+       data-user-id="{% if user.is_authenticated %}{{ user.pk }}{% endif %}"
        data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
        data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
     <div class="listing-filter-sticky-scope">
@@ -18,7 +19,7 @@
         <h4 class="text-muted m-0">Mindset</h4>
         {% if user.is_authenticated %}
           <a href="{% url 'mindset:theme_create' %}" class="cstm-btn-sm custom-secondary-btn mindset-new-btn">
-            <span class="d-none d-sm-inline">New theme</span>
+            {% comment %} <span class="d-none d-sm-inline">Start theme</span> {% endcomment %}
             <i class="fa fa-plus" aria-hidden="true"></i>
           </a>
         {% endif %}

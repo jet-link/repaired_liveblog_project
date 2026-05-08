@@ -18,6 +18,7 @@ from django.db.models import (
     F,
     FloatField,
     OuterRef,
+    Prefetch,
     Value,
 )
 from django.http import JsonResponse
@@ -46,7 +47,7 @@ from .models import (
 
 THEME_PAGE_SIZE = 20
 SIDEBAR_LIMIT = 5
-REPLY_COOLDOWN_SECONDS = 5
+REPLY_COOLDOWN_SECONDS = 30
 
 
 # ---------------------------------------------------------------------------
@@ -93,6 +94,33 @@ def _theme_base_qs():
     return Theme.objects.filter(is_deleted=False).select_related('author', 'author__profile')
 
 
+def _annotated_top_level_replies_prefetch(user):
+    """Prefetch top-level replies with user_liked / user_reposted annotated.
+
+    Required so that ``_theme_card.html`` renders the correct heart state for
+    each reply on the listing — without this, ``theme.replies.all`` returns
+    bare ``Reply`` objects whose ``user_liked``/``user_reposted`` fall back to
+    ``False`` and the icon stays as ``fa-heart-o`` even after a like.
+    """
+    qs = (
+        Reply.objects.filter(is_deleted=False, parent__isnull=True)
+        .select_related('author', 'author__profile')
+        .order_by('-created_at')
+    )
+    return Prefetch(
+        'replies',
+        queryset=_annotate_user_state(qs, user),
+        to_attr='annotated_replies',
+    )
+
+
+def _theme_qs_for_listing(user):
+    """Theme queryset annotated with user state and replies prefetched + annotated."""
+    return _annotate_user_state(_theme_base_qs(), user).prefetch_related(
+        _annotated_top_level_replies_prefetch(user)
+    )
+
+
 def _persist_hashtags(theme: Theme) -> None:
     """Parse #tags from the saved theme body and replace M2M with canonical Hashtag rows."""
     plain = html_to_plain_text(theme.body)
@@ -109,10 +137,7 @@ def _persist_hashtags(theme: Theme) -> None:
 
 
 def _render_theme_card(theme: Theme, request) -> str:
-    annotated = _annotate_user_state(
-        _theme_base_qs().filter(pk=theme.pk),
-        request.user,
-    ).first()
+    annotated = _theme_qs_for_listing(request.user).filter(pk=theme.pk).first()
     return render_to_string(
         'mindset/_theme_card.html',
         {'theme': annotated or theme, 'request': request, 'user': request.user},
@@ -220,10 +245,9 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
     if active_tag is not None:
         tag = active_tag
 
-    qs = _theme_base_qs()
+    qs = _theme_qs_for_listing(request.user)
     if tag is not None:
         qs = qs.filter(hashtags=tag)
-    qs = _annotate_user_state(qs, request.user)
     qs = _annotate_popularity(qs)
 
     if fil == 'popular':
@@ -257,7 +281,7 @@ def theme_list_by_tag(request, slug):
 
 def theme_detail(request, pk):
     theme = get_object_or_404(_theme_base_qs(), pk=pk)
-    annotated = _annotate_user_state(_theme_base_qs().filter(pk=theme.pk), request.user).first()
+    annotated = _theme_qs_for_listing(request.user).filter(pk=theme.pk).first()
     return render(
         request,
         'mindset/theme_detail.html',
@@ -622,5 +646,10 @@ def api_reply_delete(request, pk):
         return JsonResponse({'ok': False, 'error': 'Permission denied.'}, status=403)
     if not reply.is_editable:
         return JsonResponse({'ok': False, 'error': 'Delete window has expired.'}, status=403)
+    theme_pk = reply.theme_id
     reply.delete()
-    return JsonResponse({'ok': True, 'deleted_reply_id': pk})
+    return JsonResponse({
+        'ok': True,
+        'deleted_reply_id': pk,
+        'theme': _fresh_theme_state(theme_pk, request),
+    })
