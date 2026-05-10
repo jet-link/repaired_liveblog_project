@@ -81,6 +81,8 @@
     btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
     var heart = btn.querySelector('i.fa');
     if (heart) heart.className = 'fa ' + (liked ? 'fa-heart' : 'fa-heart-o');
+    var label = btn.querySelector('span');
+    if (label) label.textContent = liked ? 'Liked' : 'Like';
   }
 
   function paintRepostButton(btn, reposted) {
@@ -523,7 +525,7 @@
       var preview = (e.preview || '').replace(/[<>&]/g, function (c) { return ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]; }) || '(no text)';
       return ''
         + '<li class="mindset-sidebar-item">'
-        +   '<span class="fw-semibold">@</span> '
+        +   '<span class="fw-semibold primary_">@</span> '
         +   '<a class="mindset-sidebar-link" href="' + e.url + '">' + preview + '</a>'
         + '</li>';
     }).join('');

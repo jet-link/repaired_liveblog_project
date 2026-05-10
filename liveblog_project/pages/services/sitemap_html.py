@@ -10,12 +10,13 @@ from django.urls import reverse
 from smart_blog.models import Category, Item, Tag
 from smart_blog.sitemaps import (
     categories_for_sitemap,
+    mindset_hashtags_for_sitemap_html,
     published_posts_queryset,
     static_sitemap_entries,
     tags_for_sitemap_html,
 )
 
-SITEMAP_HTML_CACHE_KEY = "pages:sitemap:html:v3"
+SITEMAP_HTML_CACHE_KEY = "pages:sitemap:html:v4"
 SITEMAP_HTML_TTL = 300
 
 
@@ -40,6 +41,12 @@ def _build_sitemap_cached_payload() -> Dict[str, Any]:
         for t in tags
     ]
 
+    mindset_tags = list(mindset_hashtags_for_sitemap_html())
+    mindset_tag_links = [
+        {"label": f"#{h.name}", "url": reverse("mindset:theme_list_by_tag", kwargs={"slug": h.slug})}
+        for h in mindset_tags
+    ]
+
     recent_items = list(
         published_posts_queryset().only("title", "slug", "pk")[:40]
     )
@@ -52,6 +59,7 @@ def _build_sitemap_cached_payload() -> Dict[str, Any]:
         "topic_links": topic_links,
         "category_links": category_links,
         "tag_links": tag_links,
+        "mindset_tag_links": mindset_tag_links,
         "recent_links": recent_links,
         "recent_total_shown": len(recent_links),
         "site_domain": site.domain,

@@ -28,6 +28,12 @@
                     <i class="admin-nav-icon fa-regular fa-comments"></i>
                     <span class="admin-nav-text">Comments</span>
                 </a>
+                <a href="{% url 'admin_panel:mindset_list' %}"
+                    class="admin-nav-item {% if 'mindset' in request.resolver_match.url_name %}active{% endif %}">
+                    {% comment %} <i class="admin-nav-icon fa-regular fa-comment-dots"></i> {% endcomment %}
+                    <i class="admin-nav-icon fa-regular fa fa-at"></i>
+                    <span class="admin-nav-text">Mindset</span>
+                </a>
                 <a href="{% url 'admin_panel:categories_list' %}"
                     class="admin-nav-item {% if 'categor' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="admin-nav-icon fa-regular fa-folder"></i>

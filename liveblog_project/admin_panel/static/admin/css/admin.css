@@ -1648,6 +1648,11 @@ a.admin-link {
   color: var(--admin-text-muted);
 }
 
+.admin-mindset-delete-form {
+  display: inline-block;
+  margin: 0;
+}
+
 .admin-badge-new {
   position: absolute;
   top: -4px;

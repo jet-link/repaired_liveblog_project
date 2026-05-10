@@ -31,7 +31,7 @@
           <a class="mindset-hashtag" href="{% url 'mindset:theme_list' %}">#{{ active_tag.name }} ×</a>
         </div>
       {% endif %}
-
+ 
       <div class="mindset-layout">
         <section class="mindset-feed" data-mindset-feed-list>
           {% for theme in themes %}
@@ -40,7 +40,7 @@
             <div class="mindset-empty text-muted text-center py-5">
               <p class="m-0">No themes yet.</p>
               {% if user.is_authenticated %}
-                <p class="small">Be the first — <a href="{% url 'mindset:theme_create' %}">share a thought</a>.</p>
+                <p class="small m-0">Be the first — <a href="{% url 'mindset:theme_create' %}">share a thought</a>.</p>
               {% endif %}
             </div>
           {% endfor %}

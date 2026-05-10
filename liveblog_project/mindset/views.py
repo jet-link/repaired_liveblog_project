@@ -46,7 +46,7 @@ from .models import (
 )
 
 THEME_PAGE_SIZE = 20
-SIDEBAR_LIMIT = 5
+SIDEBAR_LIMIT = 6
 REPLY_COOLDOWN_SECONDS = 30
 
 
@@ -136,6 +136,22 @@ def _persist_hashtags(theme: Theme) -> None:
     theme.hashtags.set(tags)
 
 
+def _ensure_hashtags_exist(body: str) -> None:
+    """Make sure Hashtag rows exist for every #tag mentioned in arbitrary body
+    HTML (used by replies). Replies don't M2M-attach to themes, so we only
+    `get_or_create` the canonical rows — ``themes_count`` stays untouched
+    because it is only mutated by Theme.hashtags m2m signals.
+
+    Without this, hashtag links rendered inside reply bodies (which point at
+    ``mindset:theme_list_by_tag``) would 404 whenever a tag has been used in a
+    reply but never in any theme.
+    """
+    plain = html_to_plain_text(body or '')
+    pairs = normalise_hashtags(extract_hashtags(plain))
+    for name, slug in pairs:
+        Hashtag.objects.get_or_create(slug=slug, defaults={'name': name})
+
+
 def _render_theme_card(theme: Theme, request) -> str:
     annotated = _theme_qs_for_listing(request.user).filter(pk=theme.pk).first()
     return render_to_string(
@@ -188,9 +204,19 @@ def _reply_state_payload(reply: Reply) -> dict:
 
 
 def _sidebar_payload() -> dict:
-    last = list(
+    # Sidebar "Most popular themes": popularity = likes + reposts. We re-evaluate
+    # the ordering on every payload build so periodic polling
+    # (mindset_feed.js → pollSidebar) automatically promotes themes that just
+    # earned a like/repost above their neighbours.
+    popular = list(
         _theme_base_qs()
-        .order_by('-created_at')[:SIDEBAR_LIMIT]
+        .annotate(
+            popular_score=ExpressionWrapper(
+                F('likes_count') + F('reposts_count'),
+                output_field=FloatField(),
+            )
+        )
+        .order_by('-popular_score', '-created_at')[:SIDEBAR_LIMIT]
     )
     top = list(
         _annotate_popularity(_theme_base_qs())
@@ -207,7 +233,7 @@ def _sidebar_payload() -> dict:
                 'replies_human': count_convert(t.replies_count),
                 'url': f'/mindset/theme/{t.pk}/',
             }
-            for t in last
+            for t in popular
         ],
         'top': [
             {
@@ -247,7 +273,12 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
 
     qs = _theme_qs_for_listing(request.user)
     if tag is not None:
-        qs = qs.filter(hashtags=tag)
+        # Filter by slug rather than the instance: an in-memory Hashtag with
+        # no PK (auto-rendered for tags only used inside replies) would make
+        # ``hashtags=tag`` an "= NULL" condition and silently match nothing
+        # only if the slug happens to be unsaved; using the slug guarantees
+        # correct, predictable filtering for both saved and unsaved tags.
+        qs = qs.filter(hashtags__slug=tag.slug)
     qs = _annotate_popularity(qs)
 
     if fil == 'popular':
@@ -275,7 +306,16 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
 
 
 def theme_list_by_tag(request, slug):
-    tag = get_object_or_404(Hashtag, slug=slug)
+    # Hashtags can appear inside replies, which don't M2M-attach to themes,
+    # so the canonical Hashtag row may not exist yet even though the
+    # linkified URL is valid. Render an empty themes list with the slug as
+    # the active tag instead of 404. We deliberately do NOT auto-create the
+    # row from a GET to avoid letting anyone pollute the table by hitting
+    # random URLs — rows are only persisted via theme/reply save paths.
+    cleaned = slug.strip().lower()
+    tag = Hashtag.objects.filter(slug=cleaned).first()
+    if tag is None:
+        tag = Hashtag(name=cleaned, slug=cleaned)
     return theme_list(request, active_tag=tag)
 
 
@@ -406,6 +446,7 @@ def api_theme_reply(request, pk):
         author=request.user,
         body=body,
     )
+    _ensure_hashtags_exist(body)
     request.session[cooldown_key] = now_ts
 
     annotated = _annotate_user_state(
@@ -458,6 +499,7 @@ def api_reply_reply(request, pk):
         author=request.user,
         body=form.cleaned_data['body'],
     )
+    _ensure_hashtags_exist(reply.body)
     request.session[cooldown_key] = now_ts
 
     annotated = _annotate_user_state(
@@ -621,6 +663,7 @@ def api_reply_edit(request, pk):
 
     reply.body = form.cleaned_data['body']
     reply.save(update_fields=['body', 'updated_at'])
+    _ensure_hashtags_exist(reply.body)
 
     annotated = _annotate_user_state(
         Reply.objects.filter(pk=reply.pk).select_related('author', 'author__profile'),

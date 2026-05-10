@@ -38,6 +38,12 @@ from .notification_views import (
     notifications_bulk_delete,
 )
 from .recent_deleted_views import recent_deleted_content, recent_deleted_restore, recent_deleted_purge
+from .mindset_views import (
+    mindset_list,
+    mindset_theme_delete,
+    mindset_reply_delete,
+    mindset_bulk_delete,
+)
 from .faq_views import faq_list, faq_create, faq_edit, faq_delete
 from .static_pages_views import about_page_edit, contacts_page_edit, home_page_edit
 from .bulk_views import (
@@ -75,6 +81,7 @@ __all__ = [
     'notifications_list', 'notifications_bulk_clear', 'notifications_bulk_delete',
     'notification_user_search', 'notification_from_admin_detail', 'notification_send_manual',
     'recent_deleted_content', 'recent_deleted_restore', 'recent_deleted_purge',
+    'mindset_list', 'mindset_theme_delete', 'mindset_reply_delete', 'mindset_bulk_delete',
     'faq_list', 'faq_create', 'faq_edit', 'faq_delete',
     'about_page_edit', 'contacts_page_edit', 'home_page_edit',
     'posts_bulk_delete', 'comments_bulk_delete', 'users_bulk_delete', 'users_bulk_ban',

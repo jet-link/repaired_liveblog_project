@@ -6,7 +6,7 @@
       {% include 'includes/user_avatar.html' with author=theme.author %}
     </a>
     <small class="text-muted mindset-theme__date">
-      <i class="fa fa-clock-o" aria-hidden="true"></i>
+      {% comment %} <i class="fa fa-clock-o" aria-hidden="true"></i> {% endcomment %}
       <span class="ms-1">{{ theme.human_published }}</span>
     </small>
   </header>
@@ -44,7 +44,7 @@
             data-url="{% url 'mindset:api_theme_like' theme.pk %}"
             aria-pressed="{% if theme.user_liked %}true{% else %}false{% endif %}">
             <i class="fa fa-heart{% if not theme.user_liked %}-o{% endif %}" aria-hidden="true"></i>
-            <span>Like</span>
+            <span>{% if theme.user_liked %}Liked{% else %}Like{% endif %}</span>
           </button>
         {% endif %}
         <button type="button"

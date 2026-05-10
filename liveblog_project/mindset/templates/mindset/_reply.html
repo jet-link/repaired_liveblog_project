@@ -5,7 +5,10 @@
     <a href="{% url 'login_app:profile' reply.author.username %}" class="mindset-author-link text-decoration-none">
       {% include 'includes/user_avatar.html' with author=reply.author %}
     </a>
-    <small class="text-muted mindset-reply__date">{{ reply.human_published }}</small>
+    <small class="text-muted mindset-reply__date">
+      {% comment %} <i class="fa fa-clock-o" aria-hidden="true"></i> {% endcomment %}
+      <span>{{ reply.human_published }}</span>
+    </small>
   </div>
   <div class="mindset-reply__body" data-mindset-body>{{ reply.body|mindset_body }}</div>
   <div class="mindset-reply__actions">
@@ -30,7 +33,7 @@
             data-url="{% url 'mindset:api_reply_like' reply.pk %}"
             aria-pressed="{% if reply.user_liked %}true{% else %}false{% endif %}">
             <i class="fa fa-heart{% if not reply.user_liked %}-o{% endif %}" aria-hidden="true"></i>
-            <span>Like</span>
+            <span>{% if reply.user_liked %}Liked{% else %}Like{% endif %}</span>
           </button>
         {% endif %}
         <button type="button"

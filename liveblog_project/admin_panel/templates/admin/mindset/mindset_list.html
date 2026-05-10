@@ -1,0 +1,153 @@
+{% extends 'admin/layout/base.html' %}
+
+{% block title %}Mindset{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Mindset</li></ol></nav>{% endblock %}
+{% block page_title %}Mindset{% endblock %}
+
+{% block content %}
+  <div class="admin-toolbar">
+    <form class="admin-search-form" method="get" action="{% url 'admin_panel:mindset_list' %}">
+      <input type="text" name="q" value="{{ search }}" placeholder="Search..." class="admin-input admin-search-input">
+      <select name="filter" class="admin-select">
+        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All</option>
+        <option value="root" {% if filter_type == 'root' %}selected{% endif %}>Root only</option>
+        <option value="replies" {% if filter_type == 'replies' %}selected{% endif %}>Replies only</option>
+      </select>
+      <button type="submit" class="admin-button">Filter</button>
+    </form>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-table-wrapper">
+      <table class="admin-table" data-bulk-delete-url="{% url 'admin_panel:mindset_bulk_delete' %}">
+        <thead>
+          <tr>
+            <th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th>
+            <th>Author</th>
+            <th>Preview</th>
+            <th>Theme</th>
+            <th>Published</th>
+            <th>Hashtag</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows_page %}
+            <tr>
+              <td><input type="checkbox" class="admin-bulk-row-check" value="{{ row.row_id }}" aria-label="Select"></td>
+              <td>{{ row.author.username|default:'Vanished' }}</td>
+              <td>
+                <a href="{{ row.url }}" class="admin-comment-link" target="_blank" rel="noopener">{{ row.preview }}</a>
+              </td>
+              <td>
+                <span class="admin-badge admin-badge-pending">{% if row.kind == 'theme' %}Root{% else %}Reply{% endif %}</span>
+              </td>
+              <td>{{ row.created|date:'M d, H:i' }}</td>
+              <td>
+                {% if row.hashtag %}
+                  <a href="{% url 'mindset:theme_list_by_tag' row.hashtag.slug %}" target="_blank" rel="noopener">#{{ row.hashtag.name }}</a>
+                {% else %}
+                  <span class="admin-text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="admin-actions-cell">
+                <form method="post" action="{{ row.delete_url }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-mindset-delete-form">
+                  {% csrf_token %}
+                  <button type="button" class="admin-button admin-button-danger admin-button-sm admin-mindset-delete-btn">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="admin-empty">No mindset records.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="admin-table-total">Total: {{ rows_page.paginator.count }}</div>
+    {% if rows_page.has_other_pages %}
+      <div class="admin-pagination">
+        {% if rows_page.has_previous %}
+          <a href="?page={{ rows_page.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}" class="admin-button admin-button-sm">Previous</a>
+        {% endif %}
+        <span class="admin-pagination-info">Page {{ rows_page.number }} of {{ rows_page.paginator.num_pages }}</span>
+        {% if rows_page.has_next %}
+          <a href="?page={{ rows_page.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}" class="admin-button admin-button-sm">Next</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block admin_modals %}
+  {{ block.super }}
+  <div id="adminMindsetDeleteModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminMindsetDeleteModalTitle" aria-hidden="true" hidden>
+    <div class="admin-modal-backdrop" data-mindset-modal-close></div>
+    <div class="admin-modal-dialog">
+      <div class="admin-modal-content">
+        <h2 class="admin-modal-title" id="adminMindsetDeleteModalTitle">Are you sure you want to permanently delete this item?</h2>
+        <div class="admin-modal-actions">
+          <button type="button" class="admin-button admin-button-danger" id="adminMindsetDeleteConfirmBtn">Delete</button>
+          <button type="button" class="admin-button admin-button-outline" data-mindset-modal-close>Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  'use strict';
+  var modal = document.getElementById('adminMindsetDeleteModal');
+  var confirmBtn = document.getElementById('adminMindsetDeleteConfirmBtn');
+  if (!modal || !confirmBtn) return;
+  var pendingForm = null;
+  var lastTrigger = null;
+
+  function openModal(form, trigger) {
+    pendingForm = form;
+    lastTrigger = trigger || null;
+    modal.removeAttribute('hidden');
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    if (modal.contains(document.activeElement) && lastTrigger && typeof lastTrigger.focus === 'function') {
+      lastTrigger.focus({ preventScroll: true });
+    }
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+    pendingForm = null;
+    lastTrigger = null;
+  }
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.admin-mindset-delete-btn');
+    if (btn) {
+      e.preventDefault();
+      var form = btn.closest('.admin-mindset-delete-form');
+      if (form) openModal(form, btn);
+      return;
+    }
+    if (e.target.closest('[data-mindset-modal-close]')) {
+      closeModal();
+      return;
+    }
+    if (e.target === confirmBtn) {
+      if (pendingForm) {
+        var f = pendingForm;
+        closeModal();
+        f.submit();
+      }
+    }
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+  });
+})();
+</script>
+{% endblock %}

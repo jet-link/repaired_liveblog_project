@@ -1,0 +1,18 @@
+{% extends 'admin/layout/base.html' %}
+
+{% block title %}Delete {{ kind|title }}{% endblock %}
+{% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:mindset_list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Mindset</a></li><li class="admin-breadcrumbs-item">Delete</li></ol></nav>{% endblock %}
+{% block page_title %}Delete {{ kind|title }}{% endblock %}
+
+{% block content %}
+<div class="admin-card admin-modal-card">
+    <h3>Delete {{ kind }}?</h3>
+    <p class="admin-text-muted small">By {{ author.username|default:'Vanished' }}</p>
+    <blockquote class="admin-comment-blockquote">{{ preview }}</blockquote>
+    <form method="post" action="{{ action_url }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-form-actions">
+        {% csrf_token %}
+        <button type="submit" class="admin-button admin-button-danger">Delete</button>
+        <a href="{% url 'admin_panel:mindset_list' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-button admin-button-outline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

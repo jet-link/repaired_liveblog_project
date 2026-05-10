@@ -70,6 +70,19 @@
           {% endif %}
         </section>
 
+        <section class="sitemap-html-block" id="sitemap-mindset-tags" aria-labelledby="sitemap-heading-mindset-tags">
+          <h4 id="sitemap-heading-mindset-tags" class="sitemap-html-block-title">Mindset hashtags</h4>
+          {% if mindset_tag_links %}
+            <ul class="sitemap-html-list sitemap-html-list--tags list-unstyled mb-0">
+              {% for row in mindset_tag_links %}
+                <li><a href="{{ row.url }}" class="sitemap-html-link text-decoration-none text-muted">{{ row.label }}</a></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted small mb-0">No hashtags yet.</p>
+          {% endif %}
+        </section>
+
         {% comment %} <section class="sitemap-html-block sitemap-html-block--wide" id="sitemap-recent-posts" aria-labelledby="sitemap-heading-recent">
           <h4 id="sitemap-heading-recent" class="sitemap-html-block-title">Recent posts</h4>
           <p class="small text-muted mb-3">Latest {{ recent_total_shown }} published posts. All post URLs are included in the XML sitemap.</p>

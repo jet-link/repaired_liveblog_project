@@ -3,6 +3,8 @@ from smart_blog.models import Item
 from smart_blog.sitemaps import (
     StaticAndListSitemap,
     categories_for_sitemap,
+    mindset_hashtags_for_sitemap,
+    mindset_themes_for_sitemap,
     published_posts_queryset,
     tags_for_sitemap,
 )
@@ -11,7 +13,8 @@ from smart_blog.sitemaps import (
 def get_sitemap_summary():
     """
     Segment counts matching public sitemap.xml index sections.
-    Total = static/list + posts + topic pages + category list pages + tag pages.
+    Total = static/list + posts + topic pages + category list pages + tag pages
+            + mindset themes + mindset hashtags.
     """
     static_n = len(StaticAndListSitemap().items())
     posts_qs = published_posts_queryset()
@@ -20,8 +23,13 @@ def get_sitemap_summary():
     tags_n = tags_for_sitemap().count()
     topics_n = cat_n
     category_lists_n = cat_n
+    mindset_themes_n = mindset_themes_for_sitemap().count()
+    mindset_tags_n = mindset_hashtags_for_sitemap().count()
 
-    total_urls = static_n + posts_n + topics_n + category_lists_n + tags_n
+    total_urls = (
+        static_n + posts_n + topics_n + category_lists_n + tags_n
+        + mindset_themes_n + mindset_tags_n
+    )
 
     published_in_sitemap = posts_n
     published_live = Item.objects.filter(is_published=True).count()
@@ -36,6 +44,8 @@ def get_sitemap_summary():
         "topics": topics_n,
         "category_lists": category_lists_n,
         "tags": tags_n,
+        "mindset_themes": mindset_themes_n,
+        "mindset_tags": mindset_tags_n,
         "total_urls": total_urls,
         "published_in_sitemap": published_in_sitemap,
         "published_live": published_live,

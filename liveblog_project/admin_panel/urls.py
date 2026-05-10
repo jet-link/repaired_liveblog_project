@@ -15,6 +15,12 @@ urlpatterns = [
     path('posts/bulk-delete/', views.posts_bulk_delete, name='posts_bulk_delete'),
     path('posts/<int:pk>/stats/', views.post_view_stats, name='post_stats'),
 
+    # Mindset (themes + replies in one table)
+    path('mindset/', views.mindset_list, name='mindset_list'),
+    path('mindset/themes/<int:pk>/delete/', views.mindset_theme_delete, name='mindset_theme_delete'),
+    path('mindset/replies/<int:pk>/delete/', views.mindset_reply_delete, name='mindset_reply_delete'),
+    path('mindset/bulk-delete/', views.mindset_bulk_delete, name='mindset_bulk_delete'),
+
     # Comments
     path('comments/', views.comments_list, name='comments_list'),
     path('comments/<int:pk>/delete/', views.comment_delete, name='comment_delete'),
