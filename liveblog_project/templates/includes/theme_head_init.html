@@ -1,0 +1,16 @@
+{# Early theme paint: themePreference light|dark|auto, legacy themeToggle sun|moon. Error pages may omit meta-theme-color. #}
+<script>
+(function(){try{
+  var pref=localStorage.getItem('themePreference');
+  if(pref!=='light'&&pref!=='dark'&&pref!=='auto'){
+    var leg=localStorage.getItem('themeToggle');
+    if(leg==='sun')pref='dark';
+    else if(leg==='moon')pref='light';
+    else pref='light';
+  }
+  var dark=pref==='dark'||(pref==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  var m=document.getElementById('meta-theme-color');
+  if(m)m.setAttribute('content',dark?'#0d1117':'#ffffff');
+}catch(e){}}());
+</script>

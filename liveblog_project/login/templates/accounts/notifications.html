@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load user_status %}
 
 {% block title %}
   {{ user.username }} notifications
@@ -23,7 +24,7 @@
       </div>
       <div id="notificationsActions" class="d-flex align-items-center gap-2">
         {% if unread_count > 0 %}
-          <button id="notificationsReadAll" type="button" class="read-all-btn d-flex align-items-center">Read all</button>
+          <button id="notificationsReadAll" type="button" class="read-all-btn d-flex align-items-center me-2">Read all</button>
         {% endif %}
         <button id="notificationsDelete" type="button" class="text-muted btn btn-link text-decoration-none p-0 btn-sm"><i class="fa fa-trash-o fs-5"></i></button>
       </div>
@@ -62,10 +63,35 @@
             <!-- Header row -->
             <div class="notification-header small">
               <div class="d-flex justify-content-between align-items-center">
-                <div class="notification-header-text d-flex align-items-center gap-1 flex-grow-1 min-w-0{% if n.notif_type != 'from_admin' %} text-muted{% endif %}">
+                <div class="notification-header-text d-flex align-items-center gap-2 flex-grow-1 min-w-0{% if n.notif_type != 'from_admin' %} text-muted{% endif %}">
                   {% if n.notif_type == 'from_admin' %}
                     <span class="notification-from-admin-title flex-shrink-0">Notification from admin</span>
                   {% else %}
+                    {% if n.actor %}
+                      <a
+                        href="{% url 'login_app:profile' n.actor.username %}"
+                        class="d-inline-flex align-items-center flex-shrink-0 text-decoration-none notification-actor-avatar-link"
+                        title="{% if n.actor.is_active %}{% user_status_title n.actor %}{% else %}{% user_status_display n.actor %}{% endif %}"
+                      >
+                        <div class="little-avatar{% if user == n.actor %} avatar-ring{% endif %}">
+                          {% if n.actor.is_active %}
+                            {% if n.actor.profile.avatar_url or n.actor.profile.avatar_file %}
+                              <img src="{{ n.actor.profile.get_avatar }}" alt="{{ n.actor }}" class="user-avatar clickable-avatar" width="38" height="38" loading="eager" decoding="async" data-full="{{ n.actor.profile.get_avatar }}" data-username="{{ n.actor.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                            {% else %}
+                              <img src="{% static 'img/no_avatar.svg' %}" alt="{{ n.actor }}" class="user-avatar no_avatar" width="38" height="38" loading="eager" decoding="async" data-username="{{ n.actor.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                            {% endif %}
+                          {% else %}
+                            <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display n.actor %}" class="user-avatar" width="38" height="38" loading="eager" decoding="async" />
+                          {% endif %}
+                        </div>
+                      </a>
+                    {% else %}
+                      <a href="{% url 'login_app:vanished' %}" class="d-inline-flex align-items-center flex-shrink-0 text-decoration-none notification-actor-avatar-link">
+                        <div class="little-avatar">
+                          <img src="{% static 'img/user-deleted.webp' %}" alt="Deleted user" class="user-avatar" width="38" height="38" loading="eager" decoding="async" />
+                        </div>
+                      </a>
+                    {% endif %}
                     {% if n.actor_name %}
                       <a href="{% url 'login_app:profile' n.actor_name %}" class="actor-author-name fw-semibold text-decoration-none flex-shrink-0">{{ n.actor_name }}</a>
                     {% else %}

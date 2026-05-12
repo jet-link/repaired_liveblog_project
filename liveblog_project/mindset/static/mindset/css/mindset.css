@@ -76,7 +76,12 @@
   color: var(--text-default, inherit);
   padding: 1.1rem .9rem;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+  /* transition: .2s transform ease-in; */
 }
+
+/* .mindset-theme:hover{
+  transform: translateY(-2px);
+} */
 
 .mindset-theme__head {
   display: flex;
@@ -126,6 +131,68 @@
 
 .mindset-author-link:hover small {
   text-decoration: underline;
+}
+
+/* Author row: avatar+username link + Follow/Unfollow link separated by a
+   thin vertical bar (mirrors the inline-link style used in the sidebar). */
+.mindset-theme__author-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.mindset-follow-sep {
+  color: var(--text-muted, #6c757d);
+  opacity: 0.55;
+  font-size: 0.95rem;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Visually identical to a small text link — implemented as <button> so it
+   does not get its own URL / browser history entry on click. */
+.mindset-follow-link {
+  display: inline-flex;
+  align-items: center;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: inherit;
+  color: var(--text-link, var(--bs-primary, #0d6efd));
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: none;
+  transition: color 0.12s ease;
+}
+
+.mindset-follow-link:hover,
+.mindset-follow-link:focus-visible {
+  text-decoration: underline;
+  background: transparent;
+  outline: none;
+}
+
+.mindset-follow-link.is-following {
+  color: var(--text-muted, #6c757d);
+}
+
+.mindset-follow-link[aria-busy="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.mindset-follow-link:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* Action row */
@@ -231,6 +298,49 @@
   cursor: not-allowed;
 }
 
+/* Mobile L and below — icon-only circular Reply / Like / Repost (active colors unchanged). */
+@media (max-width: 767px) {
+  /* .mindset-theme__buttons,
+  .mindset-reply__buttons {
+    gap: 0.45rem;
+  } */
+
+  .mindset-theme__buttons .mindset-action-btn[data-action="reply"],
+  .mindset-theme__buttons .mindset-action-btn[data-action="like"],
+  .mindset-theme__buttons .mindset-action-btn[data-action="repost"],
+  .mindset-reply__buttons .mindset-action-btn[data-action="reply-like"],
+  .mindset-reply__buttons .mindset-action-btn[data-action="reply-repost"] {
+    width: var(--touch-target-min, 44px);
+    height: var(--touch-target-min, 44px);
+    min-width: var(--touch-target-min, 44px);
+    min-height: var(--touch-target-min, 44px);
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+    gap: 0;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+
+  .mindset-theme__buttons .mindset-action-btn[data-action="reply"] > span,
+  .mindset-theme__buttons .mindset-action-btn[data-action="like"] > span,
+  .mindset-theme__buttons .mindset-action-btn[data-action="repost"] > span,
+  .mindset-reply__buttons .mindset-action-btn[data-action="reply-like"] > span,
+  .mindset-reply__buttons .mindset-action-btn[data-action="reply-repost"] > span {
+    display: none;
+  }
+
+  .mindset-theme__buttons .mindset-action-btn[data-action="reply"] > i,
+  .mindset-theme__buttons .mindset-action-btn[data-action="like"] > i,
+  .mindset-theme__buttons .mindset-action-btn[data-action="repost"] > i,
+  .mindset-reply__buttons .mindset-action-btn[data-action="reply-like"] > i,
+  .mindset-reply__buttons .mindset-action-btn[data-action="reply-repost"] > i {
+    font-size: 1.07em;
+    line-height: 1;
+  }
+}
+
 /* Reply form (under theme) */
 .mindset-theme__reply-form {
   margin-top: 0.7rem;
@@ -278,7 +388,7 @@
   margin-top: 0.6rem;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.7rem;
 }
 
 .mindset-reply {

@@ -179,3 +179,30 @@ class ReplyRepost(models.Model):
     class Meta:
         unique_together = ('reply', 'user')
         ordering = ('-created_at',)
+
+
+class MindsetFollow(models.Model):
+    """Subscription: ``follower`` follows ``followee`` for their Mindset themes."""
+
+    follower = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='mindset_following',
+    )
+    followee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='mindset_followers',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'followee')
+        ordering = ('-created_at',)
+        indexes = [
+            models.Index(fields=['follower', '-created_at']),
+            models.Index(fields=['followee', '-created_at']),
+        ]
+
+    def __str__(self) -> str:
+        return f'{self.follower_id} → {self.followee_id}'

@@ -20,7 +20,8 @@
         {% if user.is_authenticated %}
           <a href="{% url 'mindset:theme_create' %}" class="cstm-btn-sm custom-secondary-btn mindset-new-btn">
             {% comment %} <span class="d-none d-sm-inline">Start theme</span> {% endcomment %}
-            <i class="fa fa-plus" aria-hidden="true"></i>
+            {% comment %} <i class="fa fa-plus" aria-hidden="true"></i> {% endcomment %}
+            Add theme
           </a>
         {% endif %}
       </div>

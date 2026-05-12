@@ -8,6 +8,7 @@ Live updates use a hybrid model:
 """
 from __future__ import annotations
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -37,6 +38,7 @@ from .body_html import (
 from .forms import ReplyForm, ThemeForm
 from .models import (
     Hashtag,
+    MindsetFollow,
     Reply,
     ReplyLike,
     ReplyRepost,
@@ -44,6 +46,8 @@ from .models import (
     ThemeLike,
     ThemeRepost,
 )
+
+User = get_user_model()
 
 THEME_PAGE_SIZE = 20
 SIDEBAR_LIMIT = 6
@@ -56,21 +60,36 @@ REPLY_COOLDOWN_SECONDS = 30
 
 
 def _annotate_user_state(qs, user):
-    """Add user_liked / user_reposted booleans to a Theme/Reply queryset."""
-    if not user.is_authenticated:
-        return qs.annotate(
-            user_liked=Value(False, output_field=BooleanField()),
-            user_reposted=Value(False, output_field=BooleanField()),
-        )
+    """Add user_liked / user_reposted booleans to a Theme/Reply queryset.
 
+    For Theme querysets we additionally annotate ``user_following_author`` so
+    the theme card can render the correct Follow/Unfollow link state without
+    triggering an extra query per row.
+    """
     model = qs.model
+    if not user.is_authenticated:
+        annotations = {
+            'user_liked': Value(False, output_field=BooleanField()),
+            'user_reposted': Value(False, output_field=BooleanField()),
+        }
+        if model is Theme:
+            annotations['user_following_author'] = Value(False, output_field=BooleanField())
+        return qs.annotate(**annotations)
+
     if model is Theme:
         like_qs = ThemeLike.objects.filter(theme=OuterRef('pk'), user=user)
         repost_qs = ThemeRepost.objects.filter(theme=OuterRef('pk'), user=user)
-    else:
-        like_qs = ReplyLike.objects.filter(reply=OuterRef('pk'), user=user)
-        repost_qs = ReplyRepost.objects.filter(reply=OuterRef('pk'), user=user)
+        follow_qs = MindsetFollow.objects.filter(
+            follower=user, followee=OuterRef('author')
+        )
+        return qs.annotate(
+            user_liked=Exists(like_qs),
+            user_reposted=Exists(repost_qs),
+            user_following_author=Exists(follow_qs),
+        )
 
+    like_qs = ReplyLike.objects.filter(reply=OuterRef('pk'), user=user)
+    repost_qs = ReplyRepost.objects.filter(reply=OuterRef('pk'), user=user)
     return qs.annotate(
         user_liked=Exists(like_qs),
         user_reposted=Exists(repost_qs),
@@ -174,6 +193,7 @@ def _render_reply(reply: Reply, request) -> str:
 
 
 def _theme_state_payload(theme: Theme, request) -> dict:
+    author_username = getattr(getattr(theme, 'author', None), 'username', '') or ''
     return {
         'id': theme.pk,
         'replies_count': theme.replies_count,
@@ -184,6 +204,8 @@ def _theme_state_payload(theme: Theme, request) -> dict:
         'reposts_count_human': count_convert(theme.reposts_count),
         'user_liked': bool(getattr(theme, 'user_liked', False)),
         'user_reposted': bool(getattr(theme, 'user_reposted', False)),
+        'user_following_author': bool(getattr(theme, 'user_following_author', False)),
+        'author_username': author_username,
     }
 
 
@@ -678,6 +700,35 @@ def api_reply_edit(request, pk):
         'ok': True,
         'reply_html': html,
         'reply': _fresh_reply_state(reply.pk, request),
+    })
+
+
+@login_required
+@require_POST
+def api_user_follow_toggle(request, username):
+    """Toggle Mindset subscription on ``username``.
+
+    Self-follow is rejected; deleted/banned users cannot be followed. Returns
+    ``following: bool`` so the client can paint every link that points at the
+    same author username on the page.
+    """
+    target = User.objects.filter(username=username, is_active=True).first()
+    if not target:
+        return JsonResponse({'ok': False, 'error': 'User not found.'}, status=404)
+    if target.pk == request.user.pk:
+        return JsonResponse({'ok': False, 'error': 'Cannot follow yourself.'}, status=400)
+
+    existing = MindsetFollow.objects.filter(follower=request.user, followee=target).first()
+    if existing:
+        existing.delete()
+        following = False
+    else:
+        MindsetFollow.objects.create(follower=request.user, followee=target)
+        following = True
+    return JsonResponse({
+        'ok': True,
+        'following': following,
+        'username': target.username,
     })
 
 

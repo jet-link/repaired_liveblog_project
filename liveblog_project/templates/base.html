@@ -3,9 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="theme-color" id="meta-theme-color" content="#ffffff" />
-    <script>
-      (function(){try{var t=localStorage.getItem('themeToggle');var dark=t==='sun';document.documentElement.setAttribute('data-theme',dark?'dark':'light');var m=document.getElementById('meta-theme-color');if(m)m.setAttribute('content',dark?'#0d1117':'#ffffff');}catch(e){}}());
-    </script>
+    {% include 'includes/theme_head_init.html' %}
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta name="csrf-token" content="{{ csrf_token }}" />
 

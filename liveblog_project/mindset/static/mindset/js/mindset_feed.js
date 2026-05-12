@@ -79,6 +79,7 @@
     if (!btn) return;
     btn.classList.toggle('is-active', !!liked);
     btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+    btn.setAttribute('aria-label', liked ? 'Unlike' : 'Like');
     var heart = btn.querySelector('i.fa');
     if (heart) heart.className = 'fa ' + (liked ? 'fa-heart' : 'fa-heart-o');
     var label = btn.querySelector('span');
@@ -89,8 +90,26 @@
     if (!btn) return;
     btn.classList.toggle('is-active', !!reposted);
     btn.setAttribute('aria-pressed', reposted ? 'true' : 'false');
+    btn.setAttribute('aria-label', reposted ? 'Undo repost' : 'Repost');
     var label = btn.querySelector('span');
     if (label) label.textContent = reposted ? 'Reposted' : 'Repost';
+  }
+
+  /**
+   * Update Follow/Unfollow links on every theme card by the same author so
+   * clicking once on any card flips them all in lockstep.
+   */
+  function paintFollowLinksByUsername(username, following) {
+    if (!username) return;
+    var safe = String(username).replace(/(["\\])/g, '\\$1');
+    var sel = '[data-action="follow-user"][data-username="' + safe + '"]';
+    document.querySelectorAll(sel).forEach(function (link) {
+      link.classList.toggle('is-following', !!following);
+      link.setAttribute('aria-pressed', following ? 'true' : 'false');
+      var label = link.querySelector('.mindset-follow-link__label') ||
+                  link.querySelector('span');
+      if (label) label.textContent = following ? 'Unfollow' : 'Follow';
+    });
   }
 
   /**
@@ -241,6 +260,13 @@
     }
     if (!opts.skipRepost && state.user_reposted !== undefined) {
       paintRepostButton(card.querySelector('[data-action="repost"]'), state.user_reposted);
+    }
+    if (state.user_following_author !== undefined) {
+      var followAuthor = state.author_username ||
+        (card.getAttribute('data-mindset-author') || '');
+      if (followAuthor) {
+        paintFollowLinksByUsername(followAuthor, !!state.user_following_author);
+      }
     }
   }
 
@@ -426,6 +452,26 @@
       if (!btn) return;
       var action = btn.getAttribute('data-action');
       var card = btn.closest('[data-mindset-theme]');
+
+      if (action === 'follow-user') {
+        if (!auth) return;
+        var fUrl = btn.getAttribute('data-url');
+        var fUser = btn.getAttribute('data-username');
+        if (!fUrl || !fUser || btn.getAttribute('aria-busy') === 'true') return;
+        btn.setAttribute('aria-busy', 'true');
+        postForm(fUrl).then(function (resp) {
+          btn.removeAttribute('aria-busy');
+          if (resp.ok && resp.data && resp.data.ok) {
+            paintFollowLinksByUsername(
+              resp.data.username || fUser,
+              !!resp.data.following
+            );
+          } else if (resp.data && resp.data.error) {
+            console.warn('Mindset:', resp.data.error);
+          }
+        }).catch(function () { btn.removeAttribute('aria-busy'); });
+        return;
+      }
 
       if (action === 'reply') {
         if (!card) return;

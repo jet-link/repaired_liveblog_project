@@ -26,6 +26,11 @@
         // 🖥 DESKTOP → tooltip
         e.preventDefault();
         e.stopPropagation();
+        var themeMenu = document.getElementById('themeMenu');
+        if (themeMenu) themeMenu.classList.remove('open');
+        var themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.setAttribute('aria-expanded', 'false');
+
         menu.classList.toggle('open');
         if (menu.classList.contains('open')) {
             requestAnimationFrame(() => requestAnimationFrame(updateTooltipCaret));

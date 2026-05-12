@@ -1206,6 +1206,8 @@ html[data-theme="dark"] .header {
     justify-self: center;
     align-items: center;
     white-space: nowrap;
+    /* text-transform: uppercase; */
+    font-weight: 600;
 }
 
 .header-menu-item {
@@ -1393,6 +1395,20 @@ html[data-theme="dark"] .theme-toggle-btn .theme-toggle-icon--moon {
 
 html[data-theme="dark"] .theme-toggle-btn .theme-toggle-icon--sun {
     display: inline-block;
+}
+
+/* Auto preference: laptop only; moon/sun hidden via higher specificity */
+.theme-toggle-btn .theme-toggle-icon--auto {
+    display: none;
+}
+
+.theme-toggle-btn.theme-toggle-btn--auto .theme-toggle-icon--auto {
+    display: inline-block;
+}
+
+.theme-toggle-btn.theme-toggle-btn--auto .theme-toggle-icon--moon,
+.theme-toggle-btn.theme-toggle-btn--auto .theme-toggle-icon--sun {
+    display: none !important;
 }
 
 /* Search dropdown — шторка под header, не влияет на высоту контента */
@@ -5536,8 +5552,8 @@ html[data-theme="dark"] .post_report_btn:hover {
 }
 
 .cstm-btn {
-    padding: 8px 13px;
-    border-radius: 5px;
+    padding: 8px 15px;
+    border-radius: 999px;
     transition: .2s ease-in-out;
     font-size: 1rem;
     text-decoration: none;
@@ -5553,7 +5569,7 @@ html[data-theme="dark"] .post_report_btn:hover {
 }
 
 .cstm-btn-sm {
-    padding: 8px 10px;
+    padding: 8px 15px;
     transition: .2s ease-in-out;
     font-size: .8rem;
     font-weight: 500;
@@ -5573,7 +5589,8 @@ html[data-theme="dark"] .post_report_btn:hover {
     box-sizing: border-box;
     font-weight: 600;
     line-height: 1.2;
-    border-radius: var(--radius-md);
+    border-radius: 999px;
+    /* border-radius: var(--radius-md); */
     color: #3d454d;
     border-color: color-mix(in srgb, #6c757d 40%, var(--border-default));
     background: color-mix(in srgb, #6c757d 11%, var(--card-bg));
@@ -5611,7 +5628,8 @@ html[data-theme="dark"] .custom-secondary-btn:hover {
     box-sizing: border-box;
     font-weight: 600;
     line-height: 1.2;
-    border-radius: var(--radius-md);
+    border-radius: 999px;
+    /* border-radius: var(--radius-md); */
     color: #c53030;
     border-color: color-mix(in srgb, #e74c3c 48%, var(--border-default));
     background: color-mix(in srgb, #e74c3c 14%, var(--card-bg));
@@ -5644,7 +5662,8 @@ html[data-theme="dark"] .custom-danger-btn:hover {
     box-sizing: border-box;
     font-weight: 600;
     line-height: 1.2;
-    border-radius: var(--radius-md);
+    /* border-radius: var(--radius-md); */
+    border-radius: 999px;
     color: #1a6cad;
     border-color: color-mix(in srgb, #2980b9 52%, var(--border-default));
     background: color-mix(in srgb, #2980b9 14%, var(--card-bg));

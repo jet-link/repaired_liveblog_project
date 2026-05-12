@@ -1,10 +1,25 @@
 {% load mindset_extras %}
 {% load counters %}
-<article class="mindset-theme" data-mindset-theme="{{ theme.pk }}" id="mindset-theme-{{ theme.pk }}">
+<article class="mindset-theme" data-mindset-theme="{{ theme.pk }}" data-mindset-author="{{ theme.author.username }}" id="mindset-theme-{{ theme.pk }}">
   <header class="mindset-theme__head mb-4">
-    <a href="{% url 'login_app:profile-themes' theme.author.username %}" class="mindset-author-link text-decoration-none">
-      {% include 'includes/user_avatar.html' with author=theme.author %}
-    </a>
+    <div class="mindset-theme__author-row">
+      <a href="{% url 'login_app:profile-themes' theme.author.username %}" class="mindset-author-link text-decoration-none">
+        {% include 'includes/user_avatar.html' with author=theme.author %}
+      </a>
+      {% if user.is_authenticated and user.id != theme.author_id and theme.author.is_active %}
+        <span class="mindset-follow-sep" aria-hidden="true">|</span>
+        <button
+          type="button"
+          class="mindset-follow-link{% if theme.user_following_author %} is-following{% endif %}"
+          data-action="follow-user"
+          data-username="{{ theme.author.username }}"
+          data-url="{% url 'mindset:api_user_follow_toggle' theme.author.username %}"
+          aria-pressed="{% if theme.user_following_author %}true{% else %}false{% endif %}"
+        >
+          <span class="mindset-follow-link__label">{% if theme.user_following_author %}Unfollow{% else %}Follow{% endif %}</span>
+        </button>
+      {% endif %}
+    </div>
     <small class="text-muted mindset-theme__date">
       {% comment %} <i class="fa fa-clock-o" aria-hidden="true"></i> {% endcomment %}
       <span class="ms-1">{{ theme.human_published }}</span>
@@ -33,7 +48,7 @@
     <div class="mindset-theme__buttons">
       {% if user.is_authenticated %}
         {% if user.id != theme.author_id %}
-          <button type="button" class="mindset-action-btn" data-action="reply" data-theme-id="{{ theme.pk }}" aria-expanded="false">
+          <button type="button" class="mindset-action-btn" data-action="reply" data-theme-id="{{ theme.pk }}" aria-expanded="false" aria-label="Reply">
             <i class="fa fa-reply" aria-hidden="true"></i>
             <span>Reply</span>
           </button>
@@ -42,7 +57,8 @@
             data-action="like"
             data-theme-id="{{ theme.pk }}"
             data-url="{% url 'mindset:api_theme_like' theme.pk %}"
-            aria-pressed="{% if theme.user_liked %}true{% else %}false{% endif %}">
+            aria-pressed="{% if theme.user_liked %}true{% else %}false{% endif %}"
+            aria-label="{% if theme.user_liked %}Unlike{% else %}Like{% endif %}">
             <i class="fa fa-heart{% if not theme.user_liked %}-o{% endif %}" aria-hidden="true"></i>
             <span>{% if theme.user_liked %}Liked{% else %}Like{% endif %}</span>
           </button>
@@ -52,7 +68,8 @@
           data-action="repost"
           data-theme-id="{{ theme.pk }}"
           data-url="{% url 'mindset:api_theme_repost' theme.pk %}"
-          aria-pressed="{% if theme.user_reposted %}true{% else %}false{% endif %}">
+          aria-pressed="{% if theme.user_reposted %}true{% else %}false{% endif %}"
+          aria-label="{% if theme.user_reposted %}Undo repost{% else %}Repost{% endif %}">
           <i class="fa fa-retweet" aria-hidden="true"></i>
           <span>{% if theme.user_reposted %}Reposted{% else %}Repost{% endif %}</span>
         </button>

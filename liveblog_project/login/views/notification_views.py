@@ -32,7 +32,14 @@ def notifications_view(request, username):
             | Q(notif_type=Notification.TYPE_REPLY, parent_comment__isnull=True)
             | Q(notif_type=Notification.TYPE_COMMENT_LIKE, parent_comment__isnull=True, reply_comment__isnull=True)
         )
-        .select_related("item", "actor", "reply_comment", "parent_comment", "reply_comment__author")
+        .select_related(
+            "item",
+            "actor",
+            "actor__profile",
+            "reply_comment",
+            "parent_comment",
+            "reply_comment__author",
+        )
         .order_by("-created_at")
     )
     for notif in notifications:

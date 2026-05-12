@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/reply/<int:pk>/repost/', views.api_reply_repost, name='api_reply_repost'),
     path('api/reply/<int:pk>/edit/', views.api_reply_edit, name='api_reply_edit'),
     path('api/reply/<int:pk>/delete/', views.api_reply_delete, name='api_reply_delete'),
+    path('api/user/<str:username>/follow/', views.api_user_follow_toggle, name='api_user_follow_toggle'),
 ]

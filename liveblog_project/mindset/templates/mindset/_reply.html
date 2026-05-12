@@ -31,7 +31,8 @@
             data-action="reply-like"
             data-reply-id="{{ reply.pk }}"
             data-url="{% url 'mindset:api_reply_like' reply.pk %}"
-            aria-pressed="{% if reply.user_liked %}true{% else %}false{% endif %}">
+            aria-pressed="{% if reply.user_liked %}true{% else %}false{% endif %}"
+            aria-label="{% if reply.user_liked %}Unlike{% else %}Like{% endif %}">
             <i class="fa fa-heart{% if not reply.user_liked %}-o{% endif %}" aria-hidden="true"></i>
             <span>{% if reply.user_liked %}Liked{% else %}Like{% endif %}</span>
           </button>
@@ -41,7 +42,8 @@
           data-action="reply-repost"
           data-reply-id="{{ reply.pk }}"
           data-url="{% url 'mindset:api_reply_repost' reply.pk %}"
-          aria-pressed="{% if reply.user_reposted %}true{% else %}false{% endif %}">
+          aria-pressed="{% if reply.user_reposted %}true{% else %}false{% endif %}"
+          aria-label="{% if reply.user_reposted %}Undo repost{% else %}Repost{% endif %}">
           <i class="fa fa-retweet" aria-hidden="true"></i>
           <span>{% if reply.user_reposted %}Reposted{% else %}Repost{% endif %}</span>
         </button>

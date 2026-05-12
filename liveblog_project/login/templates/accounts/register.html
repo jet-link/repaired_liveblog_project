@@ -15,7 +15,12 @@
             <h5 class="m-0 fw-normal text-uppercase primary_">Sign up</h5>
             {% comment %} <button type="button" class="instruction-btn"><i class="fa fa-question-circle-o" aria-hidden="true"></i></button> {% endcomment %}
           </div>
-          <small><a href="{% url 'login_app:login' %}" class="text-muted text-decoration-none">I have account</a></small>
+          <small>
+            <a href="{% url 'login_app:login' %}" class="text-muted text-decoration-none fw-semibold">
+            <span>I have account</span>
+            <i class="fa fa-angle-left ms-1"></i>
+          </a>
+          </small>
         </div>
         {# USERNAME (required) #}
         <div class="form-floating mb-2">
