@@ -745,6 +745,7 @@ html:not([data-theme="light"]) .admin-body .admin-header-overflow-menu .comment-
 .admin-online-badge {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   padding: 3px 7px;
   font-size: .7rem;
   font-weight: 500;
@@ -752,6 +753,11 @@ html:not([data-theme="light"]) .admin-body .admin-header-overflow-menu .comment-
   background: rgba(63, 185, 80, 0.2);
   border-radius: 12px;
   border: 1px solid var(--admin-success);
+}
+
+.admin-online-badge .fa-users {
+  font-size: 0.85em;
+  opacity: 0.9;
 }
 
 .admin-user-name {

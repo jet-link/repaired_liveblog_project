@@ -27,10 +27,22 @@ from login.views._helpers import (
     _trending_item_ids_for_items,
 )
 from login.views.vanished_views import user_not_found_view
+from mindset.models import Reply, ReplyRepost, ThemeRepost
+from mindset.views import (
+    THEME_PAGE_SIZE,
+    _annotate_user_state,
+    _theme_qs_for_listing,
+)
 from smart_blog.models import Item
 from smart_blog.feed_queryset import feed_list_optimizations
+from smart_blog.utils import human_time_relative_youtube
 
 PROFILE_CREATED_PREVIEW_LIMIT = 12
+
+PROFILE_MINDSET_TAB_THEMES = "themes"
+PROFILE_MINDSET_TAB_REPLIES = "replies"
+PROFILE_MINDSET_TAB_REPOSTS = "reposts"
+_PROFILE_MINDSET_TAB_ALIASES = {"root": PROFILE_MINDSET_TAB_THEMES}
 
 
 def profile_view(request, username):
@@ -122,6 +134,166 @@ def profile_view(request, username):
         'show_view_all_created': all_count > PROFILE_CREATED_PREVIEW_LIMIT,
     }
     return render(request, 'accounts/profile.html', context)
+
+
+def profile_mindset_themes_view(request, username):
+    """Public page: user's Mindset themes, replies, and reposts (tab filter)."""
+    user_obj = User._base_manager.select_related("profile", "deleted_queue_entry").filter(username=username).first()
+    if not user_obj:
+        raise Http404
+    if not user_obj.is_active:
+        status = "deleted" if getattr(user_obj, "deleted_queue_entry", None) else "banned"
+        return user_not_found_view(request, user_obj, vanished_status=status)
+
+    raw_tab = (request.GET.get("tab") or PROFILE_MINDSET_TAB_THEMES).lower()
+    tab = _PROFILE_MINDSET_TAB_ALIASES.get(raw_tab, raw_tab)
+    allowed = (
+        PROFILE_MINDSET_TAB_THEMES,
+        PROFILE_MINDSET_TAB_REPLIES,
+        PROFILE_MINDSET_TAB_REPOSTS,
+    )
+    if tab not in allowed:
+        tab = PROFILE_MINDSET_TAB_THEMES
+
+    page_number = request.GET.get("page", 1)
+
+    repost_rows = []
+
+    if tab == PROFILE_MINDSET_TAB_THEMES:
+        object_list = _theme_qs_for_listing(request.user).filter(author=user_obj)
+        paginator = Paginator(object_list, THEME_PAGE_SIZE)
+        page_obj = paginator.get_page(page_number)
+        page_range = paginator.get_elided_page_range(
+            number=page_obj.number, on_each_side=1, on_ends=1,
+        )
+    elif tab == PROFILE_MINDSET_TAB_REPLIES:
+        object_list = _annotate_user_state(
+            Reply.objects.filter(
+                author=user_obj,
+                is_deleted=False,
+                theme__is_deleted=False,
+            )
+            .select_related("theme", "author", "author__profile")
+            .order_by("-created_at", "-id"),
+            request.user,
+        )
+        paginator = Paginator(object_list, THEME_PAGE_SIZE)
+        page_obj = paginator.get_page(page_number)
+        page_range = paginator.get_elided_page_range(
+            number=page_obj.number, on_each_side=1, on_ends=1,
+        )
+    else:
+        tr_pairs = list(
+            ThemeRepost.objects.filter(user=user_obj, theme__is_deleted=False).values_list(
+                "id",
+                "created_at",
+            )
+        )
+        rr_pairs = list(
+            ReplyRepost.objects.filter(
+                user=user_obj,
+                reply__is_deleted=False,
+                reply__theme__is_deleted=False,
+            ).values_list("id", "created_at")
+        )
+        merged = [("t", pk, ts) for pk, ts in tr_pairs] + [("r", pk, ts) for pk, ts in rr_pairs]
+        merged.sort(key=lambda row: row[2], reverse=True)
+
+        paginator = Paginator(merged, THEME_PAGE_SIZE)
+        page_obj = paginator.get_page(page_number)
+        page_range = paginator.get_elided_page_range(
+            number=page_obj.number, on_each_side=1, on_ends=1,
+        )
+
+        slices = page_obj.object_list
+        t_ids_on_page = [row[1] for row in slices if row[0] == "t"]
+        r_ids_on_page = [row[1] for row in slices if row[0] == "r"]
+
+        tr_by_id = {}
+        themes_by_pk = {}
+        if t_ids_on_page:
+            theme_reposts = ThemeRepost.objects.filter(id__in=t_ids_on_page).select_related("theme")
+            tr_by_id = {o.id: o for o in theme_reposts}
+            theme_pks = {tr.theme_id for tr in tr_by_id.values()}
+            themes_by_pk = {
+                t.pk: t
+                for t in _theme_qs_for_listing(request.user).filter(pk__in=theme_pks)
+            }
+
+        rr_by_id = {}
+        replies_by_pk = {}
+        if r_ids_on_page:
+            reply_reposts = ReplyRepost.objects.filter(id__in=r_ids_on_page).select_related(
+                "reply",
+                "reply__theme",
+                "reply__author",
+                "reply__author__profile",
+            )
+            rr_by_id = {o.id: o for o in reply_reposts}
+            reply_ids = [o.reply_id for o in rr_by_id.values()]
+            replies_by_pk = {
+                r.pk: r
+                for r in _annotate_user_state(
+                    Reply.objects.filter(
+                        pk__in=reply_ids,
+                        is_deleted=False,
+                        theme__is_deleted=False,
+                    ).select_related("theme", "author", "author__profile"),
+                    request.user,
+                )
+            }
+
+        for kind, pk, ts in slices:
+            rh = human_time_relative_youtube(ts)
+            if kind == "t":
+                tr_row = tr_by_id.get(pk)
+                if not tr_row:
+                    continue
+                themed = themes_by_pk.get(tr_row.theme_id)
+                if not themed:
+                    continue
+                repost_rows.append(
+                    {"kind": "theme", "reposted_human": rh, "theme": themed},
+                )
+            else:
+                rr_row = rr_by_id.get(pk)
+                if not rr_row:
+                    continue
+                rep = replies_by_pk.get(rr_row.reply_id)
+                if not rep:
+                    continue
+                repost_rows.append(
+                    {"kind": "reply", "reposted_human": rh, "reply": rep},
+                )
+
+    if not user_obj.is_active:
+        crumb_user_label = "Deleted user" if getattr(user_obj, "deleted_queue_entry", None) else "Banned user"
+    else:
+        crumb_user_label = user_obj.username
+
+    breadcrumbs = build_breadcrumbs(
+        breadcrumb("Mindset", reverse("mindset:theme_list")),
+        breadcrumb(crumb_user_label, None),
+    )
+    pagination_extra = f"&tab={tab}"
+
+    context = {
+        "user_obj": user_obj,
+        "active_tab": tab,
+        "page_obj": page_obj,
+        "page_range": page_range,
+        "breadcrumbs": breadcrumbs,
+        "pagination_extra": pagination_extra,
+        "repost_rows": repost_rows,
+    }
+    return render(request, "accounts/profile_reposts.html", context)
+
+
+def profile_mindset_themes_redirect_from_reposts(request, username):
+    """301 to /profile/<username>/themes/ (old /reposts/ path)."""
+    query = request.GET.urlencode()
+    base = reverse("login_app:profile-themes", kwargs={"username": username})
+    return redirect(f"{base}?{query}" if query else base, permanent=True)
 
 
 def profile_online_status(request, username):

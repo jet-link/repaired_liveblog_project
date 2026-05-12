@@ -1,5 +1,9 @@
 from django.urls import path
 from . import views
+from .views.profile_views import (
+    profile_mindset_themes_redirect_from_reposts,
+    profile_mindset_themes_view,
+)
 
 app_name = "login_app"
 
@@ -19,6 +23,8 @@ urlpatterns = [
     path("profile/notifications/check-target/", views.check_notification_target, name="notification_check_target"),
     path('profile/<str:username>/notifications/', views.notifications_view, name='notifications'),
     path('profile/<str:username>/online/', views.profile_online_status, name='profile-online-status'),
+    path('profile/<str:username>/reposts/', profile_mindset_themes_redirect_from_reposts, name='profile-reposts'),
+    path('profile/<str:username>/themes/', profile_mindset_themes_view, name='profile-themes'),
     path('profile/<str:username>/<str:section>/', views.profile_section_view, name='profile-section'),
     path('profile/<str:username>/', views.profile_view, name='profile'),
 ]

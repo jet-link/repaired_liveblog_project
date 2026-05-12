@@ -27,8 +27,10 @@
             <header class="admin-header">
                 <div class="admin-header-left">
                     <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+                    <!--
                     <h1 class="admin-page-title">{% block page_title %}<span class="admin-header-brand-full">brainstorm.news</span><span class="admin-header-brand-short">bstrm.news</span>{% endblock %}</h1>
-                    <span class="admin-online-badge">Now online: {{ admin_online_count|default:0 }}</span>
+                    -->
+                    <span class="admin-online-badge"><i class="fa-solid fa-user" aria-hidden="true"></i> Now online: {{ admin_online_count|default:0 }}</span>
                 </div>
                 <div class="admin-header-right">
                     <button type="button" class="admin-theme-toggle" id="adminThemeToggle" aria-label="Toggle theme" title="Toggle light/dark theme"><i class="admin-theme-icon fa-regular fa-moon" aria-hidden="true"></i></button>

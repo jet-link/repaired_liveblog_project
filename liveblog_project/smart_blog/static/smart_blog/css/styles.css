@@ -1128,7 +1128,7 @@ html[data-theme="dark"] .paginator-page.paginator-current {
 /* Обычный header в потоке документа; dropdown поиска якорится к обёртке */
 /* Круг: поиск + переключение темы. Квадрат со скруглением: бургер, закрытие. Одинаковый hit-area. */
 :root {
-    --header-icon-size: 38px;
+    --header-icon-size: 40px;
     --header-icon-radius-square: 8px;
 }
 
@@ -3348,6 +3348,7 @@ html[data-theme="dark"] .filter-segment-shell::before {
     border-radius: 999px;
     flex-shrink: 0;
     white-space: nowrap;
+    text-decoration: none;
     transition: background 0.22s ease, background-color 0.22s ease, color 0.22s ease;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
@@ -3357,7 +3358,7 @@ html[data-theme="dark"] .filter-segment-shell::before {
     /* text-transform: uppercase; */
     /* font-weight: 600; */
     letter-spacing: .015rem;
-    font-size: .9rem;
+    font-size: .875rem;
 }
 
 .filter-segment-bar .filter-reason-btn.is-selected,

@@ -1,12 +1,12 @@
 <div class="mindset-sidebar-stack" data-mindset-sidebar>
   <div class="mindset-sidebar-card">
-    <h5 class="mindset-sidebar-card__title m-0">
-      {% comment %} <i class="fa fa-heart-o me-2" aria-hidden="true"></i> {% endcomment %}
-      {% comment %} <i class="fa fa-line-chart me-2" aria-hidden="true"></i> {% endcomment %}
-      <i class="fa fa-commenting-o me-2" aria-hidden="true"></i>
-      Most popular themes
-    </h5>
-    <hr class="text-muted">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mindset-sidebar-card__title m-0">
+        <i class="fa fa-commenting-o me-2" aria-hidden="true"></i>
+        Most popular themes
+      </h5>
+    </div>
+    <hr class="text-muted" />
     <ul class="mindset-sidebar-list" data-mindset-sidebar-list="last">
       {% for entry in sidebar.last %}
         <li class="mindset-sidebar-item">
@@ -23,7 +23,7 @@
       <i class="fa fa-bullhorn me-2" aria-hidden="true"></i>
       Most discussed themes
     </h5>
-    <hr class="text-muted">
+    <hr class="text-muted" />
     <ul class="mindset-sidebar-list" data-mindset-sidebar-list="top">
       {% for entry in sidebar.top %}
         <li class="mindset-sidebar-item">

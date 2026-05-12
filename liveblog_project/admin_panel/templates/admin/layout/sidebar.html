@@ -32,7 +32,7 @@
                     class="admin-nav-item {% if 'mindset' in request.resolver_match.url_name %}active{% endif %}">
                     {% comment %} <i class="admin-nav-icon fa-regular fa-comment-dots"></i> {% endcomment %}
                     <i class="admin-nav-icon fa-regular fa fa-at"></i>
-                    <span class="admin-nav-text">Mindset</span>
+                    <span class="admin-nav-text">Themes</span>
                 </a>
                 <a href="{% url 'admin_panel:categories_list' %}"
                     class="admin-nav-item {% if 'categor' in request.resolver_match.url_name %}active{% endif %}">
@@ -134,11 +134,11 @@
                     <i class="admin-nav-icon fa-regular fa-floppy-disk"></i>
                     <span class="admin-nav-text">Backups</span>
                 </a>
-                <a href="{% url 'admin_panel:logs' %}"
+                {% comment %} <a href="{% url 'admin_panel:logs' %}"
                     class="admin-nav-item {% if request.resolver_match.url_name == 'logs' %}active{% endif %}">
                     <i class="admin-nav-icon fa-regular fa-clipboard"></i>
                     <span class="admin-nav-text">Logs</span>
-                </a>
+                </a> {% endcomment %}
                 <a href="{% url 'admin_panel:recent_deleted_content' %}"
                     class="admin-nav-item {% if request.resolver_match.url_name == 'recent_deleted_content' %}active{% endif %}">
                     <i class="admin-nav-icon fa-solid fa-trash-can"></i>

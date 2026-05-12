@@ -15,14 +15,13 @@
        data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
        data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
     <div class="listing-filter-sticky-scope">
-      <div class="d-flex align-items-center justify-content-between mb-3 mindset-page__head">
+      <div class="d-flex align-items-center justify-content-between mb-4 mindset-page__head">
         <a href="{% url 'mindset:theme_list' %}" class="text-muted text-decoration-none"><i class="fa fa-angle-left me-3" aria-hidden="true"></i>Go back</a>
-        {% if user.is_authenticated %}
+        {% comment %} {% if user.is_authenticated %}
           <a href="{% url 'mindset:theme_create' %}" class="cstm-btn-sm custom-secondary-btn mindset-new-btn">
-            {% comment %} <span class="d-none d-sm-inline">New theme</span> {% endcomment %}
             <i class="fa fa-plus" aria-hidden="true"></i>
           </a>
-        {% endif %}
+        {% endif %} {% endcomment %}
       </div>
 
       <div class="mindset-layout">

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {{ user_obj.username }} — Mindset
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'mindset/css/mindset.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="container-main content_block mindset-page profile-reposts-page"
+       data-mindset-feed
+       data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+       data-user-id="{% if user.is_authenticated %}{{ user.pk }}{% endif %}"
+       data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
+       data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
+    {% include 'includes/breadcrumbs.html' %}
+
+    {% comment %} <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h5 class="m-0 primary_">{{ user_obj.username }}</h5>
+      <span class="text-muted small">@ Mindset</span>
+    </div> {% endcomment %}
+    {% comment %} <hr class="text-muted"> {% endcomment %}
+
+    {% url 'login_app:profile-themes' user_obj.username as profile_mindset_url %}
+    <div class="filter-segment-outer mb-4">
+      <div class="filter-segment-shell">
+        <div class="filter-segment-scroll filter-scroll-x">
+          <nav
+            class="profile-mindset-tabs filter-segment-bar"
+            role="tablist"
+            aria-label="Mindset"
+          >
+            <a
+              href="{{ profile_mindset_url }}?tab=themes"
+              class="filter-reason-btn{% if active_tab == 'themes' %} is-selected{% endif %}"
+              role="tab"
+              {% if active_tab == 'themes' %}aria-current="page"{% endif %}
+            >Themes</a>
+            <a
+              href="{{ profile_mindset_url }}?tab=reposts"
+              class="filter-reason-btn{% if active_tab == 'reposts' %} is-selected{% endif %}"
+              role="tab"
+              {% if active_tab == 'reposts' %}aria-current="page"{% endif %}
+            >Reposts</a>
+            <a
+              href="{{ profile_mindset_url }}?tab=replies"
+              class="filter-reason-btn{% if active_tab == 'replies' %} is-selected{% endif %}"
+              role="tab"
+              {% if active_tab == 'replies' %}aria-current="page"{% endif %}
+            >Replies</a>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-mindset-swap" data-profile-mindset-swap>
+    {% if active_tab == 'themes' %}
+      <section class="mindset-feed" data-mindset-feed-list>
+        {% for theme in page_obj %}
+          {% include 'mindset/_theme_card.html' with theme=theme %}
+        {% empty %}
+          <div class="mindset-empty text-muted py-5">
+            <p class="m-0">No themes yet.</p>
+          </div>
+        {% endfor %}
+        <div class="w-100">{% include 'includes/pagination.html' %}</div>
+      </section>
+    {% elif active_tab == 'replies' %}
+      <section class="mindset-feed" data-mindset-feed-list>
+        {% for reply in page_obj %}
+          <div class="profile-reposts-reply-wrap">
+            {% comment %} <div class="small text-muted mb-3 d-flex gap-2">
+              <span>In thread:</span>
+              <a href="{% url 'mindset:theme_detail' reply.theme.pk %}" class="text-decoration-none primary_ fw-semibold">
+                {% firstof reply.theme.preview "View thread" %}
+              </a>
+            </div> {% endcomment %}
+            {% include 'mindset/_reply.html' with reply=reply %}
+          </div>
+        {% empty %}
+          <div class="mindset-empty text-muted py-5">
+            <p class="m-0">No replies yet.</p>
+          </div>
+        {% endfor %}
+        <div class="w-100">{% include 'includes/pagination.html' %}</div>
+      </section>
+    {% else %}
+      <section class="mindset-feed" data-mindset-feed-list>
+        {% for row in repost_rows %}
+          <div class="profile-mindset-repost-block">
+            <div class="small text-muted my-3 fw-semibold">
+              Reposted: <span class="text-muted">{{ row.reposted_human }}</span>
+            </div>
+            {% if row.kind == 'theme' %}
+              {% include 'mindset/_theme_card.html' with theme=row.theme %}
+            {% else %}
+              {% comment %} <div class="small text-muted mb-3">
+                In thread:
+                <a href="{% url 'mindset:theme_detail' row.reply.theme.pk %}" class="text-decoration-none">
+                  {% firstof row.reply.theme.preview "View thread" %}
+                </a>
+              </div> {% endcomment %}
+              {% include 'mindset/_reply.html' with reply=row.reply %}
+            {% endif %}
+          </div>
+        {% empty %}
+          <div class="mindset-empty text-muted py-5">
+            <p class="m-0">No reposts yet.</p>
+          </div>
+        {% endfor %}
+        <div class="w-100">{% include 'includes/pagination.html' %}</div>
+      </section>
+    {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block page_modals %}
+  {% if user.is_authenticated %}
+    {% include 'mindset/_confirm_delete_modal.html' %}
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  <script defer src="{% static 'mindset/js/mindset_feed.js' %}"></script>
+  <script defer src="{% static 'login/js/profile_mindset_tabs.js' %}"></script>
+{% endblock %}

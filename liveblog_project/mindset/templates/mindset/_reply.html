@@ -2,7 +2,7 @@
 {% load counters %}
 <div class="mindset-reply" data-mindset-reply="{{ reply.pk }}" id="mindset-reply-{{ reply.pk }}">
   <div class="mindset-reply__head mb-4">
-    <a href="{% url 'login_app:profile' reply.author.username %}" class="mindset-author-link text-decoration-none">
+    <a href="{% url 'login_app:profile-themes' reply.author.username %}" class="mindset-author-link text-decoration-none">
       {% include 'includes/user_avatar.html' with author=reply.author %}
     </a>
     <small class="text-muted mindset-reply__date">

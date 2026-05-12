@@ -9,6 +9,8 @@ from login.views._helpers import (  # noqa: F401
 from login.views.auth_views import login_view, register_view, logout_view  # noqa: F401
 from login.views.profile_views import (  # noqa: F401
     profile_view,
+    profile_mindset_themes_redirect_from_reposts,
+    profile_mindset_themes_view,
     profile_online_status,
     profile_section_view,
     api_trust_status,

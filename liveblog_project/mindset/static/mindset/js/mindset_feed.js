@@ -94,6 +94,135 @@
   }
 
   /**
+   * Animated collapse + removal of any feed entry block. Used for:
+   *   - un-repost on the /profile/<u>/themes/?tab=reposts page
+   *     (target = .profile-mindset-repost-block);
+   *   - the user deleting their own theme / reply / repost via the confirm
+   *     modal on /profile/<u>/themes/ (target = the appropriate wrapper).
+   *
+   * Height + margin animate to 0, then the element is removed from the DOM
+   * and the empty-state placeholder is re-rendered if the tab is now empty.
+   * Falls back to an instant remove if `prefers-reduced-motion` is set.
+   */
+  function animatedRemove(block) {
+    if (!block || block.dataset.mindsetRemoving === '1') return;
+    block.dataset.mindsetRemoving = '1';
+
+    var prefersReduced = false;
+    try {
+      prefersReduced =
+        window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (_) { /* ignore */ }
+
+    function finalize() {
+      var feedRoot = block.closest('[data-mindset-feed]');
+      if (block.parentNode) {
+        block.parentNode.removeChild(block);
+      }
+      maybeShowProfileEmpty(feedRoot);
+    }
+
+    if (prefersReduced) {
+      finalize();
+      return;
+    }
+
+    var rect = block.getBoundingClientRect();
+    var cs = window.getComputedStyle(block);
+    var mt = parseFloat(cs.marginTop) || 0;
+    var mb = parseFloat(cs.marginBottom) || 0;
+
+    block.style.height = rect.height + 'px';
+    block.style.marginTop = mt + 'px';
+    block.style.marginBottom = mb + 'px';
+    block.style.overflow = 'hidden';
+    block.classList.add('mindset-collapsing');
+    if (block.classList.contains('profile-mindset-repost-block')) {
+      block.classList.add('profile-mindset-repost-block--removing');
+    }
+
+    void block.offsetHeight;
+
+    block.style.height = '0px';
+    block.style.marginTop = '0px';
+    block.style.marginBottom = '0px';
+    block.style.opacity = '0';
+    block.style.transform = 'translateY(-4px)';
+
+    var done = false;
+    function onEnd(e) {
+      if (e && e.target !== block) return;
+      if (e && e.propertyName && e.propertyName !== 'height' && e.propertyName !== 'opacity') return;
+      if (done) return;
+      done = true;
+      block.removeEventListener('transitionend', onEnd);
+      finalize();
+    }
+    block.addEventListener('transitionend', onEnd);
+    setTimeout(function () { onEnd(); }, 520);
+  }
+
+  /**
+   * For an arbitrary element inside the profile mindset feed, return the
+   * outer entry wrapper that should be collapsed/removed (so the surrounding
+   * "Reposted: ..." header or the wrapping div disappear together with the
+   * theme/reply). On non-profile pages we just collapse the element itself.
+   */
+  function findProfileEntryWrapper(el) {
+    if (!el) return null;
+    return (
+      el.closest('.profile-mindset-repost-block') ||
+      el.closest('.profile-reposts-reply-wrap') ||
+      el
+    );
+  }
+
+  function getActiveProfileTab() {
+    try {
+      var t = (new URL(window.location.href)).searchParams.get('tab') || 'themes';
+      t = String(t).toLowerCase();
+      if (t === 'root') t = 'themes';
+      return (t === 'replies' || t === 'reposts') ? t : 'themes';
+    } catch (_) {
+      return 'themes';
+    }
+  }
+
+  function maybeShowProfileEmpty(feedRoot) {
+    if (!feedRoot) return;
+    if (!feedRoot.classList.contains('profile-reposts-page')) return;
+    var list = feedRoot.querySelector('[data-mindset-feed-list]');
+    if (!list) return;
+    var entrySel =
+      ':scope > .mindset-theme, ' +
+      ':scope > .profile-reposts-reply-wrap, ' +
+      ':scope > .profile-mindset-repost-block';
+    if (list.querySelector(entrySel)) return;
+    if (list.querySelector('.mindset-empty')) return;
+
+    var tab = getActiveProfileTab();
+    var msg = tab === 'replies'
+      ? 'No replies yet.'
+      : tab === 'reposts'
+        ? 'No reposts yet.'
+        : 'No themes yet.';
+
+    var empty = document.createElement('div');
+    empty.className = 'mindset-empty text-muted py-5';
+    var p = document.createElement('p');
+    p.className = 'm-0';
+    p.textContent = msg;
+    empty.appendChild(p);
+    var pagination = list.querySelector(':scope > .w-100');
+    if (pagination) {
+      list.insertBefore(empty, pagination);
+    } else {
+      list.appendChild(empty);
+    }
+  }
+
+  /**
    * Apply state to a theme card. ``opts.skip`` is a Set of buttons to skip
    * ("like" or "repost") — used to keep the button the user just clicked
    * authoritative when the OTHER button's response arrives.
@@ -327,11 +456,19 @@
       if (action === 'like' || action === 'repost') {
         var url = btn.getAttribute('data-url');
         if (!url || btn.disabled) return;
+        var themeRepostBlock =
+          action === 'repost' ? btn.closest('.profile-mindset-repost-block') : null;
         btn.disabled = true;
         postForm(url).then(function (resp) {
           btn.disabled = false;
           if (resp.ok && resp.data && resp.data.ok && resp.data.theme) {
             applyThemeState(resp.data.theme);
+            if (
+              themeRepostBlock &&
+              resp.data.theme.user_reposted === false
+            ) {
+              animatedRemove(themeRepostBlock);
+            }
           } else if (resp.data && resp.data.error) {
             console.warn('Mindset:', resp.data.error);
           }
@@ -342,11 +479,19 @@
       if (action === 'reply-like' || action === 'reply-repost') {
         var rurl = btn.getAttribute('data-url');
         if (!rurl || btn.disabled) return;
+        var replyRepostBlock =
+          action === 'reply-repost' ? btn.closest('.profile-mindset-repost-block') : null;
         btn.disabled = true;
         postForm(rurl).then(function (resp) {
           btn.disabled = false;
           if (resp.ok && resp.data && resp.data.ok && resp.data.reply) {
             applyReplyState(resp.data.reply);
+            if (
+              replyRepostBlock &&
+              resp.data.reply.user_reposted === false
+            ) {
+              animatedRemove(replyRepostBlock);
+            }
           } else if (resp.data && resp.data.error) {
             console.warn('Mindset:', resp.data.error);
           }
@@ -402,19 +547,30 @@
         postForm(ctx.url).then(function (resp) {
           confirmBtn.disabled = false;
           if (resp.ok && resp.data && resp.data.ok) {
-            if (ctx.kind === 'theme') {
-              var card = document.querySelector('[data-mindset-theme="' + ctx.id + '"]');
-              if (card) card.remove();
-            } else {
-              var node = document.querySelector('[data-mindset-reply="' + ctx.id + '"]');
-              if (node) node.remove();
-              if (resp.data.theme) applyThemeState(resp.data.theme);
-            }
-            refreshSidebar();
+            // Hide the confirm modal first so its closing animation can run in
+            // parallel with the entry's collapse animation (better perceived
+            // responsiveness, and avoids any focus-trap fights with a soon-to-
+            // be-removed node).
             try {
               var inst = window.bootstrap && window.bootstrap.Modal.getInstance(modal);
               if (inst) inst.hide();
             } catch (e) { /* ignore */ }
+
+            if (ctx.kind === 'theme') {
+              document
+                .querySelectorAll('[data-mindset-theme="' + ctx.id + '"]')
+                .forEach(function (card) {
+                  animatedRemove(findProfileEntryWrapper(card));
+                });
+            } else {
+              document
+                .querySelectorAll('[data-mindset-reply="' + ctx.id + '"]')
+                .forEach(function (node) {
+                  animatedRemove(findProfileEntryWrapper(node));
+                });
+              if (resp.data.theme) applyThemeState(resp.data.theme);
+            }
+            refreshSidebar();
           } else {
             alert((resp.data && resp.data.error) || 'Could not delete.');
           }

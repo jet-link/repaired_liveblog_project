@@ -407,3 +407,85 @@ html[data-theme="dark"] .user-menu .user-tooltip::after {
         box-sizing: border-box;
     }
 }
+
+/* --------------------------------------------------------------------------
+   Mindset profile (/profile/<user>/themes/) — Themes / Reposts / Replies pills.
+   Scoped to `.profile-reposts-page` only: same chip metrics + press feedback
+   as BraiNews / Topics rails, without changing global `.filter-segment-*` rules.
+   -------------------------------------------------------------------------- */
+.profile-reposts-page .profile-mindset-tabs.filter-segment-bar .filter-reason-btn,
+.profile-reposts-page .profile-mindset-tabs.filter-segment-bar a.filter-reason-btn {
+    /* Override generic `.filter-reason-btn { padding: 10px 20px }` for this rail only */
+    padding: 10px 20px;
+    line-height: 1.28;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    transition:
+        background 0.22s ease,
+        background-color 0.22s ease,
+        color 0.22s ease,
+        transform 0.14s cubic-bezier(0.33, 0.86, 0.36, 1);
+}
+
+.profile-reposts-page .profile-mindset-tabs.filter-segment-bar .filter-reason-btn:active:not(:disabled),
+.profile-reposts-page .profile-mindset-tabs.filter-segment-bar a.filter-reason-btn:active {
+    transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-reposts-page .profile-mindset-tabs.filter-segment-bar .filter-reason-btn,
+    .profile-reposts-page .profile-mindset-tabs.filter-segment-bar a.filter-reason-btn {
+        transition:
+            background 0.22s ease,
+            background-color 0.22s ease,
+            color 0.22s ease;
+    }
+
+    .profile-reposts-page .profile-mindset-tabs.filter-segment-bar .filter-reason-btn:active:not(:disabled),
+    .profile-reposts-page .profile-mindset-tabs.filter-segment-bar a.filter-reason-btn:active {
+        transform: none;
+    }
+}
+
+/* Mindset profile tab panel: soft fade while fetching (no full-page flash) */
+.profile-reposts-page .profile-mindset-swap {
+    transition: opacity 0.18s ease-out;
+}
+
+.profile-reposts-page .profile-mindset-swap.profile-mindset-swap--loading {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-reposts-page .profile-mindset-swap {
+        transition: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Reposts feed: instant animated removal of a repost block once the user
+   un-reposts the entry inside it (Reposted -> Repost).
+   -------------------------------------------------------------------------- */
+.profile-reposts-page .profile-mindset-repost-block {
+    transition:
+        height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+        margin 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.22s ease-out,
+        transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-reposts-page .profile-mindset-repost-block--removing {
+    pointer-events: none;
+    will-change: height, opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-reposts-page .profile-mindset-repost-block {
+        transition: none;
+    }
+}

@@ -97,6 +97,7 @@
           <small class="primary_ fw-semibold">My post</small>
         {% else %}
           <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+          <a href="{% url 'login_app:profile' item.author.username %}" class="text-decoration-none">
             <span class="comment-author-name fw-semibold item-detail-author-name">
               {% if item.author.is_active %}
                 {{ item.author }}
@@ -104,6 +105,7 @@
                 {% user_status_display item.author %}
               {% endif %}
             </span>
+          </a>
             <a href="{% url 'login_app:profile' item.author.username %}" class="d-flex align-items-center gap-1 text-decoration-none" title="{% user_status_title item.author %}">
               <div class="little-avatar">
                 {% if item.author.is_active %}

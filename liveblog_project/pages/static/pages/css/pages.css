@@ -404,7 +404,7 @@ html[data-theme="dark"] .sitemap-html-link:hover {
     justify-content: center;
     width: 2rem;
     height: 2rem;
-    background: var(--text-link);
+    background: #000000;
     border-radius: 50%;
 }
 
