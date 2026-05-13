@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load cache %}
 {% block title %}{{ home.browser_title }}{% endblock %}
 {% block meta_description %}
   {% if meta_description %}
@@ -23,18 +22,10 @@
             {% if home.hero_lede %}
               <p class="home-hero-split__lede text-muted">{{ home.hero_lede }}</p>
             {% endif %}
-            <div class="home-hero-split__ctas">
-              {% if home.cta_primary_label and home.cta_primary_url %}
+            {% if home.cta_primary_label and home.cta_primary_url %}
+              <div class="home-hero-split__ctas">
                 <a href="{{ home.cta_primary_url }}" class="cstm-btn custom-primary-btn">{{ home.cta_primary_label }}<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
-              {% endif %}
-              {% if home.cta_secondary_label and home.cta_secondary_url %}
-                <a href="{{ home.cta_secondary_url }}" class="cstm-btn home-hero-btn-secondary">{{ home.cta_secondary_label }}<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
-              {% endif %}
-            </div>
-            {% if home.trust_line and home.trust_link_url %}
-              <p class="home-trust small text-muted mb-0 mt-3">
-                <a href="{{ home.trust_link_url }}" class="text-muted text-decoration-underline">{{ home.trust_line }}</a>
-              </p>
+              </div>
             {% endif %}
           </div>
           <div class="home-hero-split__featured">
@@ -52,7 +43,7 @@
       </div>
     </section>
 
-    {% if quick_links %}
+    {% if home.show_quick_links and quick_links %}
       <section class="home-quick-links primary_section centered" aria-label="Quick links">
         <div class="container-main">
           <div class="row g-2 g-md-3 justify-content-center home-quick-links-row">
@@ -81,6 +72,9 @@
                 {% include 'includes/home/post_card.html' with item=item %}
               {% endfor %}
             </div>
+            <div class="text-center mt-3">
+              <a href="{% url 'smart_blog:trending_list' %}" class="cstm-btn home-hero-btn-secondary">All trending<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
+            </div>
           {% else %}
             <p class="home-section__empty text-muted mb-0" role="status">No content yet</p>
           {% endif %}
@@ -88,27 +82,21 @@
       </section>
     {% endif %}
 
-    {% if home.show_for_you_section %}
-      <section class="home-section cosmo_section" aria-labelledby="section-for-you">
+    {% if home.show_mindset_live %}
+      <section class="home-section home-section--mindset cosmo_section" aria-labelledby="section-mindset">
         <div class="container-main">
-          {% include 'includes/home/section_block.html' with title="For you" section_id='for-you' %}
-          {% if user.is_authenticated %}
-            {% if for_you_posts %}
-              <div class="home-for-you-scroll">
-                <div class="home-for-you-row">
-                  {% for item in for_you_posts %}
-                    {% include 'includes/home/post_card.html' with item=item %}
-                  {% endfor %}
-                </div>
-              </div>
-            {% else %}
-              <p class="home-section__empty text-muted mb-0" role="status">Nothing to recommend yet. Try <a href="{% url 'smart_blog:items_list' %}">BraiNews</a> or <a href="{% url 'smart_blog:topics_list' %}">Topics</a>.</p>
-            {% endif %}
-          {% else %}
-            <div class="home-for-you-placeholder">
-              <p class="text-muted mb-3">Sign in to get personalized recommendations</p>
-              <a href="{% url 'login_app:login' %}?next={% url 'smart_blog:for_you_list' %}" class="cstm-btn custom-primary-btn">Sign in</a>
+          {% include 'includes/home/section_block.html' with title="Mindset Live" section_id='mindset' %}
+          {% if mindset_themes %}
+            <div class="home-mindset-grid">
+              {% for theme in mindset_themes %}
+                {% include 'includes/home/mindset_theme_card.html' with theme=theme %}
+              {% endfor %}
             </div>
+            <div class="text-center mt-3">
+              <a href="{% url 'mindset:theme_list' %}" class="cstm-btn home-hero-btn-secondary">Join the discussion<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
+            </div>
+          {% else %}
+            <p class="home-section__empty text-muted mb-0" role="status">No themes yet</p>
           {% endif %}
         </div>
       </section>
@@ -124,71 +112,13 @@
                 {% include 'includes/home/category_card.html' %}
               {% endfor %}
             </div>
+            <div class="text-center mt-3">
+              <a href="{% url 'smart_blog:topics_list' %}" class="cstm-btn home-hero-btn-secondary">All topics<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
+            </div>
           {% else %}
             <p class="home-section__empty text-muted mb-0" role="status">No categories yet</p>
           {% endif %}
         </div>
-      </section>
-    {% endif %}
-
-    {% if home.show_editor_picks and editor_picks %}
-      <section class="home-section cosmo_section" aria-labelledby="section-editor">
-        <div class="container-main">
-          {% include 'includes/home/section_block.html' with title="Editor’s picks" section_id='editor' %}
-          <div class="home-grid home-grid--editor{% if editor_picks|length == 1 %} home-grid--editor-single{% endif %}">
-            {% for item in editor_picks %}
-              {% include 'includes/home/post_card.html' with item=item variant='editor' %}
-            {% endfor %}
-          </div>
-        </div>
-      </section>
-    {% endif %}
-
-    {% if home.show_latest_brainews %}
-      <section class="home-section cosmo_section" aria-labelledby="section-latest">
-        <div class="container-main">
-          {% include 'includes/home/section_block.html' with title="Latest in BraiNews" section_id='latest' %}
-          {% if latest_posts %}
-            <ul class="home-latest-list list-unstyled mb-4">
-              {% for item in latest_posts %}
-                <li class="home-latest-list__item">
-                  <a href="{{ item.get_absolute_url }}?from=home&amp;source_url=/" class="home-latest-list__link">
-                    <span class="home-latest-list__title">{{ item.title }}</span>
-                    <span class="home-latest-list__meta text-muted">{{ item.published_date|default:item.created|date:"M j, Y" }}</span>
-                  </a>
-                </li>
-              {% endfor %}
-            </ul>
-            <div class="text-center">
-              <a href="{% url 'smart_blog:items_list' %}" class="cstm-btn home-hero-btn-secondary">View all posts</a>
-            </div>
-          {% else %}
-            <p class="home-section__empty text-muted mb-0" role="status">No content yet</p>
-          {% endif %}
-        </div>
-      </section>
-    {% endif %}
-
-    {% if home.show_bottom_cta %}
-      {% if home.cta_footer_title or home.cta_footer_label and home.cta_footer_url %}
-      <section class="home-bottom-cta primary_section centered" aria-labelledby="section-bottom-cta">
-        <div class="container-main home-bottom-cta__inner">
-          {% if home.cta_footer_title %}
-            <h2 id="section-bottom-cta" class="h5 text-muted mb-3">{{ home.cta_footer_title }}</h2>
-          {% endif %}
-          {% if home.cta_footer_label and home.cta_footer_url %}
-            <a href="{{ home.cta_footer_url }}" class="cstm-btn custom-primary-btn">{{ home.cta_footer_label }}<i class="fa fa-angle-right ms-2" aria-hidden="true"></i></a>
-          {% endif %}
-        </div>
-      </section>
-      {% endif %}
-    {% endif %}
-
-    {% if home.show_decorative_astronauts %}
-      <section class="cosmo_section centered">
-        {% cache 600 home_astronauts home.cache_bump %}
-          {% include 'includes/astronauts_cosmo.html' %}
-        {% endcache %}
       </section>
     {% endif %}
   </main>

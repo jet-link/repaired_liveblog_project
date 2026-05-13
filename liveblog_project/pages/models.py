@@ -93,15 +93,6 @@ class ContactsPageContent(models.Model):
 class HomePageContent(models.Model):
     """Singleton row (pk=1): public home page copy and layout flags."""
 
-    STRIP_POPULAR = "popular"
-    STRIP_TRENDING = "trending"
-    STRIP_NONE = "none"
-    STRIP_CHOICES = [
-        (STRIP_POPULAR, "Popular"),
-        (STRIP_TRENDING, "In trend"),
-        (STRIP_NONE, "No strip (hero + quick links only)"),
-    ]
-
     browser_title = models.CharField(max_length=120, default="brainstorm.news")
     meta_description = models.CharField(
         max_length=320,
@@ -112,22 +103,7 @@ class HomePageContent(models.Model):
     hero_lede = models.TextField(blank=True)
     cta_primary_label = models.CharField(max_length=120, blank=True)
     cta_primary_url = models.CharField(max_length=500, blank=True)
-    cta_secondary_label = models.CharField(max_length=120, blank=True)
-    cta_secondary_url = models.CharField(max_length=500, blank=True)
-    trust_line = models.CharField(max_length=255, blank=True)
-    trust_link_url = models.CharField(max_length=500, blank=True)
     show_quick_links = models.BooleanField(default=True)
-    show_decorative_astronauts = models.BooleanField(
-        default=False,
-        help_text="Show the optional astronauts decorative block.",
-    )
-    content_strip_mode = models.CharField(
-        max_length=16,
-        choices=STRIP_CHOICES,
-        default=STRIP_POPULAR,
-    )
-    content_strip_limit = models.PositiveSmallIntegerField(default=6)
-    popular_min_likes = models.PositiveSmallIntegerField(default=6)
     show_editor_picks = models.BooleanField(default=False)
     editor_pick_order_after_strip = models.BooleanField(
         default=False,
@@ -169,6 +145,10 @@ class HomePageContent(models.Model):
     show_for_you_section = models.BooleanField(
         default=True,
         help_text='Show the "For You" block on the home page (signed-in users only; guests see a sign-in prompt).',
+    )
+    show_mindset_live = models.BooleanField(
+        default=True,
+        help_text='Show the "Mindset Live" preview section (3 themes).',
     )
     show_explore_topics = models.BooleanField(
         default=True,
@@ -212,20 +192,9 @@ class HomePageContent(models.Model):
 
     def clean(self):
         super().clean()
-        lim = self.content_strip_limit
-        if lim < 3 or lim > 12:
-            raise ValidationError({"content_strip_limit": "Must be between 3 and 12."})
         if (self.cta_primary_label or "").strip() and not (self.cta_primary_url or "").strip():
             raise ValidationError(
                 {"cta_primary_url": "URL is required when the primary button label is set."}
-            )
-        if (self.cta_secondary_label or "").strip() and not (self.cta_secondary_url or "").strip():
-            raise ValidationError(
-                {"cta_secondary_url": "URL is required when the secondary button label is set."}
-            )
-        if (self.trust_line or "").strip() and not (self.trust_link_url or "").strip():
-            raise ValidationError(
-                {"trust_link_url": "URL is required when the trust line is set."}
             )
         if (self.cta_footer_label or "").strip() and not (self.cta_footer_url or "").strip():
             raise ValidationError(

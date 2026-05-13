@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 
 from admin_panel.decorators import admin_required
-from pages.models import HomePageContent, HomeQuickLink
+from pages.models import HomeQuickLink
 from pages.home_content import get_home_page
 from pages.static_pages import get_about_page, get_contacts_page
 
@@ -134,50 +134,20 @@ def home_page_edit(request):
                 messages.error(request, "Label and URL are required for a new quick link.")
             return redirect("admin_panel:home_page_edit")
 
-        # Main home content form
+        # Main home content form (minimalist: SEO + Hero + Primary CTA + section toggles)
         home.browser_title = request.POST.get("browser_title", "").strip()[:120]
         home.meta_description = request.POST.get("meta_description", "").strip()[:320]
         home.hero_h1 = request.POST.get("hero_h1", "").strip()[:200]
         home.hero_lede = request.POST.get("hero_lede", "").strip()
         home.cta_primary_label = request.POST.get("cta_primary_label", "").strip()[:120]
         home.cta_primary_url = request.POST.get("cta_primary_url", "").strip()[:500]
-        home.cta_secondary_label = request.POST.get("cta_secondary_label", "").strip()[:120]
-        home.cta_secondary_url = request.POST.get("cta_secondary_url", "").strip()[:500]
-        home.trust_line = request.POST.get("trust_line", "").strip()[:255]
-        home.trust_link_url = request.POST.get("trust_link_url", "").strip()[:500]
         home.show_quick_links = request.POST.get("show_quick_links") == "on"
-        home.show_decorative_astronauts = request.POST.get("show_decorative_astronauts") == "on"
-        home.content_strip_mode = request.POST.get("content_strip_mode", HomePageContent.STRIP_POPULAR)
-        if home.content_strip_mode not in dict(HomePageContent.STRIP_CHOICES):
-            home.content_strip_mode = HomePageContent.STRIP_POPULAR
-        try:
-            home.content_strip_limit = int(request.POST.get("content_strip_limit", 6) or 6)
-        except ValueError:
-            home.content_strip_limit = 6
-        try:
-            home.popular_min_likes = int(request.POST.get("popular_min_likes", 6) or 6)
-        except ValueError:
-            home.popular_min_likes = 6
-        home.show_editor_picks = request.POST.get("show_editor_picks") == "on"
-        home.editor_pick_order_after_strip = request.POST.get("editor_pick_order_after_strip") == "on"
         home.show_in_trend = request.POST.get("show_in_trend") == "on"
-        home.show_for_you_section = request.POST.get("show_for_you_section") == "on"
+        home.show_mindset_live = request.POST.get("show_mindset_live") == "on"
         home.show_explore_topics = request.POST.get("show_explore_topics") == "on"
-        home.show_latest_brainews = request.POST.get("show_latest_brainews") == "on"
-        home.show_bottom_cta = request.POST.get("show_bottom_cta") == "on"
-        home.cta_footer_title = request.POST.get("cta_footer_title", "").strip()
-        home.cta_footer_label = request.POST.get("cta_footer_label", "").strip()[:120]
-        home.cta_footer_url = request.POST.get("cta_footer_url", "").strip()[:500]
 
         hero_feat = _parse_item_pk(request.POST.get("hero_featured_item"))
         home.hero_featured_item_id = hero_feat
-
-        p1 = _parse_item_pk(request.POST.get("editor_pick_1"))
-        p2 = _parse_item_pk(request.POST.get("editor_pick_2"))
-        p3 = _parse_item_pk(request.POST.get("editor_pick_3"))
-        home.editor_pick_1_id = p1
-        home.editor_pick_2_id = p2
-        home.editor_pick_3_id = p3
 
         home.updated_by = request.user
         try:
@@ -196,5 +166,5 @@ def home_page_edit(request):
     return render(
         request,
         "admin/pages/home_page_edit.html",
-        {"page": home, "quick_links": quick_links, "strip_choices": HomePageContent.STRIP_CHOICES},
+        {"page": home, "quick_links": quick_links},
     )

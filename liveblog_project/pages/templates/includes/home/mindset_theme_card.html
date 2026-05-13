@@ -1,0 +1,25 @@
+{% load static %}
+{% load counters %}
+<article class="home-mindset-card">
+  <a href="{% url 'mindset:theme_detail' theme.pk %}" class="home-mindset-card__link">
+    <header class="home-mindset-card__head">
+      <span class="home-mindset-card__avatar" aria-hidden="true">
+        {% if theme.author.profile.avatar_file or theme.author.profile.avatar_url %}
+          <img src="{{ theme.author.profile.get_avatar }}" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        {% else %}
+          <img src="{% static 'img/no_avatar.svg' %}" alt="" width="32" height="32" loading="lazy" decoding="async" />
+        {% endif %}
+      </span>
+      <span class="home-mindset-card__author">
+        <span class="home-mindset-card__username">@{{ theme.author.username }}</span>
+        <span class="home-mindset-card__time">{{ theme.human_published }}</span>
+      </span>
+    </header>
+    <p class="home-mindset-card__body">{{ theme.body_text|truncatechars:140 }}</p>
+    <div class="home-mindset-card__meta">
+      <span class="home-mindset-card__counter" aria-label="Replies"><i class="fa fa-comment-o" aria-hidden="true"></i> {{ theme.replies_count|human }}</span>
+      <span class="home-mindset-card__counter" aria-label="Likes"><i class="fa fa-heart-o" aria-hidden="true"></i> {{ theme.likes_count|human }}</span>
+      <span class="home-mindset-card__counter" aria-label="Reposts"><i class="fa fa-retweet" aria-hidden="true"></i> {{ theme.reposts_count|human }}</span>
+    </div>
+  </a>
+</article>

@@ -46,112 +46,32 @@
             <label for="id_hero_featured_item">Hero featured post (optional) — post ID for the large card on the right</label>
             <input type="text" id="id_hero_featured_item" name="hero_featured_item" value="{{ page.hero_featured_item_id|default:'' }}" class="admin-input" placeholder="e.g. 12" maxlength="20">
         </div>
-        <h2 class="h6 text-muted mb-3 mt-4">Call to action buttons</h2>
+        <h2 class="h6 text-muted mb-3 mt-4">Primary CTA</h2>
         <div class="admin-form-group">
-            <label for="id_cta_primary_label">Primary label</label>
+            <label for="id_cta_primary_label">Label</label>
             <input type="text" id="id_cta_primary_label" name="cta_primary_label" value="{{ page.cta_primary_label }}" class="admin-input" maxlength="120">
         </div>
         <div class="admin-form-group">
-            <label for="id_cta_primary_url">Primary URL (path or https)</label>
+            <label for="id_cta_primary_url">URL (path or https)</label>
             <input type="text" id="id_cta_primary_url" name="cta_primary_url" value="{{ page.cta_primary_url }}" class="admin-input" maxlength="500">
         </div>
-        <div class="admin-form-group">
-            <label for="id_cta_secondary_label">Secondary label</label>
-            <input type="text" id="id_cta_secondary_label" name="cta_secondary_label" value="{{ page.cta_secondary_label }}" class="admin-input" maxlength="120">
-        </div>
-        <div class="admin-form-group">
-            <label for="id_cta_secondary_url">Secondary URL</label>
-            <input type="text" id="id_cta_secondary_url" name="cta_secondary_url" value="{{ page.cta_secondary_url }}" class="admin-input" maxlength="500">
-        </div>
-        <h2 class="h6 text-muted mb-3 mt-4">Trust line (optional)</h2>
-        <div class="admin-form-group">
-            <label for="id_trust_line">Text</label>
-            <input type="text" id="id_trust_line" name="trust_line" value="{{ page.trust_line }}" class="admin-input" maxlength="255">
-        </div>
-        <div class="admin-form-group">
-            <label for="id_trust_link_url">Link URL</label>
-            <input type="text" id="id_trust_link_url" name="trust_link_url" value="{{ page.trust_link_url }}" class="admin-input" maxlength="500">
-        </div>
         <h2 class="h6 text-muted mb-3 mt-4">Public home — sections</h2>
-        <p class="text-muted small">Toggle blocks on the live homepage. The full &quot;For you&quot; feed (BraiNews filter and <code>/for-you/</code>) is for signed-in users only.</p>
+        <p class="text-muted small">Toggle blocks on the live homepage.</p>
+        <div class="admin-form-group admin-form-group--checkbox-row">
+            <input type="checkbox" id="id_show_quick_links" name="show_quick_links" class="admin-checkbox-input" {% if page.show_quick_links %}checked{% endif %}>
+            <label for="id_show_quick_links" class="admin-checkbox-label">Quick links row</label>
+        </div>
         <div class="admin-form-group admin-form-group--checkbox-row">
             <input type="checkbox" id="id_show_in_trend" name="show_in_trend" class="admin-checkbox-input" {% if page.show_in_trend %}checked{% endif %}>
             <label for="id_show_in_trend" class="admin-checkbox-label">In Trend (trending posts)</label>
         </div>
         <div class="admin-form-group admin-form-group--checkbox-row">
-            <input type="checkbox" id="id_show_for_you_section" name="show_for_you_section" class="admin-checkbox-input" {% if page.show_for_you_section %}checked{% endif %}>
-            <label for="id_show_for_you_section" class="admin-checkbox-label">For you on home (recommendations or sign-in CTA)</label>
+            <input type="checkbox" id="id_show_mindset_live" name="show_mindset_live" class="admin-checkbox-input" {% if page.show_mindset_live %}checked{% endif %}>
+            <label for="id_show_mindset_live" class="admin-checkbox-label">Mindset Live (3 themes preview)</label>
         </div>
         <div class="admin-form-group admin-form-group--checkbox-row">
             <input type="checkbox" id="id_show_explore_topics" name="show_explore_topics" class="admin-checkbox-input" {% if page.show_explore_topics %}checked{% endif %}>
             <label for="id_show_explore_topics" class="admin-checkbox-label">Explore Topics</label>
-        </div>
-        <div class="admin-form-group admin-form-group--checkbox-row">
-            <input type="checkbox" id="id_show_latest_brainews" name="show_latest_brainews" class="admin-checkbox-input" {% if page.show_latest_brainews %}checked{% endif %}>
-            <label for="id_show_latest_brainews" class="admin-checkbox-label">Latest BraiNews</label>
-        </div>
-        <div class="admin-form-group admin-form-group--checkbox-row">
-            <input type="checkbox" id="id_show_bottom_cta" name="show_bottom_cta" class="admin-checkbox-input" {% if page.show_bottom_cta %}checked{% endif %}>
-            <label for="id_show_bottom_cta" class="admin-checkbox-label">Bottom CTA banner</label>
-        </div>
-        <div class="admin-form-group">
-            <label for="id_cta_footer_title">Bottom CTA — title</label>
-            <input type="text" id="id_cta_footer_title" name="cta_footer_title" value="{{ page.cta_footer_title }}" class="admin-input" maxlength="200">
-        </div>
-        <div class="admin-form-group">
-            <label for="id_cta_footer_label">Bottom CTA — button label</label>
-            <input type="text" id="id_cta_footer_label" name="cta_footer_label" value="{{ page.cta_footer_label }}" class="admin-input" maxlength="120">
-        </div>
-        <div class="admin-form-group">
-            <label for="id_cta_footer_url">Bottom CTA — button URL</label>
-            <input type="text" id="id_cta_footer_url" name="cta_footer_url" value="{{ page.cta_footer_url }}" class="admin-input" maxlength="500">
-        </div>
-        <h2 class="h6 text-muted mb-3 mt-4">Legacy content strip (unused on new home layout)</h2>
-        <p class="text-muted small">Kept for compatibility. In Trend on the live site uses the limit below; popular/trending mode here is not rendered on the public homepage.</p>
-        <div class="admin-form-group">
-            <label for="id_content_strip_mode">Mode</label>
-            <select id="id_content_strip_mode" name="content_strip_mode" class="admin-input">
-                {% for val, label in strip_choices %}
-                <option value="{{ val }}" {% if page.content_strip_mode == val %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="admin-form-group">
-            <label for="id_content_strip_limit">Item count (3–12)</label>
-            <input type="number" id="id_content_strip_limit" name="content_strip_limit" value="{{ page.content_strip_limit }}" class="admin-input" min="3" max="12">
-        </div>
-        <div class="admin-form-group">
-            <label for="id_popular_min_likes">Popular: minimum likes threshold</label>
-            <input type="number" id="id_popular_min_likes" name="popular_min_likes" value="{{ page.popular_min_likes }}" class="admin-input" min="0">
-        </div>
-        <div class="admin-form-group admin-form-group--checkbox-row">
-            <input type="checkbox" id="id_show_quick_links" name="show_quick_links" class="admin-checkbox-input" {% if page.show_quick_links %}checked{% endif %}>
-            <label for="id_show_quick_links" class="admin-checkbox-label">Show quick links row</label>
-        </div>
-        <div class="admin-form-group admin-form-group--checkbox-row">
-            <input type="checkbox" id="id_show_decorative_astronauts" name="show_decorative_astronauts" class="admin-checkbox-input" {% if page.show_decorative_astronauts %}checked{% endif %}>
-            <label for="id_show_decorative_astronauts" class="admin-checkbox-label">Show decorative astronauts block</label>
-        </div>
-        <h2 class="h6 text-muted mb-3 mt-4">Editor picks (optional)</h2>
-        <div class="admin-form-group admin-form-group--checkbox-row">
-            <input type="checkbox" id="id_show_editor_picks" name="show_editor_picks" class="admin-checkbox-input" {% if page.show_editor_picks %}checked{% endif %}>
-            <label for="id_show_editor_picks" class="admin-checkbox-label">Show editor picks</label>
-        </div>
-        <div class="admin-form-group admin-form-group--checkbox-row">
-            <input type="checkbox" id="id_editor_pick_order_after_strip" name="editor_pick_order_after_strip" class="admin-checkbox-input" {% if page.editor_pick_order_after_strip %}checked{% endif %}>
-            <label for="id_editor_pick_order_after_strip" class="admin-checkbox-label">Editor picks below main strip (otherwise above)</label>
-        </div>
-        <div class="admin-form-group">
-            <label for="id_editor_pick_1">Editor pick 1 — post ID</label>
-            <input type="text" id="id_editor_pick_1" name="editor_pick_1" value="{{ page.editor_pick_1_id|default:'' }}" class="admin-input" placeholder="e.g. 42">
-        </div>
-        <div class="admin-form-group">
-            <label for="id_editor_pick_2">Editor pick 2 — post ID</label>
-            <input type="text" id="id_editor_pick_2" name="editor_pick_2" value="{{ page.editor_pick_2_id|default:'' }}" class="admin-input">
-        </div>
-        <div class="admin-form-group">
-            <label for="id_editor_pick_3">Editor pick 3 — post ID</label>
-            <input type="text" id="id_editor_pick_3" name="editor_pick_3" value="{{ page.editor_pick_3_id|default:'' }}" class="admin-input">
         </div>
         <div class="admin-form-actions">
             <button type="submit" class="admin-button admin-button-primary">Save home</button>
