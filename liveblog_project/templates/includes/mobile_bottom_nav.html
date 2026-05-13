@@ -5,6 +5,13 @@
     <div class="mobile-bottom-nav__scroll">
       <div class="mobile-bottom-nav__track">
         <span class="mobile-bottom-nav__slide" aria-hidden="true"></span>
+        <a href="{% url 'mindset:theme_list' %}" class="mobile-bottom-nav__link mobile-bottom-nav__nav-cell{% if ns == 'mindset' %} mobile-bottom-nav__link--active{% endif %}">
+          <span class="mobile-bottom-nav__icon-wrap" aria-hidden="true">
+            <i class="fa fa-at mobile-bottom-nav__icon" aria-hidden="true"></i>
+          </span>
+          <span class="mobile-bottom-nav__label">Mindset</span>
+        </a>
+
         <a href="{% url 'smart_blog:trending_list' %}" class="mobile-bottom-nav__link mobile-bottom-nav__nav-cell{% if ns == 'smart_blog' and un == 'trending_list' %} mobile-bottom-nav__link--active{% endif %}">
           <span class="mobile-bottom-nav__icon-wrap" aria-hidden="true">
             <i class="fa fa-fire mobile-bottom-nav__icon" aria-hidden="true"></i>
@@ -17,13 +24,6 @@
             <i class="fa fa-compass mobile-bottom-nav__icon" aria-hidden="true"></i>
           </span>
           <span class="mobile-bottom-nav__label">Topics</span>
-        </a>
-
-        <a href="{% url 'mindset:theme_list' %}" class="mobile-bottom-nav__link mobile-bottom-nav__nav-cell{% if ns == 'mindset' %} mobile-bottom-nav__link--active{% endif %}">
-          <span class="mobile-bottom-nav__icon-wrap" aria-hidden="true">
-            <i class="fa fa-at mobile-bottom-nav__icon" aria-hidden="true"></i>
-          </span>
-          <span class="mobile-bottom-nav__label">Mindset</span>
         </a>
 
         <div class="mobile-bottom-nav__tail-group">

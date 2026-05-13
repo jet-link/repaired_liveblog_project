@@ -581,6 +581,50 @@ html[data-theme="dark"] .mindset-reply {
   gap: 0.4rem;
 }
 
+/* Theme detail: "Go back to Mindset" return link.
+   Stylistically aligned with .mindset-active-tag — same inline-flex rail and small spacing. */
+.mindset-back-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mindset-back-link__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  /* font-size: 0.9rem; */
+  line-height: 1;
+  /* padding: 0.35rem 0.1rem; */
+  transition: color 0.18s ease;
+}
+
+.mindset-back-link__link:hover,
+.mindset-back-link__link:focus-visible {
+  color: var(--text-link);
+}
+
+.mindset-back-link__icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.mindset-back-link__target {
+  color: var(--bs-primary, #0d6efd);
+  font-weight: 600;
+}
+
+.mindset-back-link__link:hover .mindset-back-link__target,
+.mindset-back-link__link:focus-visible .mindset-back-link__target {
+  text-decoration: underline;
+}
+
+html[data-theme="dark"] .mindset-back-link__target {
+  color: #58a6ff;
+}
+
 /* Pagination */
 .mindset-pagination .page-link {
   border-radius: 999px;

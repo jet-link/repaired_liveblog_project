@@ -3,23 +3,22 @@
   <header class="header">
     <div class="container-main">
       <nav class="nav header-nav" aria-label="Primary">
+        {% with nav_name=request.resolver_match.url_name|default:'' nav_ns=request.resolver_match.namespace|default:'' %}
         <div class="bottom-left-nav header-brand">
-          <a href="/" class="brand-minimal" aria-label="brainstorm.news"><span class="brand-full">brainstorm.news</span><span class="brand-short">bstrm.news</span></a>
+          <a href="/" class="brand-minimal{% if nav_ns == 'smart_blog' and nav_name == 'items_list' %} brand-minimal--active{% endif %}" aria-label="brainstorm.news"{% if nav_ns == 'smart_blog' and nav_name == 'items_list' %} aria-current="page"{% endif %}><span class="brand-full">brainstorm.news</span><span class="brand-short">bstrm.news</span></a>
+          <span class="header-brand-divider" aria-hidden="true"></span>
           <div class="header-menu d-flex align-items-center small">
-            {% with nav_name=request.resolver_match.url_name|default:'' %}
+             <a href="{% url 'mindset:theme_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_ns == 'mindset' %} active{% endif %}"><span class="header-menu-item__label">@ Mindset</span></a>
             <a href="{% url 'smart_blog:trending_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'trending_list' %} active{% endif %}"><span class="header-menu-item__label">In trend</span></a>
             <a href="{% url 'smart_blog:topics_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'topics_list' or nav_name == 'topic_detail' %} active{% endif %}"><span class="header-menu-item__label">Topics</span></a>
-            {% with nav_ns=request.resolver_match.namespace|default:'' %}
-            <a href="{% url 'mindset:theme_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_ns == 'mindset' %} active{% endif %}"><span class="header-menu-item__label">@ Mindset</span></a>
-            {% endwith %}
             {% comment %} <a href="#" class="header-menu-item text-decoration-none text-muted categories-modal-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoriesModalDialog">
               Categories
               <i class="fa fa-angle-down ms-1" aria-hidden="true"></i>
               <i class="fa fa-angle-up ms-1 hidden" aria-hidden="true"></i>
             </a> {% endcomment %}
-            {% endwith %}
           </div>
         </div>
+        {% endwith %}
         <div class="d-flex align-items-center gap-1 header-actions">
           <div class="header-utility-segment" role="group" aria-label="Search and theme">
             <div class="header-utility-segment__bar filter-segment-bar">

@@ -1454,6 +1454,38 @@ html[data-theme="dark"] .theme-toggle-btn .theme-toggle-icon--sun {
     text-decoration: none;
     font-size: 1rem;
     letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    /* padding: 0.2rem 0.55rem; */
+    border-radius: 6px;
+    transition: color 0.18s ease, text-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.brand-minimal:hover {
+    color: var(--text-link-hover) !important;
+}
+
+.brand-minimal:focus-visible {
+    outline: 2px solid var(--text-link);
+    outline-offset: 2px;
+}
+
+/* Active state: subtle glow when current page is the brainstorm.news home (items_list at "/"). */
+.brand-minimal--active {
+    color: var(--text-link) !important;
+    text-shadow:
+        0 0 6px color-mix(in srgb, var(--text-link) 32%, transparent),
+        0 0 14px color-mix(in srgb, var(--text-link) 18%, transparent);
+}
+
+.brand-minimal--active:hover {
+    color: var(--text-link) !important;
+}
+
+html[data-theme="dark"] .brand-minimal--active {
+    text-shadow:
+        0 0 8px color-mix(in srgb, var(--text-link) 45%, transparent),
+        0 0 18px color-mix(in srgb, var(--text-link) 26%, transparent);
 }
 
 .brand-minimal .brand-short { display: none; }
@@ -1461,6 +1493,20 @@ html[data-theme="dark"] .theme-toggle-btn .theme-toggle-icon--sun {
 @media (max-width: 991px) {
     .brand-minimal .brand-full  { display: none; }
     .brand-minimal .brand-short { display: inline; }
+}
+
+/* Vertical divider between the brand and the primary menu (desktop only). */
+.header-brand-divider {
+    flex-shrink: 0;
+    width: 1px;
+    height: 20px;
+    background-color: #dfe6e9;
+    align-self: center;
+    opacity: 0.85;
+}
+
+@media (max-width: 991px) {
+    .header-brand-divider { display: none; }
 }
 
 .header-actions {
