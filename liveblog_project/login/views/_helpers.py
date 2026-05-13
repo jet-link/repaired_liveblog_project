@@ -65,7 +65,7 @@ def _referer_breadcrumb_info(request, referer_url):
     """Return (title, url) for a breadcrumb based on HTTP referer."""
     fallback_url = reverse("smart_blog:items_list")
     if not referer_url:
-        return "BraiNews", fallback_url
+        return "brainstorm.news", fallback_url
 
     parsed = urlparse(referer_url)
     path = parsed.path or "/"
@@ -102,7 +102,7 @@ def _referer_breadcrumb_info(request, referer_url):
         elif url_name == "trending_list":
             return "In trend", referer_url
         elif url_name == "items_list":
-            return "BraiNews", referer_url
+            return "brainstorm.news", referer_url
         elif url_name == "global_search":
             q = (query.get("q") or [""])[0]
             return (f"Found - {q}" if q else "Search"), referer_url
@@ -112,8 +112,6 @@ def _referer_breadcrumb_info(request, referer_url):
             sections = {"created": "Created", "liked": "Liked", "bookmarked": "Bookmarked"}
             section_title = sections.get(kwargs.get("section", ""), kwargs.get("section", "Section"))
             return f"{kwargs['username']} - {section_title}", referer_url
-        elif url_name == "home":
-            return "brainstorm.news", referer_url
         elif url_name == "comment_thread" and kwargs.get("pk"):
             qs = Comment.objects.filter(is_draft=False).select_related("item").filter(pk=kwargs["pk"])
             if kwargs.get("slug"):
@@ -125,7 +123,7 @@ def _referer_breadcrumb_info(request, referer_url):
     except Resolver404:
         pass
 
-    return "BraiNews", referer_url
+    return "brainstorm.news", referer_url
 
 
 def build_profile_field(value, field_type, is_owner=False):

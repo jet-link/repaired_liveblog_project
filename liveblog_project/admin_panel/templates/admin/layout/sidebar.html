@@ -105,11 +105,6 @@
 
             <div class="admin-nav-group">
                 <div class="admin-nav-group-title">Static</div>
-                <a href="{% url 'admin_panel:home_page_edit' %}"
-                    class="admin-nav-item {% if request.resolver_match.url_name == 'home_page_edit' %}active{% endif %}">
-                    <i class="admin-nav-icon fa-solid fa-house"></i>
-                    <span class="admin-nav-text">Home</span>
-                </a>
                 <a href="{% url 'admin_panel:about_page_edit' %}"
                     class="admin-nav-item {% if request.resolver_match.url_name == 'about_page_edit' %}active{% endif %}">
                     <i class="admin-nav-icon fa-regular fa-file-lines"></i>

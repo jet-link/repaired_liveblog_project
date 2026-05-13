@@ -70,6 +70,7 @@
      */
     function isContentPreloaderSourcePage() {
         var p = normPath(location.pathname);
+        if (p === '' || p === '/') return true;
         if (p === '/search' || p.startsWith('/search/')) return true;
         if (p === '/brainews' || p.startsWith('/brainews/')) return true;
         if (p === '/for-you' || p.startsWith('/for-you/')) return true;

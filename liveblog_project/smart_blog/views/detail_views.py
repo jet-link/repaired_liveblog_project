@@ -179,7 +179,7 @@ def item_detail(request, slug):
         )
     elif source == "items_list":
         breadcrumbs = build_breadcrumbs(
-            breadcrumb("BraiNews", safe_source_url or reverse("smart_blog:items_list")),
+            breadcrumb("brainstorm.news", safe_source_url or reverse("smart_blog:items_list")),
             breadcrumb(item.title, None),
         )
     elif source == "trending":
@@ -188,9 +188,9 @@ def item_detail(request, slug):
             breadcrumb(item.title, None),
         )
     elif source == "for_you":
-        # For-you feed is the BraiNews filter, not a separate hub; trail always returns to BraiNews.
+        # For-you feed is a brainstorm.news filter, not a separate hub; trail always returns home.
         breadcrumbs = build_breadcrumbs(
-            breadcrumb("BraiNews", reverse("smart_blog:items_list")),
+            breadcrumb("brainstorm.news", reverse("smart_blog:items_list")),
             breadcrumb(item.title, None),
         )
     elif source == "popular":
@@ -232,7 +232,7 @@ def item_detail(request, slug):
         )
     else:
         breadcrumbs = build_breadcrumbs(
-            breadcrumb("BraiNews", reverse("smart_blog:items_list")),
+            breadcrumb("brainstorm.news", reverse("smart_blog:items_list")),
             breadcrumb(item.title, None),
         )
 

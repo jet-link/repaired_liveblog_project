@@ -4,17 +4,8 @@ from django.template import TemplateDoesNotExist
 from django.views import View
 
 from pages.services.faq_list import get_public_faq_items
-from pages.services.home_context import build_home_page_context
 from pages.services.sitemap_html import build_sitemap_page_context
 from pages.static_pages import get_about_page_for_public, get_contacts_page_for_public
-
-
-def home_page(request):
-    context = build_home_page_context(request)
-    return render(request, "pages/home.html", context)
-
-
-home_view = home_page
 
 
 class PageView(View):

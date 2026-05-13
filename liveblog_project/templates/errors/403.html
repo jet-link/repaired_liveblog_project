@@ -22,7 +22,7 @@
       <div class="container-main">
         <div class="error-page-card error-page-card--denied">
           <p class="error-page-brand">
-            <a href="{% url 'pages:home' %}" class="error-page-brand-link">brainstorm.news</a>
+            <a href="{% url 'smart_blog:items_list' %}" class="error-page-brand-link">brainstorm.news</a>
           </p>
           <p class="error-page-code error-page-code--denied" aria-hidden="true">403</p>
           <h1 class="error-page-title">Access denied</h1>
@@ -31,7 +31,7 @@
             Try signing in or return to the home page.
           </p>
           <div class="error-page-actions">
-            <a href="{% url 'pages:home' %}" class="cstm-btn-sm custom-primary-btn">Home</a>
+            <a href="{% url 'smart_blog:items_list' %}" class="cstm-btn-sm custom-primary-btn">brainstorm.news</a>
             {% if not user.is_authenticated %}
               <a href="{% url 'login_app:login' %}" class="cstm-btn-sm custom-secondary-btn">Sign in</a>
             {% else %}

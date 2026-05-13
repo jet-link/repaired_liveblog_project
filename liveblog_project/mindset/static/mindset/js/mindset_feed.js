@@ -15,6 +15,8 @@
   var SIDEBAR_POLL_MS = 30000;
   var REPLY_COOLDOWN_SEC = 30;
   var REPLY_COOLDOWN_KEY_PREFIX = 'mindset_reply_cooldown_until_';
+  var THEME_CREATE_COOLDOWN_SEC = 60;
+  var THEME_CREATE_COOLDOWN_KEY_PREFIX = 'mindset_theme_create_until_';
 
   function humanize(n) {
     n = Number(n);
@@ -432,6 +434,95 @@
     return isNaN(n) ? null : n;
   }
 
+  // ---- "Add theme" cooldown (60s after publish, per user; like comment_form) -
+
+  function themeCreateCooldownStorageKey(userId) {
+    if (!userId) return null;
+    return THEME_CREATE_COOLDOWN_KEY_PREFIX + userId;
+  }
+
+  function getThemeCreateCooldownRemaining(userId) {
+    var key = themeCreateCooldownStorageKey(userId);
+    if (!key) return 0;
+    var until = Number(localStorage.getItem(key) || 0);
+    var diff = Math.ceil((until - Date.now()) / 1000);
+    return diff > 0 ? diff : 0;
+  }
+
+  function syncOneMindsetNewThemeBtn(el, userId) {
+    if (!el || !userId) return;
+    if (!el.dataset.mindsetNewLabel) {
+      el.dataset.mindsetNewLabel = el.textContent.trim();
+    }
+    if (!el.dataset.mindsetNewHref) {
+      el.dataset.mindsetNewHref = el.getAttribute('href') || '';
+    }
+    var left = getThemeCreateCooldownRemaining(userId);
+    if (left > 0) {
+      el.classList.add('is-blocked');
+      el.setAttribute('aria-disabled', 'true');
+      el.setAttribute('href', '#');
+      el.textContent = 'Wait ' + left + 's';
+
+      if (el.__themeCreateCooldownTimer) {
+        clearInterval(el.__themeCreateCooldownTimer);
+        el.__themeCreateCooldownTimer = null;
+      }
+      el.__themeCreateCooldownTimer = setInterval(function () {
+        var rem = getThemeCreateCooldownRemaining(userId);
+        if (rem <= 0) {
+          clearInterval(el.__themeCreateCooldownTimer);
+          el.__themeCreateCooldownTimer = null;
+          var k = themeCreateCooldownStorageKey(userId);
+          if (k) localStorage.removeItem(k);
+          el.classList.remove('is-blocked');
+          el.removeAttribute('aria-disabled');
+          el.textContent = el.dataset.mindsetNewLabel || 'Add theme';
+          var h = el.dataset.mindsetNewHref;
+          if (h) el.setAttribute('href', h);
+          return;
+        }
+        el.textContent = 'Wait ' + rem + 's';
+      }, 1000);
+      return;
+    }
+
+    if (el.__themeCreateCooldownTimer) {
+      clearInterval(el.__themeCreateCooldownTimer);
+      el.__themeCreateCooldownTimer = null;
+    }
+    el.classList.remove('is-blocked');
+    el.removeAttribute('aria-disabled');
+    el.textContent = el.dataset.mindsetNewLabel || 'Add theme';
+    var hrefBack = el.dataset.mindsetNewHref;
+    if (hrefBack) el.setAttribute('href', hrefBack);
+  }
+
+  function consumeThemePostedQuery(userId) {
+    try {
+      var u = new URL(window.location.href);
+      if (u.searchParams.get('theme_posted') !== '1') return;
+      if (!userId) return;
+      u.searchParams.delete('theme_posted');
+      var qs = u.searchParams.toString();
+      var clean = u.pathname + (qs ? '?' + qs : '') + u.hash;
+      window.history.replaceState({}, '', clean);
+      var key = themeCreateCooldownStorageKey(userId);
+      if (key) {
+        localStorage.setItem(key, String(Date.now() + THEME_CREATE_COOLDOWN_SEC * 1000));
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  function initMindsetNewThemeCooldown(root) {
+    var userId = getUserId(root);
+    if (!userId) return;
+    consumeThemePostedQuery(userId);
+    document.querySelectorAll('a.mindset-new-btn').forEach(function (el) {
+      syncOneMindsetNewThemeBtn(el, userId);
+    });
+  }
+
   // ---- action handlers (instant for the actor) -----------------------------
 
   function bindRoot(root) {
@@ -742,6 +833,7 @@
     bindRoot(root);
     bindDeleteModal();
     initAllReplyCooldowns(root);
+    initMindsetNewThemeCooldown(root);
 
     if (!root.__mindsetTimers) {
       root.__mindsetTimers = true;

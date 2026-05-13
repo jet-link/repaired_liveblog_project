@@ -18,6 +18,8 @@
     function isAllowedPath(pathname) {
         try {
             const p = (pathname || location.pathname || '').toLowerCase();
+            // brainstorm.news home now lives at "/" — treat root as an allowed listing surface.
+            if (p === '' || p === '/') return true;
             return ALLOWED_PATTERNS.some(t => p.includes(t));
         } catch {
             return false;

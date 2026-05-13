@@ -110,7 +110,6 @@ urlpatterns = [
 
     # Pages / FAQ / static site pages
     path('pages/about/', views.about_page_edit, name='about_page_edit'),
-    path('pages/home/', views.home_page_edit, name='home_page_edit'),
     path('pages/contacts/', views.contacts_page_edit, name='contacts_page_edit'),
     path('faq/', views.faq_list, name='faq_list'),
     path('faq/create/', views.faq_create, name='faq_create'),

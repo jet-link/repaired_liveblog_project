@@ -22,7 +22,7 @@
       <div class="container-main">
         <div class="error-page-card">
           <p class="error-page-brand">
-            <a href="{% url 'pages:home' %}" class="error-page-brand-link">brainstorm.news</a>
+            <a href="{% url 'smart_blog:items_list' %}" class="error-page-brand-link">brainstorm.news</a>
           </p>
           <p class="error-page-code" aria-hidden="true">404</p>
           <h1 class="error-page-title">Page not found</h1>
@@ -31,8 +31,7 @@
             Check the URL or return to the home page.
           </p>
           <div class="error-page-actions">
-            <a href="{% url 'pages:home' %}" class="cstm-btn-sm custom-primary-btn">Home</a>
-            <a href="{% url 'smart_blog:items_list' %}" class="cstm-btn-sm custom-secondary-btn">BraiNews</a>
+            <a href="{% url 'smart_blog:items_list' %}" class="cstm-btn-sm custom-primary-btn">brainstorm.news</a>
           </div>
         </div>
       </div>

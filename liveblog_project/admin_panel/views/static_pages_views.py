@@ -1,11 +1,8 @@
-"""Edit public About / Contacts / Home page copy (superuser only)."""
+"""Edit public About / Contacts page copy (superuser only)."""
 from django.contrib import messages
-from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 
 from admin_panel.decorators import admin_required
-from pages.models import HomeQuickLink
-from pages.home_content import get_home_page
 from pages.static_pages import get_about_page, get_contacts_page
 
 
@@ -73,98 +70,3 @@ def contacts_page_edit(request):
     return render(request, 'admin/pages/contacts_page_edit.html', {'page': page})
 
 
-def _parse_item_pk(raw):
-    if raw is None or str(raw).strip() == "":
-        return None
-    try:
-        return int(str(raw).strip())
-    except ValueError:
-        return None
-
-
-@admin_required
-def home_page_edit(request):
-    redir = _superuser_or_dashboard(request)
-    if redir:
-        return redir
-
-    home = get_home_page()
-    quick_links = list(HomeQuickLink.objects.all().order_by("order", "pk"))
-
-    if request.method == "POST":
-        form_type = request.POST.get("form_type", "home")
-
-        if form_type == "quicklink_delete":
-            pk = request.POST.get("ql_id")
-            try:
-                HomeQuickLink.objects.filter(pk=int(pk)).delete()
-                messages.success(request, "Quick link removed.")
-            except (TypeError, ValueError):
-                messages.error(request, "Invalid quick link.")
-            return redirect("admin_panel:home_page_edit")
-
-        if form_type == "quicklink_save":
-            pk = request.POST.get("ql_id")
-            try:
-                ql = HomeQuickLink.objects.get(pk=int(pk))
-                ql.label = request.POST.get("label", "").strip()[:120]
-                ql.url = request.POST.get("url", "").strip()[:500]
-                ql.icon_class = request.POST.get("icon_class", "").strip()[:80]
-                ql.order = int(request.POST.get("order", 0) or 0)
-                ql.is_active = request.POST.get("is_active") == "on"
-                ql.save()
-                messages.success(request, "Quick link saved.")
-            except (TypeError, ValueError, HomeQuickLink.DoesNotExist):
-                messages.error(request, "Could not save quick link.")
-            return redirect("admin_panel:home_page_edit")
-
-        if form_type == "quicklink_add":
-            label = request.POST.get("new_label", "").strip()[:120]
-            url = request.POST.get("new_url", "").strip()[:500]
-            if label and url:
-                HomeQuickLink.objects.create(
-                    label=label,
-                    url=url,
-                    icon_class=request.POST.get("new_icon_class", "").strip()[:80],
-                    order=int(request.POST.get("new_order", 0) or 0),
-                    is_active=request.POST.get("new_is_active") == "on",
-                )
-                messages.success(request, "Quick link added.")
-            else:
-                messages.error(request, "Label and URL are required for a new quick link.")
-            return redirect("admin_panel:home_page_edit")
-
-        # Main home content form (minimalist: SEO + Hero + Primary CTA + section toggles)
-        home.browser_title = request.POST.get("browser_title", "").strip()[:120]
-        home.meta_description = request.POST.get("meta_description", "").strip()[:320]
-        home.hero_h1 = request.POST.get("hero_h1", "").strip()[:200]
-        home.hero_lede = request.POST.get("hero_lede", "").strip()
-        home.cta_primary_label = request.POST.get("cta_primary_label", "").strip()[:120]
-        home.cta_primary_url = request.POST.get("cta_primary_url", "").strip()[:500]
-        home.show_quick_links = request.POST.get("show_quick_links") == "on"
-        home.show_in_trend = request.POST.get("show_in_trend") == "on"
-        home.show_mindset_live = request.POST.get("show_mindset_live") == "on"
-        home.show_explore_topics = request.POST.get("show_explore_topics") == "on"
-
-        hero_feat = _parse_item_pk(request.POST.get("hero_featured_item"))
-        home.hero_featured_item_id = hero_feat
-
-        home.updated_by = request.user
-        try:
-            home.full_clean()
-        except ValidationError as e:
-            if hasattr(e, "error_dict") and e.error_dict:
-                first_errs = next(iter(e.error_dict.values()))
-                messages.error(request, first_errs[0])
-            else:
-                messages.error(request, e.messages[0] if e.messages else str(e))
-            return redirect("admin_panel:home_page_edit")
-        home.save()
-        messages.success(request, "Home page saved.")
-        return redirect("admin_panel:home_page_edit")
-
-    return render(
-        request,
-        "admin/pages/home_page_edit.html",
-        {"page": home, "quick_links": quick_links},
-    )

@@ -15,7 +15,6 @@
   <div class="bottom-menu-scroll">
   <nav class="bottom-menu-nav" aria-label="Primary">
     {% with nav_name=request.resolver_match.url_name|default:'' %}
-    <a href="{% url 'smart_blog:items_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'items_list' %} active{% endif %}"><i class="fa fa-newspaper-o header-menu-item__icon" aria-hidden="true"></i><span class="header-menu-item__label">BraiNews</span></a>
     <a href="{% url 'smart_blog:trending_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'trending_list' %} active{% endif %}"><i class="fa fa-fire header-menu-item__icon" aria-hidden="true"></i><span class="header-menu-item__label">In trend</span></a>
     <a href="{% url 'smart_blog:topics_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'topics_list' or nav_name == 'topic_detail' %} active{% endif %}"><i class="fa fa-folder-o header-menu-item__icon" aria-hidden="true"></i><span class="header-menu-item__label">Topics</span></a>
     {% comment %} <a href="#" class="header-menu-item text-decoration-none text-muted categories-modal-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoriesModalDialog">Categories</a> {% endcomment %}

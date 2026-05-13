@@ -114,13 +114,22 @@ blog_urlpatterns = [
 ]
 
 urlpatterns = [
+    path("", views.items_list, name="items_list"),
+    path("filter/", views.items_filtered, name="items_filtered"),
+    # Legacy brainews paths kept as 301 redirects (old links / external traffic).
+    path(
+        "brainews/",
+        RedirectView.as_view(pattern_name="smart_blog:items_list", permanent=True),
+    ),
+    path(
+        "brainews/filter/",
+        RedirectView.as_view(pattern_name="smart_blog:items_filtered", permanent=True),
+    ),
     path("for-you/", views_for_you.for_you_list, name="for_you_list"),
     path("trending/", views_trending.trending_list, name="trending_list"),
     path("topics/", views_topics.topics_list, name="topics_list"),
     path("topics/<slug:slug>/", views_topics.topic_detail, name="topic_detail"),
     path("tag/<slug:slug>/", views.tag_list, name="tag_list"),
-    path("brainews/filter/", views.items_filtered, name="items_filtered"),
-    path("brainews/", views.items_list, name="items_list"),
     path("post/create/", views.create_item, name="create_post"),
     path("post/<slug:slug>/edit/", views.edit_item, name="edit_post"),
     path(

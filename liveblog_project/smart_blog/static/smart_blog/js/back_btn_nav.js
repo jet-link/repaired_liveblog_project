@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!btn) return;
         e.preventDefault();
         var key = btn.getAttribute('data-return-key');
-        var fallback = btn.getAttribute('data-fallback') || '/brainews/';
+        var fallback = btn.getAttribute('data-fallback') || '/';
         if (!key) {
             showBrainPreloader();
             window.location.href = fallback;

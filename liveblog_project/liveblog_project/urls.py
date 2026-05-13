@@ -36,7 +36,7 @@ urlpatterns = [
     # Global search at /search/
     path('search/', smart_views.search_view, name='global_search'),
 
-    # Public feed hubs + /tag/, /post/, /brainews/; APIs and legacy paths under /blog/ (see smart_blog.urls)
+    # Public feed hubs (brainstorm.news home at /), /tag/, /post/; APIs and legacy paths under /blog/ (see smart_blog.urls)
     path('', include('smart_blog.urls')),
 
     # Auth at /login/, /register/; profile at /profile/<username>/

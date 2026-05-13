@@ -57,15 +57,11 @@ def items_list(request):
         on_ends=1
     )
 
-    breadcrumbs = build_breadcrumbs(
-        breadcrumb("BraiNews", None),
-    )
-
     response = render(request, "smart_blog/items_list.html", {
         "page_obj": page_obj,
         "page_range": page_range,
         "items": page_obj.object_list,
-        "breadcrumbs": breadcrumbs,
+        "breadcrumbs": [],
     })
 
     if is_anon:

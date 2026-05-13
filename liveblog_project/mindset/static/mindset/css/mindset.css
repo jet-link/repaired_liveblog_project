@@ -20,6 +20,12 @@
   font-size: 0.95em;
 }
 
+.mindset-new-btn.is-blocked {
+  pointer-events: none;
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
 /* Two-column layout */
 .mindset-layout {
   display: grid;
@@ -267,7 +273,7 @@
 .mindset-action-btn.is-blocked,
 .mindset-action-btn.is-blocked:hover {
   opacity: 0.55;
-  cursor: not-allowed;
+  /* cursor: not-allowed; */
   background: transparent;
   color: var(--text-muted, #6c757d);
   border-color: transparent;
@@ -446,7 +452,8 @@ html[data-theme="dark"] .mindset-reply {
   font-size: 1rem;
   /* text-transform: uppercase; */
   /* letter-spacing: 0.08em; */
-  color: var(--bs-primary, #0d6efd);
+  /* color: var(--bs-primary, #0d6efd); */
+  color: #273c75;
   font-weight: 700;
   margin: 0 0 0.55rem;
   /* border-bottom: 1px solid var(--border-default, #e5e7eb); */

@@ -10,12 +10,16 @@
         const block = document.querySelector('.filter-block[data-filter-url]');
         if (block?.dataset?.filterUrl) return block.dataset.filterUrl;
         const a = document.createElement('a');
-        a.href = '/brainews/filter/';
+        a.href = '/filter/';
         return a.href;
     }
 
     function isFilterablePage() {
         const path = location.pathname.replace(/\/$/, '') || '/';
+        // brainstorm.news home now lives at "/" (former /brainews/).
+        if (path === '' || path === '/') return true;
+        if (path === '/filter' || path.startsWith('/filter/')) return true;
+        // Legacy /brainews/... and /blog/brainews/... paths still recognized (301-redirected server-side).
         if (path === '/brainews' || path === '/blog/brainews' || path.endsWith('/brainews')) return true;
         if (path.startsWith('/brainews/filter') || path.startsWith('/blog/brainews/filter')) return true;
         if (path === '/search' || path.startsWith('/search/')) return true;
@@ -119,7 +123,7 @@
         const titleEl = document.getElementById('brainewsListingTitle');
         const ctxBlock = document.getElementById('filterPageContextBlock');
         if (titleEl) {
-            titleEl.textContent = value ? (FILTER_TITLES[value] || 'BraiNews') : 'BraiNews';
+            titleEl.textContent = value ? (FILTER_TITLES[value] || 'brainstorm.news') : 'brainstorm.news';
             if (ctxBlock) {
                 if (value) {
                     titleEl.classList.remove('d-none');

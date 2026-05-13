@@ -45,7 +45,7 @@ from .mindset_views import (
     mindset_bulk_delete,
 )
 from .faq_views import faq_list, faq_create, faq_edit, faq_delete
-from .static_pages_views import about_page_edit, contacts_page_edit, home_page_edit
+from .static_pages_views import about_page_edit, contacts_page_edit
 from .bulk_views import (
     posts_bulk_delete,
     comments_bulk_delete,
@@ -83,7 +83,7 @@ __all__ = [
     'recent_deleted_content', 'recent_deleted_restore', 'recent_deleted_purge',
     'mindset_list', 'mindset_theme_delete', 'mindset_reply_delete', 'mindset_bulk_delete',
     'faq_list', 'faq_create', 'faq_edit', 'faq_delete',
-    'about_page_edit', 'contacts_page_edit', 'home_page_edit',
+    'about_page_edit', 'contacts_page_edit',
     'posts_bulk_delete', 'comments_bulk_delete', 'users_bulk_delete', 'users_bulk_ban',
     'banned_users_bulk_unban', 'banned_users_bulk_delete', 'deleted_logs_bulk_delete', 'tags_bulk_delete', 'categories_bulk_delete',
     'reports_bulk_clear', 'reports_bulk_delete', 'faq_bulk_delete', 'backups_bulk_delete',

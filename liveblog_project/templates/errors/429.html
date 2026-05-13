@@ -22,7 +22,7 @@
       <div class="container-main">
         <div class="error-page-card">
           <p class="error-page-brand">
-            <a href="{% url 'pages:home' %}" class="error-page-brand-link">brainstorm.news</a>
+            <a href="{% url 'smart_blog:items_list' %}" class="error-page-brand-link">brainstorm.news</a>
           </p>
           <p class="error-page-code" aria-hidden="true">429</p>
           <h1 class="error-page-title">Too many requests</h1>
@@ -31,7 +31,7 @@
             Please wait a moment and try again.
           </p>
           <div class="error-page-actions">
-            <a href="{% url 'pages:home' %}" class="cstm-btn-sm custom-primary-btn">Home</a>
+            <a href="{% url 'smart_blog:items_list' %}" class="cstm-btn-sm custom-primary-btn">brainstorm.news</a>
             <button type="button" class="cstm-btn-sm custom-secondary-btn" onclick="window.history.back()">Go back</button>
           </div>
         </div>

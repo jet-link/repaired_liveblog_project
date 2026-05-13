@@ -25,6 +25,7 @@ from django.db.models import (
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
@@ -365,7 +366,7 @@ def theme_create(request):
                 theme.body_text = html_to_plain_text(theme.body)
                 theme.save()
                 _persist_hashtags(theme)
-            return redirect('mindset:theme_list')
+            return redirect(f"{reverse('mindset:theme_list')}?theme_posted=1")
     else:
         form = ThemeForm()
 

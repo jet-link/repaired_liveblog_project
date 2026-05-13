@@ -1162,19 +1162,25 @@ html[data-theme="dark"] .header {
 }
 
 .header-nav {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     column-gap: 24px;
 }
 
-/* Let the brand column shrink so search + burger keep a stable hit area (grid/flex min-width: auto otherwise overflows). */
+/* Brand + primary menu share the left side; menu sits right next to brainstorm.news. */
 .header-brand {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex: 1 1 auto;
     min-width: 0;
 }
 
 .header-brand .brand-minimal {
     min-width: 0;
+    flex-shrink: 0;
 }
 
 @media (max-width: 991px) {
@@ -1189,7 +1195,10 @@ html[data-theme="dark"] .header {
         column-gap: 12px;
     }
 
-    /* Grid item: keep search + burger from being squeezed. */
+    .header-brand {
+        gap: 12px;
+    }
+
     .header-actions {
         min-width: fit-content;
     }
@@ -1203,11 +1212,10 @@ html[data-theme="dark"] .header {
 
 .header-menu {
     display: flex;
-    justify-self: center;
     align-items: center;
     white-space: nowrap;
-    /* text-transform: uppercase; */
     font-weight: 600;
+    min-width: 0;
 }
 
 .header-menu-item {
@@ -1488,10 +1496,6 @@ html[data-theme="dark"] .theme-toggle-btn .theme-toggle-icon--sun {
 }
 
 @media (max-width: 991px) {
-    .header-nav {
-        grid-template-columns: 1fr auto;
-    }
-
     .header-menu {
         display: none !important;
     }

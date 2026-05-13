@@ -27,9 +27,8 @@ def static_sitemap_entries():
     Each item: (label, url_name, kwargs) — kwargs is None when empty.
     """
     entries = [
-        ("Home", "pages:home", None),
+        ("brainstorm", "smart_blog:items_list", None),
         ("FAQ", "pages:faq", None),
-        ("BraiNews", "smart_blog:items_list", None),
         ("In trend", "smart_blog:trending_list", None),
         ("Topics", "smart_blog:topics_list", None),
         ("Mindset", "mindset:theme_list", None),
