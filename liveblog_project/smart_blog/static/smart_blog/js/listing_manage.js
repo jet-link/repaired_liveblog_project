@@ -13,7 +13,7 @@
     }
 
     /* ================= CONFIG ================= */
-    const ALLOWED_PATTERNS = ['brainews', 'blog', '/profile', '/search', '/tag', 'smart_blog'];
+    const ALLOWED_PATTERNS = ['brainews', 'blog', '/profile', '/search', '/tag', 'smart_blog', '/mindset'];
 
     function isAllowedPath(pathname) {
         try {
@@ -24,6 +24,46 @@
         } catch {
             return false;
         }
+    }
+
+    /** Mindset: URL we expect after leaving tag filter (always main list /mindset/). */
+    function getMindsetListRestoreUrl() {
+        try {
+            const raw = (location.pathname || '').replace(/\/+$/, '') || '/';
+            const search = window.location.search || '';
+            if (raw.startsWith('/mindset/tag')) {
+                return '/mindset/';
+            }
+            if (raw.startsWith('/mindset/theme')) {
+                return '/mindset/';
+            }
+            if (raw === '/mindset') {
+                return '/mindset/' + (search === '?' ? '' : search);
+            }
+        } catch { }
+        return '';
+    }
+
+    function getMindsetAnchorIdFromElement(innerEl) {
+        const reply = innerEl?.closest?.('[data-mindset-reply]');
+        if (reply) {
+            let id = reply.id;
+            if (!id || !id.startsWith('mindset-reply-')) {
+                const pid = reply.getAttribute('data-mindset-reply');
+                if (pid) id = 'mindset-reply-' + pid;
+            }
+            if (id && id.startsWith('mindset-reply-')) return id;
+        }
+        const theme = innerEl?.closest?.('[data-mindset-theme]');
+        if (theme) {
+            let id = theme.id;
+            if (!id || !id.startsWith('mindset-theme-')) {
+                const tid = theme.getAttribute('data-mindset-theme');
+                if (tid) id = 'mindset-theme-' + tid;
+            }
+            if (id && id.startsWith('mindset-theme-')) return id;
+        }
+        return null;
     }
 
 
@@ -303,6 +343,15 @@
         // at an allowed listing path that matches our saved listing_url.
         const isBreadcrumb = !!a.closest?.('.breadcrumb-trail');
         const isBrand = a.classList?.contains('brand-minimal');
+        const isMindsetBack = a.classList?.contains('mindset-back-link__link');
+        let isMindsetHeaderHub = false;
+        try {
+            const hu = new URL(a.getAttribute('href') || '', location.origin);
+            const pth = hu.pathname.replace(/\/+$/, '') || '/';
+            isMindsetHeaderHub = !!a.classList?.contains('header-menu-item')
+                && hu.origin === location.origin
+                && pth === '/mindset';
+        } catch { }
 
         let targetMatchesSavedListing = false;
         try {
@@ -318,12 +367,49 @@
             }
         } catch { }
 
-        if (!isBreadcrumb && !isBrand && !targetMatchesSavedListing) return;
+        if (!isBreadcrumb && !isBrand && !targetMatchesSavedListing && !isMindsetBack && !isMindsetHeaderHub) return;
 
         try {
             setItem('listing_instant', '1');
             setItem('profile_from_detail', '1');
         } catch { }
+    }, { passive: true });
+
+    /* Mindset: save scroll + card anchor when opening tag filter; restore on "×" exit. */
+    document.addEventListener('click', function (e) {
+        const a = e.target.closest?.('.mindset-active-tag a.mindset-hashtag[href]');
+        if (!a) return;
+        let u;
+        try {
+            u = new URL(a.getAttribute('href') || '', location.origin);
+        } catch {
+            return;
+        }
+        const p = u.pathname.replace(/\/+$/, '') || '/';
+        if (p !== '/mindset') return;
+        try {
+            setItem('listing_instant', '1');
+            setItem('profile_from_detail', '1');
+        } catch { }
+    }, { passive: true });
+
+    document.addEventListener('click', function (e) {
+        const a = e.target.closest?.('a.mindset-hashtag[href]');
+        if (!a || a.closest('.mindset-active-tag')) return;
+        let u;
+        try {
+            u = new URL(a.getAttribute('href') || '', location.origin);
+        } catch {
+            return;
+        }
+        if (!u.pathname.includes('/mindset/tag/')) return;
+        const listUrl = getMindsetListRestoreUrl();
+        if (!listUrl) return;
+        setItem('listing_url', listUrl);
+        setItem('listing_scroll', String(window.scrollY || 0));
+        const anchor = getMindsetAnchorIdFromElement(a);
+        if (anchor) setItem('listing_anchor', anchor);
+        removeItem('listing_section_anchor');
     }, { passive: true });
 
     document.addEventListener('click', function (e) {
@@ -337,6 +423,25 @@
             }
         }
         if (!link) return;
+
+        if (/^\/mindset(\/|$)/.test(location.pathname || '')) {
+            try {
+                const uh = new URL(link.href, location.origin);
+                if (
+                    uh.origin === location.origin
+                    && isItemDetailHref(link.getAttribute('href') || '')
+                    && uh.pathname.includes('/post/')
+                    && !uh.searchParams.has('from')
+                ) {
+                    uh.searchParams.set('from', 'mindset');
+                    uh.searchParams.set(
+                        'source_url',
+                        location.pathname + (location.search || ''),
+                    );
+                    link.href = uh.toString();
+                }
+            } catch { }
+        }
 
         setItem('listing_url', location.pathname + location.search);
         setItem('listing_scroll', String(window.scrollY || 0));
@@ -527,7 +632,14 @@
         }
 
         if (instant && fromDetail) {
-            const cardForScroll = el ? (el.closest?.('.item-card') || el) : null;
+            let cardForScroll = null;
+            if (el) {
+                if (el.classList?.contains('mindset-theme') || el.classList?.contains('mindset-reply')) {
+                    cardForScroll = el;
+                } else {
+                    cardForScroll = el.closest?.('.item-card') || el;
+                }
+            }
             requestAnimationFrame(() => {
                 if (cardForScroll) {
                     smoothScrollToCard(cardForScroll);
@@ -543,8 +655,16 @@
 
         if (!targetId || !fromDetail || !el) return;
 
-        if (anchorId && String(anchorId).startsWith('item-')) {
-            const cardEl = el.closest?.('.item-card') || el;
+        const isBlogItem = anchorId && String(anchorId).startsWith('item-');
+        const isMindsetCard = anchorId && (
+            String(anchorId).startsWith('mindset-theme-')
+            || String(anchorId).startsWith('mindset-reply-')
+        );
+        if (isBlogItem || isMindsetCard) {
+            let cardEl = el;
+            if (isBlogItem) {
+                cardEl = el.closest?.('.item-card') || el;
+            }
             cardEl.classList.remove('back-highlight');
             setTimeout(() => {
                 void cardEl.offsetWidth;

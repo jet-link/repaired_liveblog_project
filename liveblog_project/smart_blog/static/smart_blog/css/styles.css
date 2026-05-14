@@ -6932,13 +6932,25 @@ html[data-theme="dark"] .comment_likes_badge {
 .item_block.back-highlight,
 .item-card.back-highlight .item_block {
     animation: backPulse 1.8s ease-out forwards;
-    border-radius: inherit;
+    /* border-radius: inherit; */
+}
+
+/* Mindset theme / reply — same glow return as feed cards */
+.mindset-theme.back-highlight,
+.mindset-reply.back-highlight {
+    animation: backPulse 1.8s ease-out forwards;
+    /* border-radius: inherit; */
 }
 
 @media (prefers-reduced-motion: reduce) {
 
     .item_block.back-highlight,
     .item-card.back-highlight .item_block {
+        animation: none;
+    }
+
+    .mindset-theme.back-highlight,
+    .mindset-reply.back-highlight {
         animation: none;
     }
 }

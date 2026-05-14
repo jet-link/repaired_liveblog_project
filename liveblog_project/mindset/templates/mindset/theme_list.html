@@ -16,7 +16,10 @@
        data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
     <div class="listing-filter-sticky-scope">
       <div class="d-flex align-items-center justify-content-between mb-4 mindset-page__head">
-        <h4 class="text-muted m-0">Mindset</h4>
+        <h4 class="text-muted m-0">
+          <span class="me-1">@</span>
+          Mindset
+        </h4>
         {% if user.is_authenticated %}
           <a href="{% url 'mindset:theme_create' %}" class="cstm-btn-sm custom-secondary-btn mindset-new-btn">
             {% comment %} <span class="d-none d-sm-inline">Start theme</span> {% endcomment %}

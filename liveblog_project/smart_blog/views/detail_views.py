@@ -230,6 +230,12 @@ def item_detail(request, slug):
             breadcrumb("brainstorm.news", safe_source_url or "/"),
             breadcrumb(item.title, None),
         )
+    elif source == "mindset":
+        topic_src = safe_source_url or reverse("mindset:theme_list")
+        breadcrumbs = build_breadcrumbs(
+            breadcrumb("Mindset", topic_src),
+            breadcrumb(item.title, None),
+        )
     else:
         breadcrumbs = build_breadcrumbs(
             breadcrumb("brainstorm.news", reverse("smart_blog:items_list")),
