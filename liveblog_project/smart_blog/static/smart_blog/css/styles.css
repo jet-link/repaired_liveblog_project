@@ -6900,24 +6900,47 @@ html[data-theme="dark"] .comment_likes_badge {
 }
 
 @keyframes backPulse {
+    0% {
+        box-shadow:
+            0 0 0 0 rgba(116, 185, 255, 0),
+            0 0 0 0 rgba(95, 39, 205, 0),
+            var(--card-shadow, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075));
+    }
 
-    0%,
-    30% {
-        outline: 1.5px solid #74b9ff;
-        outline-offset: -1px;
-        box-shadow: inset 0 0 0 2px #74b9ff, 0 0 20px rgba(95, 39, 205, 0.45), var(--card-shadow, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075));
+    20% {
+        box-shadow:
+            0 0 0 3px rgba(116, 185, 255, 0.35),
+            0 0 32px 8px rgba(95, 39, 205, 0.45),
+            var(--card-shadow, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075));
+    }
+
+    65% {
+        box-shadow:
+            0 0 0 3px rgba(116, 185, 255, 0.28),
+            0 0 28px 6px rgba(95, 39, 205, 0.35),
+            var(--card-shadow, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075));
     }
 
     100% {
-        outline: 1.5px solid transparent;
-        outline-offset: -1px;
-        box-shadow: var(--card-shadow, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075));
+        box-shadow:
+            0 0 0 0 rgba(116, 185, 255, 0),
+            0 0 0 0 rgba(95, 39, 205, 0),
+            var(--card-shadow, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075));
     }
 }
 
 .item_block.back-highlight,
 .item-card.back-highlight .item_block {
-    animation: backPulse 1.5s ease-in-out forwards;
+    animation: backPulse 1.8s ease-out forwards;
+    border-radius: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .item_block.back-highlight,
+    .item-card.back-highlight .item_block {
+        animation: none;
+    }
 }
 
 
