@@ -491,10 +491,10 @@
 
     function restoreListingPosition() {
         if (maybeRefreshProfileListing()) return;
-        if (!isAllowedPath(location.pathname + location.search)) {
-            clearListing();
-            return;
-        }
+        // Non-listing surfaces (e.g. /post/<slug>/): just bail out. Do NOT clearListing()
+        // here — that would wipe state right after a card click on the way to the detail
+        // page, breaking the smooth-scroll/glow return flow.
+        if (!isAllowedPath(location.pathname + location.search)) return;
 
         const savedUrl = getItem('listing_url');
         if (!savedUrl || savedUrl !== location.pathname + location.search) return;

@@ -51,11 +51,12 @@
         <hr class="text-muted" />
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted mb-3">
           <div class="d-inline-flex align-items-center gap-2">
-            <i class="fa fa-calendar-o" aria-hidden="true"></i>
+            {% comment %} <i class="fa fa-calendar-o" aria-hidden="true"></i> {% endcomment %}
             <small class="fw-semibold">{{ item.human_published }}</small>
           </div>
           {% if item.has_photos or item.has_videos or item.body_pin_original %}
             <div class="item-feed-card__media-preview">
+
               {% comment %} Thumbnail stack — restore when item-feed-card__image-stack is needed again.
               {% if item.has_photos %}
                 <div class="item-feed-card__image-stack" aria-hidden="true">
@@ -83,6 +84,7 @@
                 {% endwith %}
               {% endif %}
               {% endcomment %}
+              
               <div class="feed-card-pin">
                 <i class="fa fa-thumb-tack" aria-hidden="true"></i>
                 <span class="feed-card-pin__labels">
