@@ -26,22 +26,61 @@
         }
     }
 
-    /** Mindset: URL we expect after leaving tag filter (always main list /mindset/). */
+    /** Mindset: URL keyed in listing_url — must match return target after hashtag filter (# ×). */
     function getMindsetListRestoreUrl() {
         try {
-            const raw = (location.pathname || '').replace(/\/+$/, '') || '/';
+            const pathname = location.pathname || '/';
             const search = window.location.search || '';
-            if (raw.startsWith('/mindset/tag')) {
+            const pathTrim = pathname.replace(/\/+$/, '') || '/';
+
+            if (/^\/profile\/[^/]+\/themes$/i.test(pathTrim)) {
+                return pathname.replace(/\/+$/, '') + '/' + search;
+            }
+            if (pathTrim.startsWith('/mindset/tag')) {
                 return '/mindset/';
             }
-            if (raw.startsWith('/mindset/theme')) {
+            if (pathTrim.startsWith('/mindset/theme')) {
                 return '/mindset/';
             }
-            if (raw === '/mindset') {
+            if (pathTrim === '/mindset') {
                 return '/mindset/' + (search === '?' ? '' : search);
             }
         } catch { }
         return '';
+    }
+
+    /** Same-origin hashtag filter exit (# ×) → back to profile themes or Mindset hub. */
+    function patchMindsetTagExitHref() {
+        try {
+            if (!location.pathname.includes('/mindset/tag')) return;
+            const a = document.querySelector('.mindset-active-tag a.mindset-hashtag[href]');
+            if (!a) return;
+            const ret = getItem('listing_url');
+            if (!ret || ret.indexOf('/mindset/tag/') !== -1) return;
+            const u = new URL(ret, location.origin);
+            if (u.origin !== location.origin) return;
+            const p = u.pathname.replace(/\/+$/, '') || '/';
+            const ok = /^\/profile\/[^/]+\/themes$/i.test(p) || /^\/mindset$/i.test(p) || u.pathname.startsWith('/mindset/');
+            if (!ok || u.pathname.includes('/mindset/tag/')) return;
+            a.setAttribute('href', u.pathname + (u.search || ''));
+        } catch { }
+    }
+
+    const BRAIN_FILTER_KEY = 'brainews_filter_active';
+    /** Set for one nested restoreListingPosition() call triggered by BraiNews after filtered cards hit the DOM. */
+    const LISTING_FROM_BRAIN_EVENT = 'listing_from_brainews_cards_ready';
+
+    function isBrainewsFilterableFeedPage() {
+        try {
+            const path = (location.pathname || '').replace(/\/+$/, '') || '/';
+            if (path === '' || path === '/') return true;
+            if (path === '/filter' || path.startsWith('/filter/')) return true;
+            if (path.endsWith('/brainews') || path === '/brainews' || path === '/blog/brainews') return true;
+            if (path.startsWith('/brainews/filter') || path.startsWith('/blog/brainews/filter')) return true;
+            if (path === '/search' || path.startsWith('/search/')) return true;
+            if (path.startsWith('/tag/') || path.includes('/blog/tag/')) return true;
+        } catch { }
+        return false;
     }
 
     function getMindsetAnchorIdFromElement(innerEl) {
@@ -631,7 +670,12 @@
             }
         }
 
-        if (instant && fromDetail) {
+        const fromBrainCardsReady = getItem(LISTING_FROM_BRAIN_EVENT) === '1';
+        /* BraiNews filter replaces cards asynchronously; skip first scroll attempt until filtered HTML is painted. */
+        const deferBrainewsScroll = !!(instant && fromDetail && getItem(BRAIN_FILTER_KEY)
+            && isBrainewsFilterableFeedPage() && !fromBrainCardsReady);
+
+        if (!deferBrainewsScroll && instant && fromDetail) {
             let cardForScroll = null;
             if (el) {
                 if (el.classList?.contains('mindset-theme') || el.classList?.contains('mindset-reply')) {
@@ -653,7 +697,7 @@
             removeItem('listing_instant');
         }
 
-        if (!targetId || !fromDetail || !el) return;
+        if (deferBrainewsScroll || !targetId || !fromDetail || !el) return;
 
         const isBlogItem = anchorId && String(anchorId).startsWith('item-');
         const isMindsetCard = anchorId && (
@@ -674,8 +718,19 @@
         }
     }
 
+    document.addEventListener('brainewsFilterCardsReady', function () {
+        try {
+            setItem(LISTING_FROM_BRAIN_EVENT, '1');
+            restoreListingPosition();
+        } finally {
+            removeItem(LISTING_FROM_BRAIN_EVENT);
+        }
+    });
+
     window.addEventListener('pageshow', restoreListingPosition);
     document.addEventListener('DOMContentLoaded', restoreListingPosition);
+    document.addEventListener('DOMContentLoaded', patchMindsetTagExitHref);
+    window.addEventListener('pageshow', patchMindsetTagExitHref);
     window.addEventListener('pageshow', () => { maybeRefreshProfileListing(); });
     document.addEventListener('DOMContentLoaded', () => { maybeRefreshProfileListing(); });
 

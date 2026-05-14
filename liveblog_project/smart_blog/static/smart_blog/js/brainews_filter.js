@@ -6,6 +6,12 @@
     const FILTER_STORAGE_KEY_PREFIX = 'brainews_original_cards_';
     let latestFilterRequestId = 0;
 
+    function notifyBrainewsListingCardsReady() {
+        try {
+            document.dispatchEvent(new CustomEvent('brainewsFilterCardsReady', { bubbles: true }));
+        } catch { /* ignore */ }
+    }
+
     function getFilterBaseUrl() {
         const block = document.querySelector('.filter-block[data-filter-url]');
         if (block?.dataset?.filterUrl) return block.dataset.filterUrl;
@@ -198,6 +204,7 @@
                 if (typeof window.__gallery_adjustLastRow === 'function') {
                     setTimeout(window.__gallery_adjustLastRow, 60);
                 }
+                setTimeout(notifyBrainewsListingCardsReady, 120);
             });
         });
     }
@@ -221,6 +228,7 @@
             removeItem(key);
             if (wrapper.dataset) wrapper.dataset.brainewsOriginalSaved = '';
             showPagination(true);
+            notifyBrainewsListingCardsReady();
             return;
         }
         wrapper.classList.add('filter-cards-fade-out');
@@ -240,7 +248,8 @@
                 if (typeof window.__gallery_adjustLastRow === 'function') {
                     setTimeout(window.__gallery_adjustLastRow, 60);
                 }
-            }, transitionMs);
+                notifyBrainewsListingCardsReady();
+            }, transitionMs + 120);
         });
     }
 
@@ -259,6 +268,7 @@
             if (!hadStored && !hadSnapshot) {
                 showPagination(true);
                 showEmptyHint('');
+                notifyBrainewsListingCardsReady();
                 return;
             }
             restoreOriginalContent();
@@ -345,6 +355,11 @@
             const targetPath = path + (u.search || '');
             const currentPath = getPageContextKey();
             if (targetPath !== currentPath && !u.searchParams.get('filter')) {
+                /* Keep filter when drilling into item detail — return should restore Liked/etc. */
+                const isPostDetailNav = u.pathname.includes('/post/') && !u.pathname.includes('/edit/');
+                if (isPostDetailNav) {
+                    return;
+                }
                 removeItem(FILTER_KEY);
             }
         } catch { }
@@ -386,6 +401,10 @@
         const active = getItem(FILTER_KEY);
         if (active) {
             restoreFilterOnReturnForPage();
+        } else {
+            requestAnimationFrame(function () {
+                requestAnimationFrame(notifyBrainewsListingCardsReady);
+            });
         }
     }
 
