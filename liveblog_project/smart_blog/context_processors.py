@@ -28,11 +28,24 @@ def notifications_context(request):
         count = (
             Notification.objects
             .filter(recipient=request.user, is_read=False, cleared_from_inbox=False)
-            .filter(Q(item__isnull=False) | Q(notif_type=Notification.TYPE_FROM_ADMIN))
+            .filter(
+                Q(item__isnull=False)
+                | Q(notif_type=Notification.TYPE_FROM_ADMIN)
+                | (
+                    Q(
+                        notif_type__in=(
+                            Notification.TYPE_MINDSET_THEME_REPLY,
+                            Notification.TYPE_MINDSET_THEME_REPOST,
+                        )
+                    )
+                    & Q(mindset_theme__isnull=False)
+                )
+            )
             .exclude(
-                Q(notif_type=Notification.TYPE_REPLY, reply_comment__isnull=True) |
-                Q(notif_type=Notification.TYPE_REPLY, parent_comment__isnull=True) |
-                Q(notif_type=Notification.TYPE_COMMENT_LIKE, parent_comment__isnull=True, reply_comment__isnull=True)
+                Q(notif_type=Notification.TYPE_REPLY, reply_comment__isnull=True)
+                | Q(notif_type=Notification.TYPE_REPLY, parent_comment__isnull=True)
+                | Q(notif_type=Notification.TYPE_COMMENT_LIKE, parent_comment__isnull=True, reply_comment__isnull=True)
+                | Q(notif_type=Notification.TYPE_MINDSET_THEME_REPLY, mindset_reply__isnull=True)
             )
             .count()
         )

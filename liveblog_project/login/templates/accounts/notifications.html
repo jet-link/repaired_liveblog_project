@@ -47,6 +47,10 @@
           <span>Liked post</span>
         </div>
         <div class="d-flex align-items-center gap-2 my-1">
+          <span class="marker mindset-theme-marker"></span>
+          <span>Reply / Repost your theme</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 my-1">
           <span class="marker from-admin-marker"></span>
           <span>Notification from admin</span>
         </div>
@@ -66,6 +70,38 @@
                 <div class="notification-header-text d-flex align-items-center gap-2 flex-grow-1 min-w-0{% if n.notif_type != 'from_admin' %} text-muted{% endif %}">
                   {% if n.notif_type == 'from_admin' %}
                     <span class="notification-from-admin-title flex-shrink-0">Notification from admin</span>
+                  {% elif n.notif_type == 'mindset_theme_reply' or n.notif_type == 'mindset_theme_repost' %}
+                    {% if n.actor %}
+                      <a
+                        href="{% url 'login_app:profile' n.actor.username %}"
+                        class="d-inline-flex align-items-center flex-shrink-0 text-decoration-none notification-actor-avatar-link"
+                        title="{% if n.actor.is_active %}{% user_status_title n.actor %}{% else %}{% user_status_display n.actor %}{% endif %}"
+                      >
+                        <div class="little-avatar{% if user == n.actor %} avatar-ring{% endif %}">
+                          {% if n.actor.is_active %}
+                            {% if n.actor.profile.avatar_url or n.actor.profile.avatar_file %}
+                              <img src="{{ n.actor.profile.get_avatar }}" alt="{{ n.actor }}" class="user-avatar clickable-avatar" width="38" height="38" loading="eager" decoding="async" data-full="{{ n.actor.profile.get_avatar }}" data-username="{{ n.actor.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                            {% else %}
+                              <img src="{% static 'img/no_avatar.svg' %}" alt="{{ n.actor }}" class="user-avatar no_avatar" width="38" height="38" loading="eager" decoding="async" data-username="{{ n.actor.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                            {% endif %}
+                          {% else %}
+                            <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display n.actor %}" class="user-avatar" width="38" height="38" loading="eager" decoding="async" />
+                          {% endif %}
+                        </div>
+                      </a>
+                    {% else %}
+                      <a href="{% url 'login_app:vanished' %}" class="d-inline-flex align-items-center flex-shrink-0 text-decoration-none notification-actor-avatar-link">
+                        <div class="little-avatar">
+                          <img src="{% static 'img/user-deleted.webp' %}" alt="Deleted user" class="user-avatar" width="38" height="38" loading="eager" decoding="async" />
+                        </div>
+                      </a>
+                    {% endif %}
+                    {% if n.actor_name %}
+                      <a href="{% url 'login_app:profile' n.actor_name %}" class="actor-author-name fw-semibold text-decoration-none flex-shrink-0">{{ n.actor_name }}</a>
+                    {% else %}
+                      <a href="{% url 'login_app:vanished' %}" class="actor-author-name fw-semibold text-decoration-none flex-shrink-0">Deleted user</a>
+                    {% endif %}
+                    <span class="flex-shrink-0">{{ n.header_text }}</span>
                   {% else %}
                     {% if n.actor %}
                       <a
@@ -141,6 +177,21 @@
                     {% endif %}
                   </div>
                 </div>
+              </div>
+            </div>
+            {% elif n.notif_type == 'mindset_theme_reply' or n.notif_type == 'mindset_theme_repost' %}
+            <div class="notification-content d-flex align-items-center gap-3">
+              <div class="notification-body flex-grow-1">
+                <blockquote class="block-quote bordered">
+                  <a href="{{ n.get_absolute_url }}" class="text-decoration-none primary_ notification-target-link fw-semibold" data-notification-id="{{ n.id }}" title="{{ n.mindset_annotation }}">{{ n.mindset_annotation }}</a>
+                </blockquote>
+              </div>
+              <div class="notification-actions d-flex align-items-center gap-1">
+                {% if n.is_read %}
+                  <span class="notifications-done" aria-label="Read" title="Has been read!"><i class="fa fa-check"></i></span>
+                {% else %}
+                  <button type="button" class="cstm-btn cstm-btn-sm notification-read-btn rounded-btn">Read</button>
+                {% endif %}
               </div>
             </div>
             {% else %}

@@ -7,7 +7,14 @@ from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 
 from smart_blog.models import Notification
+from smart_blog.notification_utils import mindset_theme_annotation
 from smart_blog.utils import strip_mention_tokens
+
+
+MINDSET_NOTIF_TYPES = (
+    Notification.TYPE_MINDSET_THEME_REPLY,
+    Notification.TYPE_MINDSET_THEME_REPOST,
+)
 
 
 @login_required
@@ -16,21 +23,36 @@ def notifications_view(request, username):
         raise PermissionDenied
 
     invalid_q = (
-        Q(item__isnull=True) & ~Q(notif_type=Notification.TYPE_FROM_ADMIN)
+        (
+            Q(item__isnull=True)
+            & ~Q(notif_type=Notification.TYPE_FROM_ADMIN)
+            & ~Q(notif_type__in=MINDSET_NOTIF_TYPES)
+        )
         | Q(notif_type=Notification.TYPE_REPLY, reply_comment__isnull=True)
         | Q(notif_type=Notification.TYPE_REPLY, parent_comment__isnull=True)
         | Q(notif_type=Notification.TYPE_COMMENT_LIKE, parent_comment__isnull=True, reply_comment__isnull=True)
+        | Q(notif_type=Notification.TYPE_MINDSET_THEME_REPLY, mindset_theme__isnull=True)
+        | Q(notif_type=Notification.TYPE_MINDSET_THEME_REPLY, mindset_reply__isnull=True)
+        | Q(notif_type=Notification.TYPE_MINDSET_THEME_REPOST, mindset_theme__isnull=True)
     )
     Notification.objects.filter(recipient=request.user).filter(invalid_q).delete()
 
     notifications = (
         Notification.objects
         .filter(recipient=request.user, cleared_from_inbox=False)
-        .filter(Q(item__isnull=False) | Q(notif_type=Notification.TYPE_FROM_ADMIN))
+        .filter(
+            Q(item__isnull=False)
+            | Q(notif_type=Notification.TYPE_FROM_ADMIN)
+            | (
+                Q(notif_type__in=MINDSET_NOTIF_TYPES)
+                & Q(mindset_theme__isnull=False)
+            )
+        )
         .exclude(
             Q(notif_type=Notification.TYPE_REPLY, reply_comment__isnull=True)
             | Q(notif_type=Notification.TYPE_REPLY, parent_comment__isnull=True)
             | Q(notif_type=Notification.TYPE_COMMENT_LIKE, parent_comment__isnull=True, reply_comment__isnull=True)
+            | Q(notif_type=Notification.TYPE_MINDSET_THEME_REPLY, mindset_reply__isnull=True)
         )
         .select_related(
             "item",
@@ -39,6 +61,9 @@ def notifications_view(request, username):
             "reply_comment",
             "parent_comment",
             "reply_comment__author",
+            "mindset_theme",
+            "mindset_reply",
+            "mindset_reply__author",
         )
         .order_by("-created_at")
     )
@@ -53,6 +78,14 @@ def notifications_view(request, username):
             notif.header_text = "liked comment in post"
             liked_comment = notif.parent_comment or notif.reply_comment
             notif.body_text = strip_mention_tokens(getattr(liked_comment, "text", ""))
+        elif notif.notif_type == Notification.TYPE_MINDSET_THEME_REPLY:
+            notif.header_text = "replies on your theme"
+            notif.body_text = ""
+            notif.mindset_annotation = mindset_theme_annotation(notif.mindset_theme)
+        elif notif.notif_type == Notification.TYPE_MINDSET_THEME_REPOST:
+            notif.header_text = "reposted your theme"
+            notif.body_text = ""
+            notif.mindset_annotation = mindset_theme_annotation(notif.mindset_theme)
         else:
             notif.header_text = "liked post"
             notif.body_text = ""
@@ -120,12 +153,26 @@ def check_notification_target(request):
 
     try:
         notif = Notification.objects.select_related(
-            "item", "parent_comment", "reply_comment",
+            "item",
+            "parent_comment",
+            "reply_comment",
+            "mindset_theme",
+            "mindset_reply",
         ).get(pk=notif_id, recipient=request.user)
     except Notification.DoesNotExist:
         return JsonResponse({"exists": False})
 
     if notif.notif_type == Notification.TYPE_FROM_ADMIN:
+        return JsonResponse({"exists": True})
+
+    if notif.notif_type in MINDSET_NOTIF_TYPES:
+        theme = notif.mindset_theme
+        if theme is None or getattr(theme, "is_deleted", False):
+            return JsonResponse({"exists": False})
+        if notif.notif_type == Notification.TYPE_MINDSET_THEME_REPLY:
+            reply = notif.mindset_reply
+            if reply is None or getattr(reply, "is_deleted", False):
+                return JsonResponse({"exists": False})
         return JsonResponse({"exists": True})
 
     if not notif.item_id:

@@ -340,7 +340,8 @@
 
   function getUserId(root) {
     var r = root || document.querySelector(ROOT_SELECTOR);
-    return r ? (r.getAttribute('data-user-id') || '') : '';
+    var raw = r ? (r.getAttribute('data-user-id') || '').trim() : '';
+    return raw;
   }
 
   function replyCooldownStorageKey(themeId, userId) {
@@ -528,7 +529,7 @@
   function bindRoot(root) {
     if (root.__mindsetBound) return;
     root.__mindsetBound = true;
-    var auth = root.getAttribute('data-user-authenticated') === '1';
+    var auth = String(root.getAttribute('data-user-authenticated') || '').trim() === '1';
 
     root.addEventListener('click', function (ev) {
       // Cancel buttons (reply form)
@@ -825,6 +826,48 @@
     ul.innerHTML = html;
   }
 
+  // ---- notification deep-link (#mindset-theme-<id>, #mindset-reply-<id>) ---
+
+  function scrollMindsetAnchorIntoView(cardEl) {
+    if (!cardEl) return false;
+    var headerEl = document.querySelector('.header-wrapper');
+    var headerH = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 64;
+    var offset = headerH + 24;
+    var rect = cardEl.getBoundingClientRect();
+    var targetY = Math.max(0, Math.round(rect.top + window.pageYOffset - offset));
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    try {
+      window.scrollTo({ top: targetY, behavior: reduce ? 'auto' : 'smooth' });
+    } catch (e) {
+      window.scrollTo(0, targetY);
+    }
+    return true;
+  }
+
+  function pulseMindsetHighlight(cardEl) {
+    if (!cardEl) return;
+    cardEl.classList.remove('back-highlight');
+    setTimeout(function () {
+      void cardEl.offsetWidth;
+      cardEl.classList.add('back-highlight');
+      setTimeout(function () {
+        cardEl.classList.remove('back-highlight');
+      }, 1900);
+    }, 250);
+  }
+
+  function handleMindsetNotificationHash() {
+    var raw = (location.hash || '').replace(/^#/, '');
+    if (!raw) return;
+    if (raw.indexOf('mindset-theme-') !== 0 && raw.indexOf('mindset-reply-') !== 0) return;
+    var el = document.getElementById(raw);
+    if (!el) return;
+    requestAnimationFrame(function () {
+      scrollMindsetAnchorIntoView(el);
+      pulseMindsetHighlight(el);
+    });
+  }
+
   // ---- init ----------------------------------------------------------------
 
   function init() {
@@ -834,6 +877,7 @@
     bindDeleteModal();
     initAllReplyCooldowns(root);
     initMindsetNewThemeCooldown(root);
+    handleMindsetNotificationHash();
 
     if (!root.__mindsetTimers) {
       root.__mindsetTimers = true;
@@ -848,4 +892,5 @@
     init();
   }
   document.addEventListener('turbo:load', init);
+  window.addEventListener('hashchange', handleMindsetNotificationHash);
 })();

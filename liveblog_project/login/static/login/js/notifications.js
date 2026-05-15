@@ -221,8 +221,15 @@
   function showTargetGoneModal(notifType) {
     const body = document.getElementById('notifTargetGoneBody');
     if (body) {
-      const isComment = notifType === 'reply' || notifType === 'comment_like';
-      body.textContent = isComment ? 'Comment does not exist' : 'Post does not exist';
+      let msg = 'Post does not exist';
+      if (notifType === 'reply' || notifType === 'comment_like') {
+        msg = 'Comment does not exist';
+      } else if (notifType === 'mindset_theme_reply') {
+        msg = 'Theme or reply does not exist';
+      } else if (notifType === 'mindset_theme_repost') {
+        msg = 'Theme does not exist';
+      }
+      body.textContent = msg;
     }
     const el = document.getElementById('notifTargetGoneModal');
     if (el && window.bootstrap) {
@@ -238,7 +245,9 @@
 
     const row = link.closest('.notification-row');
     const notifType = row
-      ? (row.className.match(/notif-(reply|comment_like|item_like|from_admin)/)?.[1] || 'item_like')
+      ? (row.className.match(
+          /notif-(reply|comment_like|item_like|from_admin|mindset_theme_reply|mindset_theme_repost)/
+        )?.[1] || 'item_like')
       : 'item_like';
 
     try {

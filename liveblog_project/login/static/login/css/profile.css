@@ -337,10 +337,20 @@ html[data-theme="dark"] .user-menu .user-tooltip::after {
     z-index: 2;
 }
 
+/* Header search+theme capsule: dropdowns escape the faux “shell”; base .filter-segment-shell uses overflow:hidden */
+.header-utility-segment {
+    overflow: visible;
+}
+
+.header-utility-segment__bar.filter-segment-bar {
+    overflow: visible;
+}
+
 /* Theme menu (header): same dropdown pattern as .user-menu */
 .theme-menu {
     position: relative;
     display: inline-block;
+    overflow: visible;
 }
 
 .theme-tooltip {
@@ -466,14 +476,12 @@ html[data-theme="dark"] .theme-tooltip-option.is-active:hover {
 
 /* Theme picker tooltip: keep visible on mobile (unlike .user-tooltip) */
 @media (max-width: 768px) {
-    /* Anchor to toggle (right edge of .theme-menu): avoids overflow past viewport — centering from narrow wrapper caused clipping */
+    /* Anchor to toggle (right edge of .theme-menu). Keep min-width from base (.theme-tooltip) — do not use
+       width:max-content + min-width:unset here; that shrinks the panel vs the intended ~170px pill. */
     .theme-menu .theme-tooltip {
         left: auto;
         right: 0;
-        transform: translateY(-6px);
-        min-width: unset;
-        width: max-content;
-        max-width: calc(100vw - 14px);
+        max-width: calc(100vw - 24px);
         padding: 10px 0;
         border-radius: 5px;
         box-shadow:
@@ -521,6 +529,32 @@ html[data-theme="dark"] .theme-tooltip-option.is-active:hover {
 .user-tooltip a:hover {
     background: #273c75;
     color: var(--btn-primary-fg, #ffffff) !important;
+}
+
+/* Current page (matches .theme-tooltip-option.is-active) */
+.user-tooltip a.is-active {
+    font-weight: 600;
+    background: rgba(39, 60, 117, 0.14);
+    color: var(--text-primary, #111) !important;
+}
+
+html[data-theme="dark"] .user-tooltip a.is-active {
+    background: rgba(88, 166, 255, 0.18);
+    color: var(--text-primary, #e6edf3) !important;
+}
+
+.user-tooltip a.is-active:hover {
+    background: #1e3260 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .user-tooltip a.is-active:hover {
+    background: rgba(88, 166, 255, 0.42) !important;
+    color: #ffffff !important;
+}
+
+.user-tooltip a.notification-btn.is-active.has-unread .fa-bell {
+    color: inherit;
 }
 
 .user-tooltip a.user-tooltip-profile-row {

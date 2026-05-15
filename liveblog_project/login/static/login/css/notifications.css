@@ -39,6 +39,12 @@
     color: #f39c12;
 }
 
+.notification-row.notif-mindset_theme_reply .notification-read-btn,
+.notification-row.notif-mindset_theme_repost .notification-read-btn {
+    border-color: #10ac84;
+    color: #10ac84;
+}
+
 .notifications-done {
     background-color: transparent;
     border: 2px solid #10ac84;
@@ -108,7 +114,7 @@
 }
 
 .notifications-legend.is-open {
-    max-height: 240px;
+    max-height: 300px;
     opacity: 1;
     margin: 1rem 0 !important;
 }
@@ -149,9 +155,19 @@
     background: #e74c3c;
 }
 
+.mindset-theme-marker {
+    background: #10ac84;
+}
+
 .notification-row.notif-reply {
     border-color: #8e44ad;
     box-shadow: 0 0 8px rgba(142, 68, 173, 0.35);
+}
+
+.notification-row.notif-mindset_theme_reply,
+.notification-row.notif-mindset_theme_repost {
+    border-color: #10ac84;
+    box-shadow: 0 0 8px rgba(16, 172, 132, 0.35);
 }
 
 .notification-row.notif-comment_like {
@@ -203,6 +219,11 @@
 
 .notification-dot.dot-from_admin {
     background: #e74c3c;
+}
+
+.notification-dot.dot-mindset_theme_reply,
+.notification-dot.dot-mindset_theme_repost {
+    background: #10ac84;
 }
 
 /* Admin message box: no inner shadow; left accent matches other notifications (.bordered blue) */
@@ -300,9 +321,9 @@
     margin: 0;
 }
 
-.bordered{
+/* .bordered{
     border-left: 3px solid #2980b9;
-}
+} */
 
 .block-quote p:last-child {
     margin-bottom: 0;

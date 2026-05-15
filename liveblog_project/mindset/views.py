@@ -29,6 +29,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from smart_blog.notification_utils import (
+    notify_mindset_theme_reply,
+    notify_or_bump_mindset_theme_repost,
+)
 from smart_blog.utils import count_convert
 
 from .body_html import (
@@ -470,6 +474,7 @@ def api_theme_reply(request, pk):
         body=body,
     )
     _ensure_hashtags_exist(body)
+    notify_mindset_theme_reply(theme=theme, reply=reply)
     request.session[cooldown_key] = now_ts
 
     annotated = _annotate_user_state(
@@ -523,6 +528,7 @@ def api_reply_reply(request, pk):
         body=form.cleaned_data['body'],
     )
     _ensure_hashtags_exist(reply.body)
+    notify_mindset_theme_reply(theme=parent.theme, reply=reply)
     request.session[cooldown_key] = now_ts
 
     annotated = _annotate_user_state(
@@ -595,6 +601,8 @@ def api_theme_like(request, pk):
 def api_theme_repost(request, pk):
     theme = get_object_or_404(_theme_base_qs(), pk=pk)
     created = _toggle(ThemeRepost, lookup_kwargs={'theme': theme}, user=request.user)
+    if created:
+        notify_or_bump_mindset_theme_repost(theme=theme, actor_user=request.user)
     return JsonResponse({
         'ok': True,
         'reposted': created,

@@ -80,20 +80,19 @@
 
     window.scrollFilterSegmentSelectedIntoView = scrollFilterSegmentSelectedIntoView;
 
-    /** Any page with listing filters: smooth scroll to the document top when switching filter (respects reduced motion).
-     * Use the window scroll viewport only — not scrollIntoView on the sticky listing block — so we reach y=0, not the feed section. */
+    /** Any page with listing filters: instant jump to document top when switching filter (no smooth scroll —
+     * avoids visible lag before the new section content loads). Uses the window scroll viewport only. */
     function scrollPageToTopForListingFilter() {
-        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var behavior = reduce ? 'auto' : 'smooth';
         var se = document.scrollingElement || document.documentElement || document.body;
         try {
-            window.scrollTo({ top: 0, left: 0, behavior: behavior });
-            if (behavior === 'auto' && se) {
-                se.scrollTop = 0;
-            }
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         } catch (_) {
             window.scrollTo(0, 0);
-            if (se) se.scrollTop = 0;
+        }
+        if (se) {
+            try {
+                se.scrollTop = 0;
+            } catch (_) { /* ignore */ }
         }
     }
     window.scrollPageToTopForListingFilter = scrollPageToTopForListingFilter;

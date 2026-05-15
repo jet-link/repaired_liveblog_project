@@ -40,8 +40,12 @@
                     <td>
                         {% if n.notif_type == 'from_admin' %}
                             <button type="button" class="admin-button admin-button-sm admin-button-outline js-admin-notif-view-open" data-detail-url="{% url 'admin_panel:notification_from_admin_detail' n.pk %}">View notification</button>
-                        {% else %}
+                        {% elif n.notif_type == 'mindset_theme_reply' or n.notif_type == 'mindset_theme_repost' %}
+                            <a href="{{ n.get_absolute_url }}" class="admin-link" target="_blank" rel="noopener">{{ n.admin_list_link_label|truncatechars:100 }}</a>
+                        {% elif n.item %}
                             <a href="{{ n.get_absolute_url }}" class="admin-link" target="_blank" rel="noopener">{{ n.item.title|truncatechars:40 }}</a>
+                        {% else %}
+                            <span class="admin-text-muted">—</span>
                         {% endif %}
                     </td>
                     <td>{{ n.created_at|date:"M d, Y H:i" }}</td>

@@ -25,38 +25,41 @@
     {% comment %} <hr class="text-muted"> {% endcomment %}
 
     {% url 'login_app:profile-themes' user_obj.username as profile_mindset_url %}
-    <div class="filter-segment-outer mb-4">
-      <div class="filter-segment-shell">
-        <div class="filter-segment-scroll filter-scroll-x">
-          <nav
-            class="profile-mindset-tabs filter-segment-bar"
-            role="tablist"
-            aria-label="Mindset"
-          >
-            <a
-              href="{{ profile_mindset_url }}?tab=themes"
-              class="filter-reason-btn{% if active_tab == 'themes' %} is-selected{% endif %}"
-              role="tab"
-              {% if active_tab == 'themes' %}aria-current="page"{% endif %}
-            >Themes</a>
-            <a
-              href="{{ profile_mindset_url }}?tab=reposts"
-              class="filter-reason-btn{% if active_tab == 'reposts' %} is-selected{% endif %}"
-              role="tab"
-              {% if active_tab == 'reposts' %}aria-current="page"{% endif %}
-            >Reposts</a>
-            <a
-              href="{{ profile_mindset_url }}?tab=replies"
-              class="filter-reason-btn{% if active_tab == 'replies' %} is-selected{% endif %}"
-              role="tab"
-              {% if active_tab == 'replies' %}aria-current="page"{% endif %}
-            >Replies</a>
-          </nav>
+    <div class="listing-filter-sticky-scope">
+      <div class="filter-segment-sticky-wrap">
+        <div class="filter-segment-outer">
+          <div class="filter-segment-shell">
+            <div class="filter-segment-scroll filter-scroll-x">
+              <nav
+                class="profile-mindset-tabs filter-segment-bar"
+                role="tablist"
+                aria-label="Mindset"
+              >
+                <a
+                  href="{{ profile_mindset_url }}?tab=themes"
+                  class="filter-reason-btn{% if active_tab == 'themes' %} is-selected{% endif %}"
+                  role="tab"
+                  {% if active_tab == 'themes' %}aria-current="page"{% endif %}
+                >Themes</a>
+                <a
+                  href="{{ profile_mindset_url }}?tab=reposts"
+                  class="filter-reason-btn{% if active_tab == 'reposts' %} is-selected{% endif %}"
+                  role="tab"
+                  {% if active_tab == 'reposts' %}aria-current="page"{% endif %}
+                >Reposts</a>
+                <a
+                  href="{{ profile_mindset_url }}?tab=replies"
+                  class="filter-reason-btn{% if active_tab == 'replies' %} is-selected{% endif %}"
+                  role="tab"
+                  {% if active_tab == 'replies' %}aria-current="page"{% endif %}
+                >Replies</a>
+              </nav>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="profile-mindset-swap" data-profile-mindset-swap>
+      <div class="profile-mindset-swap" data-profile-mindset-swap>
     {% if active_tab == 'themes' %}
       <section class="mindset-feed" data-mindset-feed-list>
         {% for theme in page_obj %}
@@ -91,8 +94,8 @@
       <section class="mindset-feed" data-mindset-feed-list>
         {% for row in repost_rows %}
           <div class="profile-mindset-repost-block">
-            <div class="small text-muted my-3 fw-semibold">
-              Reposted: <span class="text-muted">{{ row.reposted_human }}</span>
+            <div class="small text-muted my-3">
+              Reposted <span class="text-muted fw-semibold">{{ row.reposted_human }}</span>
             </div>
             {% if row.kind == 'theme' %}
               {% include 'mindset/_theme_card.html' with theme=row.theme %}
@@ -114,6 +117,7 @@
         <div class="w-100">{% include 'includes/pagination.html' %}</div>
       </section>
     {% endif %}
+      </div>
     </div>
   </div>
 {% endblock %}

@@ -30,7 +30,7 @@
           {% if user.is_authenticated %}
             <div class="mobile-bottom-nav__account mobile-bottom-nav__nav-cell">
               <button type="button"
-                class="mobile-bottom-nav__link mobile-bottom-nav__more-btn{% if slug_user == user.username and un == 'profile' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-section' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'notifications' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-edit' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'create_post' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'edit_post' %} mobile-bottom-nav__link--active{% endif %}"
+                class="mobile-bottom-nav__link mobile-bottom-nav__more-btn{% if slug_user == user.username and un == 'profile' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-section' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-themes' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-reposts' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'notifications' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-edit' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'create_post' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'edit_post' %} mobile-bottom-nav__link--active{% endif %}"
                 id="mobileNavMoreBtn"
                 aria-label="Account menu"
                 aria-expanded="false"
@@ -58,7 +58,7 @@
   {# Popovers outside __inner so .mobile-bottom-nav__scroll height = tabs only (~113px bug was extra in-flow siblings). #}
   {% if user.is_authenticated %}
   <div class="mobile-nav-account-popover" id="mobileNavAccountPopover" role="dialog" aria-label="Account" aria-hidden="true">
-    <a href="{% url 'login_app:profile' user.username %}" class="mobile-nav-account-popover__row{% if slug_user == user.username and un == 'profile' %} mobile-nav-account-popover__row--active{% elif slug_user == user.username and un == 'profile-section' %} mobile-nav-account-popover__row--active{% endif %}">
+    <a href="{% url 'login_app:profile' user.username %}" class="mobile-nav-account-popover__row{% if slug_user == user.username and un == 'profile' %} mobile-nav-account-popover__row--active{% elif slug_user == user.username and un == 'profile-section' %} mobile-nav-account-popover__row--active{% elif slug_user == user.username and un == 'profile-themes' %} mobile-nav-account-popover__row--active{% elif slug_user == user.username and un == 'profile-reposts' %} mobile-nav-account-popover__row--active{% endif %}">
       <i class="fa fa-user-circle mobile-nav-account-popover__ico" aria-hidden="true"></i>
       <span class="mobile-nav-account-popover__text">{{ user.username }}</span>
     </a>

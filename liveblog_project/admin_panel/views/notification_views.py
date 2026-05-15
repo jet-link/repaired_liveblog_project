@@ -32,7 +32,13 @@ def notifications_list(request):
     - Show cleared: user cleared inbox (cleared_from_inbox) OR admin hid row (hidden_from_admin).
     """
     qs = Notification.objects.select_related(
-        "recipient", "actor", "item", "parent_comment", "reply_comment"
+        "recipient",
+        "actor",
+        "item",
+        "parent_comment",
+        "reply_comment",
+        "mindset_theme",
+        "mindset_reply",
     )
 
     list_filter = request.GET.get("nf", NOTIF_FILTER_ACTIVE)
@@ -59,6 +65,7 @@ def notifications_list(request):
             | Q(item__title__icontains=search)
             | Q(admin_theme__icontains=search)
             | Q(admin_body__icontains=search)
+            | Q(mindset_theme__body_text__icontains=search)
         )
     paginator = Paginator(qs, 30)
     page = request.GET.get("page", 1)

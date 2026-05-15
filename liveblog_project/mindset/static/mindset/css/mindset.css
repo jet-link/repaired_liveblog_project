@@ -398,7 +398,7 @@
 }
 
 .mindset-reply {
-  margin-left: 1.5rem;
+  /* margin-left: 1.5rem; */
   padding: 0.55rem 0.8rem;
   border-left: 2px solid var(--border-default, #e5e7eb);
   background: rgba(0, 0, 0, 0.03);
@@ -419,7 +419,7 @@ html[data-theme="dark"] .mindset-reply {
 
 @media (max-width: 575px) {
   .mindset-reply {
-    margin-left: 0.85rem;
+    /* margin-left: 0.85rem; */
     padding-left: 0.6rem;
   }
 }

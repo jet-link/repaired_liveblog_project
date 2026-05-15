@@ -57,3 +57,59 @@ def upsert_comment_like_notification(*, recipient, actor, item, parent_comment=N
     if reply_comment is not None:
         kwargs["reply_comment"] = reply_comment
     return Notification.objects.create(**kwargs)
+
+
+def mindset_theme_annotation(theme, *, max_len=100):
+    """Plain snippet of theme body for notification body (target ~70–100 chars)."""
+    if theme is None:
+        return ""
+    text = (getattr(theme, "body_text", None) or "").strip()
+    if not text:
+        return ""
+    if len(text) <= max_len:
+        return text
+    return text[: max_len - 1].rstrip() + "…"
+
+
+def notify_mindset_theme_reply(*, theme, reply):
+    """Notify theme author when someone posts a reply on their theme."""
+    from smart_blog.context_processors import invalidate_notifications_cache
+
+    if theme.author_id == reply.author_id:
+        return None
+    n = Notification.objects.create(
+        recipient_id=theme.author_id,
+        actor_id=reply.author_id,
+        notif_type=Notification.TYPE_MINDSET_THEME_REPLY,
+        mindset_theme=theme,
+        mindset_reply=reply,
+    )
+    invalidate_notifications_cache(theme.author_id)
+    return n
+
+
+def notify_or_bump_mindset_theme_repost(*, theme, actor_user):
+    """Notify theme author when someone reposts their theme (dedupe/bump like item likes)."""
+    from smart_blog.context_processors import invalidate_notifications_cache
+
+    if theme.author_id == actor_user.id:
+        return None
+    qs = Notification.objects.filter(
+        recipient_id=theme.author_id,
+        actor_id=actor_user.id,
+        notif_type=Notification.TYPE_MINDSET_THEME_REPOST,
+        mindset_theme=theme,
+    )
+    row = qs.order_by("-created_at").first()
+    if row:
+        _bump_notification(row.pk)
+        invalidate_notifications_cache(theme.author_id)
+        return row
+    n = Notification.objects.create(
+        recipient_id=theme.author_id,
+        actor_id=actor_user.id,
+        notif_type=Notification.TYPE_MINDSET_THEME_REPOST,
+        mindset_theme=theme,
+    )
+    invalidate_notifications_cache(theme.author_id)
+    return n

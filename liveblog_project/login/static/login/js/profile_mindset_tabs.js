@@ -174,6 +174,10 @@
 
     e.preventDefault();
 
+    if (typeof window.scrollPageToTopForListingFilter === 'function') {
+      window.scrollPageToTopForListingFilter();
+    }
+
     try {
       go(new URL(anchor.href, window.location.origin).href, {});
     } catch (_) {

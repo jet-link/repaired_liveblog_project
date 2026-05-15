@@ -3,14 +3,14 @@
   <header class="header">
     <div class="container-main">
       <nav class="nav header-nav" aria-label="Primary">
-        {% with nav_name=request.resolver_match.url_name|default:'' nav_ns=request.resolver_match.namespace|default:'' %}
+        {% with nav_name=request.resolver_match.url_name|default:'' nav_ns=request.resolver_match.namespace|default:'' profile_u=request.resolver_match.kwargs.username|default:'' %}
         <div class="bottom-left-nav header-brand">
           <a href="/" class="brand-minimal{% if nav_ns == 'smart_blog' and nav_name == 'items_list' %} brand-minimal--active{% endif %}" aria-label="brainstorm.news"{% if nav_ns == 'smart_blog' and nav_name == 'items_list' %} aria-current="page"{% endif %}><span class="brand-full">brainstorm.news</span><span class="brand-short">bstrm.news</span></a>
           <span class="header-brand-divider" aria-hidden="true"></span>
           <div class="header-menu d-flex align-items-center small">
-             <a href="{% url 'mindset:theme_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_ns == 'mindset' %} active{% endif %}"><span class="header-menu-item__label">@ Mindset</span></a>
-            <a href="{% url 'smart_blog:trending_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'trending_list' %} active{% endif %}"><span class="header-menu-item__label">In trend</span></a>
             <a href="{% url 'smart_blog:topics_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'topics_list' or nav_name == 'topic_detail' %} active{% endif %}"><span class="header-menu-item__label">Topics</span></a>
+            <a href="{% url 'smart_blog:trending_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'trending_list' %} active{% endif %}"><span class="header-menu-item__label">In trend</span></a>
+             <a href="{% url 'mindset:theme_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_ns == 'mindset' %} active{% endif %}"><span class="header-menu-item__label">@ Mindset</span></a>
             {% comment %} <a href="#" class="header-menu-item text-decoration-none text-muted categories-modal-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoriesModalDialog">
               Categories
               <i class="fa fa-angle-down ms-1" aria-hidden="true"></i>
@@ -18,7 +18,6 @@
             </a> {% endcomment %}
           </div>
         </div>
-        {% endwith %}
         <div class="d-flex align-items-center gap-1 header-actions">
           <div class="header-utility-segment" role="group" aria-label="Search and theme">
             <div class="header-utility-segment__bar filter-segment-bar">
@@ -48,15 +47,15 @@
               <div class="user-menu" id="userMenu">
                 <a href="{% url 'login_app:profile' user.username %}" class="text-decoration-none user-avatar-btn">{% include 'includes/thumb_avatar.html' with user=user %}</a>
                 <div class="user-tooltip">
-                  <a href="{% url 'login_app:profile' user.username %}" class="user-tooltip-profile-row text-muted">
+                  <a href="{% url 'login_app:profile' user.username %}" class="user-tooltip-profile-row text-muted{% if nav_ns == 'login_app' and profile_u == user.username %}{% if nav_name == 'profile' or nav_name == 'profile-themes' or nav_name == 'profile-section' or nav_name == 'profile-reposts' %} is-active{% endif %}{% endif %}"{% if nav_ns == 'login_app' and profile_u == user.username %}{% if nav_name == 'profile' or nav_name == 'profile-themes' or nav_name == 'profile-section' or nav_name == 'profile-reposts' %} aria-current="page"{% endif %}{% endif %}>
                     <i class="fa fa-user-circle me-3" aria-hidden="true"></i><span class="user-tooltip-profile-name fw-semibold" title="{{ user.username }}">{% if user.username|length > 15 %}{{ user.username|slice:":12" }}…{% else %}{{ user.username }}{% endif %}</span>
                   </a>
-                  <a href="{% url 'login_app:notifications' user.username %}" class="text-muted notification-btn{% if notifications_count %} has-unread{% endif %}" data-notifications-count="{{ notifications_count }}">
+                  <a href="{% url 'login_app:notifications' user.username %}" class="text-muted notification-btn{% if notifications_count %} has-unread{% endif %}{% if nav_ns == 'login_app' and nav_name == 'notifications' and profile_u == user.username %} is-active{% endif %}" data-notifications-count="{{ notifications_count }}"{% if nav_ns == 'login_app' and nav_name == 'notifications' and profile_u == user.username %} aria-current="page"{% endif %}>
                     <i class="fa fa-bell me-2" aria-hidden="true"></i>
                     Notifications
                   </a>
-                  <a href="{% url 'smart_blog:create_post' %}" class="text-muted"><i class="fa fa-plus me-3" aria-hidden="true"></i>Create post</a>
-                  <a href="{% url 'login_app:profile-edit' request.user.username %}" class="text-muted"><i class="fa fa-cog me-3" aria-hidden="true"></i>Edit profile</a>
+                  <a href="{% url 'smart_blog:create_post' %}" class="text-muted{% if nav_ns == 'smart_blog' and nav_name == 'create_post' %} is-active{% endif %}"{% if nav_ns == 'smart_blog' and nav_name == 'create_post' %} aria-current="page"{% endif %}><i class="fa fa-plus me-3" aria-hidden="true"></i>Create post</a>
+                  <a href="{% url 'login_app:profile-edit' request.user.username %}" class="text-muted{% if nav_ns == 'login_app' and nav_name == 'profile-edit' and profile_u == user.username %} is-active{% endif %}"{% if nav_ns == 'login_app' and nav_name == 'profile-edit' and profile_u == user.username %} aria-current="page"{% endif %}><i class="fa fa-cog me-3" aria-hidden="true"></i>Edit profile</a>
                   <a href="#" class="danger signout-trigger"><i class="fa fa-sign-out me-3" aria-hidden="true"></i>Sign out</a>
                 </div>
               </div>
@@ -65,6 +64,7 @@
             {% endif %}
           </div>
         </div>
+        {% endwith %}
       </nav>
     </div>
   </header>

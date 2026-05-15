@@ -20,6 +20,7 @@
             const p = (pathname || location.pathname || '').toLowerCase();
             // brainstorm.news home now lives at "/" — treat root as an allowed listing surface.
             if (p === '' || p === '/') return true;
+            if (p.includes('/topics')) return true;
             return ALLOWED_PATTERNS.some(t => p.includes(t));
         } catch {
             return false;
@@ -502,6 +503,8 @@
 
         try {
             setItem('profile_from_detail', '1');
+            /* Smooth scroll + pulse on return (including browser back) from listing → post. */
+            setItem('listing_instant', '1');
         } catch { }
 
         try {
