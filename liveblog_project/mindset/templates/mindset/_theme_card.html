@@ -3,7 +3,7 @@
 <article class="mindset-theme" data-mindset-theme="{{ theme.pk }}" data-mindset-author="{{ theme.author.username }}" id="mindset-theme-{{ theme.pk }}">
   <header class="mindset-theme__head mb-4">
     <div class="mindset-theme__author-row">
-      <a href="{% url 'login_app:profile-themes' theme.author.username %}" class="mindset-author-link text-decoration-none">
+      <a href="{% if user.is_authenticated %}{% url 'login_app:profile-themes' theme.author.username %}{% else %}{% url 'login_app:profile' theme.author.username %}{% endif %}" class="mindset-author-link text-decoration-none">
         {% include 'includes/user_avatar.html' with author=theme.author %}
       </a>
       {% if user.is_authenticated and user.id != theme.author_id and theme.author.is_active %}
@@ -16,12 +16,13 @@
           data-url="{% url 'mindset:api_user_follow_toggle' theme.author.username %}"
           aria-pressed="{% if theme.user_following_author %}true{% else %}false{% endif %}"
         >
-          <span class="mindset-follow-link__label">{% if theme.user_following_author %}Unfollow{% else %}Follow{% endif %}</span>
+          <span class="mindset-follow-link__label">{% if theme.user_following_author %}Followed{% else %}Follow{% endif %}</span>
+          <i class="fa fa-check mindset-follow-link__check" aria-hidden="true"{% if not theme.user_following_author %} hidden{% endif %}></i>
         </button>
       {% endif %}
     </div>
     <small class="text-muted mindset-theme__date">
-      {% comment %} <i class="fa fa-clock-o" aria-hidden="true"></i> {% endcomment %}
+      <i class="fa fa-clock-o" aria-hidden="true"></i>
       <span class="ms-1">{{ theme.human_published }}</span>
     </small>
   </header>

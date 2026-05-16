@@ -84,7 +84,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="text-muted d-flex align-items-center">
         <small class="d-flex align-items-center gap-2">
-          <i class="fa fa-calendar-o" aria-hidden="true"></i>
+          <i class="fa fa-clock-o" aria-hidden="true"></i>
           <span class="fw-semibold">{{ item.human_published }}</span>
           {% if item.is_edited %}
             <span>/</span>
@@ -96,8 +96,7 @@
         {% if user == item.author %}
           <small class="primary_ fw-semibold">My post</small>
         {% else %}
-          <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
-          <a href="{% url 'login_app:profile' item.author.username %}" class="text-decoration-none">
+          <a href="{% url 'login_app:profile' item.author.username %}" class="d-flex align-items-center gap-2 flex-wrap text-decoration-none" title="{% user_status_title item.author %}">
             <span class="comment-author-name fw-semibold item-detail-author-name">
               {% if item.author.is_active %}
                 {{ item.author }}
@@ -105,26 +104,23 @@
                 {% user_status_display item.author %}
               {% endif %}
             </span>
-          </a>
-            <a href="{% url 'login_app:profile' item.author.username %}" class="d-flex align-items-center gap-1 text-decoration-none" title="{% user_status_title item.author %}">
-              <div class="little-avatar">
-                {% if item.author.is_active %}
-                  {% if item.author.profile.avatar_url or item.author.profile.avatar_file %}
-                    <img src="{{ item.author.profile.get_avatar }}" alt="{{ item.author }}" class="user-avatar clickable-avatar" data-full="{{ item.author.profile.get_avatar }}" data-username="{{ item.author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
-                  {% else %}
-                    <img src="{% static 'img/no_avatar.svg' %}" alt="{{ item.author }}" class="user-avatar no_avatar" data-username="{{ item.author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
-                  {% endif %}
+            <div class="little-avatar">
+              {% if item.author.is_active %}
+                {% if item.author.profile.avatar_url or item.author.profile.avatar_file %}
+                  <img src="{{ item.author.profile.get_avatar }}" alt="{{ item.author }}" class="user-avatar clickable-avatar" data-full="{{ item.author.profile.get_avatar }}" data-username="{{ item.author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
                 {% else %}
-                  <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display item.author %}" class="user-avatar" width="40" height="40" loading="eager" decoding="async" />
+                  <img src="{% static 'img/no_avatar.svg' %}" alt="{{ item.author }}" class="user-avatar no_avatar" data-username="{{ item.author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
                 {% endif %}
-              </div>
-            </a>
-          </div>
+              {% else %}
+                <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display item.author %}" class="user-avatar" width="40" height="40" loading="eager" decoding="async" />
+              {% endif %}
+            </div>
+          </a>
         {% endif %}
       {% else %}
         <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
-          <span class="comment-author-name fw-semibold item-detail-author-name">{% user_status_display item.author %}</span>
-          <a href="{% url 'login_app:vanished' %}" class="d-flex align-items-center text-decoration-none" title="{% user_status_title item.author %}">
+          <a href="{% url 'login_app:vanished' %}" class="d-flex align-items-center gap-2 text-decoration-none" title="{% user_status_title item.author %}">
+            <span class="comment-author-name fw-semibold item-detail-author-name">{% user_status_display item.author %}</span>
             <div class="little-avatar">
               <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display item.author %}" class="user-avatar" width="40" height="40" loading="eager" decoding="async" />
             </div>

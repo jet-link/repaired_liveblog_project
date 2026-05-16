@@ -127,6 +127,49 @@
   margin-bottom: 0;
 }
 
+.mindset-theme__body ul,
+.mindset-theme__body ol,
+.mindset-reply__body ul,
+.mindset-reply__body ol {
+  margin: 0 0 0.55rem;
+  padding-left: 1.35rem;
+}
+
+.mindset-theme__body ul:last-child,
+.mindset-theme__body ol:last-child,
+.mindset-reply__body ul:last-child,
+.mindset-reply__body ol:last-child {
+  margin-bottom: 0;
+}
+
+.mindset-theme__body li > p,
+.mindset-reply__body li > p {
+  margin: 0 0 0.35rem;
+}
+
+.mindset-theme__body li > p:last-child,
+.mindset-reply__body li > p:last-child {
+  margin-bottom: 0;
+}
+
+.mindset-theme__body blockquote,
+.mindset-reply__body blockquote {
+  margin: 0 0 0.55rem;
+  padding: 0.35rem 0 0.35rem 0.85rem;
+  border-left: 3px solid color-mix(in srgb, var(--text-link, var(--bs-primary, #0d6efd)) 38%, var(--border-default, #dee2e6));
+  color: var(--text-muted, inherit);
+}
+
+.mindset-theme__body blockquote:last-child,
+.mindset-reply__body blockquote:last-child {
+  margin-bottom: 0;
+}
+
+.mindset-theme__body blockquote p:last-child,
+.mindset-reply__body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
 /* Avatar link wrapping */
 .mindset-author-link {
   display: inline-flex;
@@ -139,7 +182,7 @@
   text-decoration: underline;
 }
 
-/* Author row: avatar+username link + Follow/Unfollow link separated by a
+/* Author row: avatar+username link + Follow/Followed control separated by a
    thin vertical bar (mirrors the inline-link style used in the sidebar). */
 .mindset-theme__author-row {
   display: inline-flex;
@@ -157,11 +200,17 @@
   user-select: none;
 }
 
+.mindset-follow-link__check {
+  font-size: 0.9em;
+  flex-shrink: 0;
+}
+
 /* Visually identical to a small text link — implemented as <button> so it
    does not get its own URL / browser history entry on click. */
 .mindset-follow-link {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   appearance: none;
   -webkit-appearance: none;
   background: transparent;
@@ -188,7 +237,11 @@
 }
 
 .mindset-follow-link.is-following {
-  color: var(--text-muted, #6c757d);
+  color: #1dd1a1;
+}
+
+.mindset-follow-link.is-following .mindset-follow-link__check {
+  color: #1dd1a1;
 }
 
 .mindset-follow-link[aria-busy="true"] {

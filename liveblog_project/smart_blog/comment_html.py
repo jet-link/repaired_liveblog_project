@@ -6,12 +6,31 @@ import re
 import bleach
 from django.utils.html import urlize
 
-COMMENT_ALLOWED_TAGS = ['a', 'b', 'strong', 'i', 'em', 'u', 'br', 'p', 'div', 'span']
+COMMENT_ALLOWED_TAGS = [
+    'a',
+    'b',
+    'strong',
+    'i',
+    'em',
+    'u',
+    'br',
+    'p',
+    'div',
+    'span',
+    'ul',
+    'ol',
+    'li',
+    'blockquote',
+]
 COMMENT_ALLOWED_ATTRS = {
     'a': ['href', 'title', 'target', 'rel', 'class'],
     'div': ['class'],
     'span': ['class'],
     'p': ['class'],
+    'blockquote': ['class'],
+    'ul': ['class'],
+    'ol': ['class', 'start', 'type'],
+    'li': ['class'],
 }
 
 # host.pdf / setup.exe — не превращаем в ссылку без пути

@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Optional
 
 from django.contrib.sitemaps import Sitemap
+from django.db.models import Exists, OuterRef
 from django.urls import reverse
 
 from mindset.models import Hashtag, Theme
@@ -88,9 +89,17 @@ def mindset_hashtags_for_sitemap():
 
 
 def mindset_hashtags_for_sitemap_html(limit: Optional[int] = None):
-    """Hashtags shown on the public /sitemap/ page; XML sitemap still lists all."""
+    """HTML /sitemap/: newest hashtags first, capped at ``limit``.
+
+    Omits rows that no longer anchor any **live** theme (soft-deleted themes do
+    not count). XML sitemap still uses ``mindset_hashtags_for_sitemap()`` (all rows).
+    """
     lim = int(limit) if limit is not None else SITEMAP_HTML_MINDSET_TAGS_LIMIT
-    return Hashtag.objects.order_by("-themes_count", "name")[:lim]
+    live_theme = Theme.objects.filter(hashtags=OuterRef('pk'), is_deleted=False)
+    return (
+        Hashtag.objects.filter(Exists(live_theme))
+        .order_by('-created_at', '-pk')[:lim]
+    )
 
 
 class StaticAndListSitemap(Sitemap):

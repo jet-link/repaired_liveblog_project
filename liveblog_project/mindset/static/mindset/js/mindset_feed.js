@@ -98,7 +98,7 @@
   }
 
   /**
-   * Update Follow/Unfollow links on every theme card by the same author so
+   * Update Follow/Followed links on every theme card by the same author so
    * clicking once on any card flips them all in lockstep.
    */
   function paintFollowLinksByUsername(username, following) {
@@ -110,7 +110,15 @@
       link.setAttribute('aria-pressed', following ? 'true' : 'false');
       var label = link.querySelector('.mindset-follow-link__label') ||
                   link.querySelector('span');
-      if (label) label.textContent = following ? 'Unfollow' : 'Follow';
+      if (label) label.textContent = following ? 'Followed' : 'Follow';
+      var check = link.querySelector('.mindset-follow-link__check');
+      if (check) {
+        if (following) {
+          check.removeAttribute('hidden');
+        } else {
+          check.setAttribute('hidden', '');
+        }
+      }
     });
   }
 

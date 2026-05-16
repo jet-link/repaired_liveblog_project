@@ -16,7 +16,7 @@ from smart_blog.sitemaps import (
     tags_for_sitemap_html,
 )
 
-SITEMAP_HTML_CACHE_KEY = "pages:sitemap:html:v4"
+SITEMAP_HTML_CACHE_KEY = "pages:sitemap:html:v5"
 SITEMAP_HTML_TTL = 300
 
 

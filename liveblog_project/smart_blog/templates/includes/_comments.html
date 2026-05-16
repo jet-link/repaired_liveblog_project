@@ -7,45 +7,39 @@
   <span class="comment-anchor" id="comment-anchor-{{ comment.pk }}"></span>
 
   <div class="comment-layout">
-    <div class="comment-avatar-col">
-      {% if comment.author %}
-        <a href="{% url 'login_app:profile' comment.author.username %}"
-          class="d-flex align-items-center text-decoration-none comment-avatar-link"
-          title="{% user_status_title comment.author %}">
-          <div class="little-avatar{% if user == comment.author %} avatar-ring{% endif %}">
-            {% if comment.author.is_active %}
-              {% if comment.author.profile.avatar_url or comment.author.profile.avatar_file %}
-                <img src="{{ comment.author.profile.get_avatar }}" alt="{{ comment.author }}" class="user-avatar clickable-avatar" width="38" height="38" loading="eager" decoding="async" data-full="{{ comment.author.profile.get_avatar }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
-              {% else %}
-                <img src="{% static 'img/no_avatar.svg' %}" alt="{{ comment.author }}" class="user-avatar no_avatar" width="38" height="38" loading="eager" decoding="async" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
-              {% endif %}
-            {% else %}
-              <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display comment.author %}" class="user-avatar" width="38" height="38" loading="eager" decoding="async" />
-            {% endif %}
-          </div>
-        </a>
-      {% else %}
-        <a href="{% url 'login_app:vanished' %}" class="d-flex align-items-center text-decoration-none comment-avatar-link" title="{% user_status_display comment.author %}">
-          <div class="little-avatar">
-            <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display comment.author %}" class="user-avatar" width="40" height="40" loading="eager" decoding="async" />
-          </div>
-        </a>
-      {% endif %}
-    </div>
-
-    <div class="comment-meta-row">
+    <div class="comment-top-bar">
       <div class="comment-meta-start d-flex align-items-center gap-1 flex-wrap min-w-0">
-        <span class="comment-author-name fw-semibold">
-          {% if comment.author %}
-            {% if comment.author.is_active %}
-              {{ comment.author }}
-            {% else %}
-              {% user_status_display comment.author %}
-            {% endif %}
-          {% else %}
-            {% user_status_display comment.author %}
-          {% endif %}
-        </span>
+        {% if comment.author %}
+          <a href="{% url 'login_app:profile' comment.author.username %}"
+            class="d-inline-flex align-items-center gap-2 text-decoration-none comment-identity-link min-w-0"
+            title="{% user_status_title comment.author %}">
+            <div class="little-avatar{% if user == comment.author %} avatar-ring{% endif %}">
+              {% if comment.author.is_active %}
+                {% if comment.author.profile.avatar_url or comment.author.profile.avatar_file %}
+                  <img src="{{ comment.author.profile.get_avatar }}" alt="{{ comment.author }}" class="user-avatar clickable-avatar" width="38" height="38" loading="eager" decoding="async" data-full="{{ comment.author.profile.get_avatar }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                {% else %}
+                  <img src="{% static 'img/no_avatar.svg' %}" alt="{{ comment.author }}" class="user-avatar no_avatar" width="38" height="38" loading="eager" decoding="async" onerror="this.onerror=null;this.classList.add('avatar-load-failed');" />
+                {% endif %}
+              {% else %}
+                <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display comment.author %}" class="user-avatar" width="38" height="38" loading="eager" decoding="async" />
+              {% endif %}
+            </div>
+            <span class="comment-author-name fw-semibold">
+              {% if comment.author.is_active %}
+                {{ comment.author }}
+              {% else %}
+                {% user_status_display comment.author %}
+              {% endif %}
+            </span>
+          </a>
+        {% else %}
+          <a href="{% url 'login_app:vanished' %}" class="d-inline-flex align-items-center gap-2 text-decoration-none comment-identity-link min-w-0" title="{% user_status_display comment.author %}">
+            <div class="little-avatar">
+              <img src="{% static 'img/user-deleted.webp' %}" alt="{% user_status_display comment.author %}" class="user-avatar" width="40" height="40" loading="eager" decoding="async" />
+            </div>
+            <span class="comment-author-name fw-semibold">{% user_status_display comment.author %}</span>
+          </a>
+        {% endif %}
         <span class="comment-meta-sep comment-meta-sep--inline" aria-hidden="true">·</span>
         <span class="comment-meta-published comment-actions-bar__date text-muted fw-semibold">{{ comment.human_published }}</span>
       </div>

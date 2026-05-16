@@ -1,15 +1,25 @@
 /**
- * Mindset — new theme form. Uses CKEditor 5 (Classic) but with a custom,
- * minimal toolbar (bold / italic / link / undo / redo) — much smaller than
- * the project's shared editor used for posts and comments. We piggy-back on
- * the global ckeditor_main.js loader (which fetches the UMD bundle once),
- * but skip its auto-init by using the .mindset-ckeditor class instead of
- * the generic .ckeditor.
+ * Mindset — new theme form. Uses CKEditor 5 (Classic) with a compact toolbar
+ * (bold / italic / link / lists / block quote / undo / redo). Loads via the
+ * shared ckeditor_main.js bundle; `.mindset-ckeditor` skips generic `.ckeditor`
+ * auto-init.
  */
 (function () {
   'use strict';
 
-  var TOOLBAR = ['bold', 'italic', 'link', '|', 'undo', 'redo'];
+  var TOOLBAR = [
+    'bold',
+    'italic',
+    'link',
+    '|',
+    'bulletedList',
+    'numberedList',
+    '|',
+    'blockQuote',
+    '|',
+    'undo',
+    'redo',
+  ];
 
   function waitForClassicEditor(cb, attempts) {
     if (typeof window.ClassicEditor !== 'undefined') {

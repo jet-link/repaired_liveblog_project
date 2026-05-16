@@ -325,7 +325,7 @@ html[data-theme="dark"] .category-select-option:focus {
     color: #3d454d;
     border: 1px solid color-mix(in srgb, #6c757d 40%, var(--border-default));
     background: color-mix(in srgb, #6c757d 11%, var(--card-bg));
-    border-radius: 6px;
+    border-radius: 999px;
     box-sizing: border-box;
     flex-shrink: 0;
     transition:
@@ -4769,14 +4769,8 @@ html[data-theme="dark"] .avatar-file-trigger:hover {
     row-gap: 0.35rem;
 }
 
-.comment-avatar-col {
-    grid-column: 1;
-    grid-row: 1;
-    align-self: center;
-}
-
-.comment-meta-row {
-    grid-column: 2;
+.comment-top-bar {
+    grid-column: 1 / -1;
     grid-row: 1;
     display: flex;
     flex-wrap: nowrap;
@@ -4784,6 +4778,20 @@ html[data-theme="dark"] .avatar-file-trigger:hover {
     justify-content: space-between;
     gap: 0.5rem;
     min-width: 0;
+}
+
+.comment-identity-link {
+    color: inherit;
+    min-width: 0;
+}
+
+.comment-identity-link .comment-author-name {
+    color: var(--text-primary);
+}
+
+.comment-identity-link:hover .comment-author-name,
+.comment-identity-link:focus-visible .comment-author-name {
+    text-decoration: underline;
 }
 
 .comment-main {
@@ -5185,8 +5193,8 @@ html[data-theme="dark"] .comment-actions-bar__likes[role="group"] {
 }
 
 .comment-main .comment-text {
-    padding: 15px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    padding: 17px 20px 17px 12px;
+    /* box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); */
 }
 
 html[data-theme="dark"] .comment-main .comment-text {
@@ -6067,12 +6075,12 @@ html[data-theme="dark"] .report-reason-btn.is-selected {
     background-color: var(--card-bg);
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
     color: #5e5e5e;
-    border-radius: 8px;
+    border-radius: 10px;
     position: relative;
     z-index: 1;
     line-height: 1.25rem;
     word-wrap: break-word;
-    font-size: .8rem;
+    font-size: .875rem;
     font-weight: 500;
     border-left: 4px solid var(--text-link)
 }
