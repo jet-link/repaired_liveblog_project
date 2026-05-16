@@ -254,6 +254,70 @@
   cursor: not-allowed;
 }
 
+/* Main wall / Following wall — larger pills: muted gray, active = link blue */
+.mindset-wall-tabs {
+  user-select: none;
+  /* gap: 0.65rem !important; */
+}
+
+.mindset-wall-tab {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-muted, #6c757d);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0.4rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.mindset-wall-tab:hover,
+.mindset-wall-tab:focus-visible {
+  color: var(--text-default, #495057);
+  outline: none;
+  text-decoration: none;
+  background-color: color-mix(in srgb, var(--text-muted, #6c757d) 10%, transparent);
+}
+
+.mindset-wall-tab.is-active {
+  color: var(--text-link, var(--bs-primary, #0d6efd));
+  text-decoration: none;
+  background-color: color-mix(in srgb, var(--text-link, #0d6efd) 12%, transparent);
+}
+
+.mindset-wall-tab.is-active:hover,
+.mindset-wall-tab.is-active:focus-visible {
+  color: var(--text-link, var(--bs-primary, #0d6efd));
+  text-decoration: none;
+  background-color: color-mix(in srgb, var(--text-link, #0d6efd) 18%, transparent);
+}
+
+html[data-theme="dark"] .mindset-wall-tab {
+  color: var(--text-muted, #9ca3af);
+}
+
+html[data-theme="dark"] .mindset-wall-tab:hover,
+html[data-theme="dark"] .mindset-wall-tab:focus-visible {
+  color: var(--text-default, #e5e7eb);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme="dark"] .mindset-wall-tab.is-active {
+  color: var(--text-link, #5dade2);
+  background-color: rgba(93, 173, 226, 0.15);
+}
+
+html[data-theme="dark"] .mindset-wall-tab.is-active:hover,
+html[data-theme="dark"] .mindset-wall-tab.is-active:focus-visible {
+  background-color: rgba(93, 173, 226, 0.22);
+}
+
 /* Action row */
 .mindset-theme__actions,
 .mindset-reply__actions {

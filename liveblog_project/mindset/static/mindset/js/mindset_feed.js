@@ -122,6 +122,40 @@
     });
   }
 
+  function ensureFollowingWallEmptyState(feedList) {
+    var root = document.querySelector(ROOT_SELECTOR);
+    if (!root || root.getAttribute('data-mindset-wall') !== 'following') return;
+    if (!feedList) feedList = root.querySelector('[data-mindset-feed-list]');
+    if (!feedList) return;
+    if (feedList.querySelector('article.mindset-theme')) return;
+    if (feedList.querySelector('.mindset-following-wall-empty')) return;
+    var pag = feedList.querySelector('nav.mindset-pagination');
+    if (pag) pag.remove();
+    var empty = document.createElement('div');
+    empty.className = 'mindset-empty text-muted text-center py-5 mindset-following-wall-empty';
+    empty.innerHTML =
+      '<p class="m-0">No themes from people you follow yet.</p>' +
+      '<p class="small m-0 mt-2">Follow authors from the main wall to see their themes here.</p>';
+    feedList.appendChild(empty);
+  }
+
+  /**
+   * On Following wall, unfollowing an author removes their theme cards with the
+   * same collapse animation as profile un-repost.
+   */
+  function removeFollowingWallCardsOnUnfollow(authorUsername) {
+    if (!authorUsername) return;
+    var root = document.querySelector(ROOT_SELECTOR);
+    if (!root || root.getAttribute('data-mindset-wall') !== 'following') return;
+    var list = root.querySelector('[data-mindset-feed-list]');
+    if (!list) return;
+    list.querySelectorAll('article.mindset-theme[data-mindset-author]').forEach(function (card) {
+      if (card.getAttribute('data-mindset-author') === authorUsername) {
+        animatedRemove(card);
+      }
+    });
+  }
+
   /**
    * Animated collapse + removal of any feed entry block. Used for:
    *   - un-repost on the /profile/<u>/themes/?tab=reposts page
@@ -150,6 +184,12 @@
         block.parentNode.removeChild(block);
       }
       maybeShowProfileEmpty(feedRoot);
+      if (feedRoot && feedRoot.getAttribute('data-mindset-wall') === 'following') {
+        var list = feedRoot.querySelector('[data-mindset-feed-list]');
+        window.setTimeout(function () {
+          ensureFollowingWallEmptyState(list);
+        }, 0);
+      }
     }
 
     if (prefersReduced) {
@@ -562,10 +602,12 @@
         postForm(fUrl).then(function (resp) {
           btn.removeAttribute('aria-busy');
           if (resp.ok && resp.data && resp.data.ok) {
-            paintFollowLinksByUsername(
-              resp.data.username || fUser,
-              !!resp.data.following
-            );
+            var uname = resp.data.username || fUser;
+            var nowFollowing = !!resp.data.following;
+            paintFollowLinksByUsername(uname, nowFollowing);
+            if (!nowFollowing) {
+              removeFollowingWallCardsOnUnfollow(uname);
+            }
           } else if (resp.data && resp.data.error) {
             console.warn('Mindset:', resp.data.error);
           }

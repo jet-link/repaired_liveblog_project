@@ -293,10 +293,34 @@ def _resolve_filter(request) -> tuple[str, Hashtag | None]:
     return fil, tag
 
 
+def _mindset_main_wall_path(active_tag: Hashtag | None) -> str:
+    if active_tag is not None and getattr(active_tag, 'slug', None):
+        return reverse('mindset:theme_list_by_tag', kwargs={'slug': active_tag.slug})
+    return reverse('mindset:theme_list')
+
+
+def _mindset_wall_mode(request) -> str:
+    """``main`` (default) or ``following`` — only for display; guests ignore ``following``."""
+    if not request.user.is_authenticated:
+        return 'main'
+    if (request.GET.get('wall') or '').strip().lower() == 'following':
+        return 'following'
+    return 'main'
+
+
+def _path_with_query(path: str, querydict) -> str:
+    qs = querydict.urlencode()
+    return f'{path}?{qs}' if qs else path
+
+
 def theme_list(request, *, active_tag: Hashtag | None = None):
     fil, tag = _resolve_filter(request)
     if active_tag is not None:
         tag = active_tag
+
+    wall_mode = _mindset_wall_mode(request)
+    main_path = _mindset_main_wall_path(tag)
+    following_path = f'{main_path}?wall=following'
 
     qs = _theme_qs_for_listing(request.user)
     if tag is not None:
@@ -306,18 +330,38 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
         # only if the slug happens to be unsaved; using the slug guarantees
         # correct, predictable filtering for both saved and unsaved tags.
         qs = qs.filter(hashtags__slug=tag.slug)
-    qs = _annotate_popularity(qs)
 
-    if fil == 'popular':
-        qs = qs.order_by('-popularity', '-created_at')
-    else:
+    if request.user.is_authenticated and wall_mode == 'following':
+        followee_ids = list(
+            MindsetFollow.objects.filter(follower=request.user).values_list(
+                'followee_id', flat=True
+            )
+        )
+        qs = qs.filter(author_id__in=followee_ids)
         qs = qs.order_by('-created_at')
+    else:
+        qs = _annotate_popularity(qs)
+        if fil == 'popular':
+            qs = qs.order_by('-popularity', '-created_at')
+        else:
+            qs = qs.order_by('-created_at')
 
     paginator = Paginator(qs, THEME_PAGE_SIZE)
     page_number = request.GET.get('page') or 1
     page_obj = paginator.get_page(page_number)
 
     sidebar = _sidebar_payload()
+
+    prev_page_url = None
+    next_page_url = None
+    if page_obj.number > 1:
+        q = request.GET.copy()
+        q['page'] = page_obj.previous_page_number()
+        prev_page_url = _path_with_query(request.path, q)
+    if page_obj.number < page_obj.paginator.num_pages:
+        q = request.GET.copy()
+        q['page'] = page_obj.next_page_number()
+        next_page_url = _path_with_query(request.path, q)
 
     return render(
         request,
@@ -328,6 +372,11 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
             'sidebar': sidebar,
             'active_filter': fil,
             'active_tag': tag,
+            'mindset_wall': wall_mode,
+            'mindset_main_wall_url': main_path,
+            'mindset_following_wall_url': following_path,
+            'prev_page_url': prev_page_url,
+            'next_page_url': next_page_url,
         },
     )
 

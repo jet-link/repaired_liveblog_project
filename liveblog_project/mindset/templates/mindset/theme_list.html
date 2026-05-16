@@ -10,6 +10,7 @@
 {% block content %}
   <div class="container-main content_block mindset-page"
        data-mindset-feed
+       {% if user.is_authenticated %}data-mindset-wall="{{ mindset_wall }}"{% endif %}
        data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
        data-user-id="{% if user.is_authenticated %}{{ user.pk }}{% endif %}"
        data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
@@ -29,6 +30,13 @@
         {% endif %}
       </div>
 
+      {% if user.is_authenticated %}
+        <nav class="mindset-wall-tabs d-flex flex-wrap align-items-center gap-1 mb-3" aria-label="Mindset feed">
+          <a href="{{ mindset_main_wall_url }}" class="mindset-wall-tab{% if mindset_wall == 'main' %} is-active{% endif %}">Main wall</a>
+          <a href="{{ mindset_following_wall_url }}" class="mindset-wall-tab{% if mindset_wall == 'following' %} is-active{% endif %}">Following wall</a>
+        </nav>
+      {% endif %}
+
       {% if active_tag %}
         <div class="mindset-active-tag mb-3">
           <span class="text-muted">Filtered by</span>
@@ -42,9 +50,14 @@
             {% include 'mindset/_theme_card.html' with theme=theme %}
           {% empty %}
             <div class="mindset-empty text-muted text-center py-5">
-              <p class="m-0">No themes yet.</p>
-              {% if user.is_authenticated %}
-                <p class="small m-0">Be the first — <a href="{% url 'mindset:theme_create' %}">share a thought</a>.</p>
+              {% if user.is_authenticated and mindset_wall == 'following' %}
+                <p class="m-0">No themes from people you follow yet.</p>
+                <p class="small m-0 mt-2">Follow authors from the main wall to see their themes here.</p>
+              {% else %}
+                <p class="m-0">No themes yet.</p>
+                {% if user.is_authenticated %}
+                  <p class="small m-0">Be the first — <a href="{% url 'mindset:theme_create' %}">share a thought</a>.</p>
+                {% endif %}
               {% endif %}
             </div>
           {% endfor %}
@@ -53,11 +66,11 @@
             <nav class="mindset-pagination mt-4" aria-label="Pagination">
               <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
-                  <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if active_filter %}&filter={{ active_filter }}{% endif %}">Prev</a></li>
+                  <li class="page-item"><a class="page-link" href="{{ prev_page_url }}">Prev</a></li>
                 {% endif %}
                 <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
                 {% if page_obj.has_next %}
-                  <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if active_filter %}&filter={{ active_filter }}{% endif %}">Next</a></li>
+                  <li class="page-item"><a class="page-link" href="{{ next_page_url }}">Next</a></li>
                 {% endif %}
               </ul>
             </nav>
