@@ -1006,7 +1006,7 @@ html[data-theme="dark"] .form-floating>textarea:not(:placeholder-shown)~label {
 }
 
 .paginator-btn:hover {
-    color: var(--btn-primary-bg);
+    color: #0984e3;
     background: var(--bg-subtle);
     border-color: var(--border-strong);
 }
