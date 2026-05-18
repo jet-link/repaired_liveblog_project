@@ -1945,8 +1945,25 @@ a.admin-link {
   background: var(--admin-bg-hover);
 }
 
-.admin-theme-icon {
-  display: inline-block;
+.admin-theme-face {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-theme-toggle.admin-theme-pref-light .admin-theme-face--sun {
+  display: inline-flex;
+}
+
+.admin-theme-toggle.admin-theme-pref-dark .admin-theme-face--moon {
+  display: inline-flex;
+}
+
+.admin-theme-toggle.admin-theme-pref-auto .admin-theme-face--auto {
+  display: inline-flex;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 /* Sidebar overlay (mobile) */

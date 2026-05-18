@@ -31,24 +31,11 @@
           <div class="header-utility-segment" role="group" aria-label="Search and theme">
             <div class="header-utility-segment__bar filter-segment-bar">
               <button type="button" class="search-btn" aria-label="Search"><i class="fa fa-search" aria-hidden="true"></i></button>
-              <div class="theme-menu" id="themeMenu">
-                <button type="button" id="themeToggle" class="theme-toggle-btn" aria-label="Theme" aria-haspopup="menu" aria-expanded="false" aria-controls="themeMenuPanel" title="Theme">
-                  <i class="fa fa-laptop theme-toggle-icon theme-toggle-icon--auto" aria-hidden="true"></i>
-                  <i class="fa fa-moon-o theme-toggle-icon theme-toggle-icon--moon" aria-hidden="true"></i>
-                  <i class="fa fa-sun-o theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true"></i>
-                </button>
-                <div class="theme-tooltip" id="themeMenuPanel" role="menu" aria-label="Choose theme">
-                  <button type="button" class="theme-tooltip-option text-muted" role="menuitem" data-theme-pref="light">
-                    <i class="fa fa-sun-o me-3" aria-hidden="true"></i>Light
-                  </button>
-                  <button type="button" class="theme-tooltip-option text-muted" role="menuitem" data-theme-pref="dark">
-                    <i class="fa fa-moon-o me-3" aria-hidden="true"></i>Dark
-                  </button>
-                  <button type="button" class="theme-tooltip-option text-muted" role="menuitem" data-theme-pref="auto">
-                    <i class="fa fa-laptop me-3" aria-hidden="true"></i>Auto
-                  </button>
-                </div>
-              </div>
+              <button type="button" id="themeToggle" class="theme-toggle-btn" data-theme-cycle aria-label="Theme" title="Theme">
+                <span class="theme-toggle-icon theme-toggle-icon--auto theme-toggle-letter-a" aria-hidden="true">A</span>
+                <i class="fa fa-moon-o theme-toggle-icon theme-toggle-icon--moon" aria-hidden="true"></i>
+                <i class="fa fa-sun-o theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true"></i>
+              </button>
             </div>
           </div>
           <div class="header-actions-desktop d-flex align-items-center gap-2">

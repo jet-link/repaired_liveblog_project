@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="{% static 'admin/css/admin.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js" crossorigin="anonymous"></script>
     <script>
-      (function(){var t=localStorage.getItem('admin_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');if(window.innerWidth>=993&&localStorage.getItem('admin_sidebar_collapsed')==='1')document.documentElement.classList.add('admin-sidebar-collapsed');})();
+      (function(){var t=localStorage.getItem('admin_theme');function d(){try{return window.matchMedia('(prefers-color-scheme: dark)').matches;}catch(e){return true;}}if(t==='light')document.documentElement.setAttribute('data-theme','light');else if(t==='auto'){if(d())document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme','light');}else document.documentElement.removeAttribute('data-theme');if(window.innerWidth>=993&&localStorage.getItem('admin_sidebar_collapsed')==='1')document.documentElement.classList.add('admin-sidebar-collapsed');})();
     </script>
     {% block extra_css %}{% endblock %}
     {% block extra_head %}{% endblock %}
@@ -34,7 +34,11 @@
                     <span class="admin-online-badge"><i class="fa-solid fa-user" aria-hidden="true"></i> Now online: {{ admin_online_count|default:0 }}</span>
                 </div>
                 <div class="admin-header-right">
-                    <button type="button" class="admin-theme-toggle" id="adminThemeToggle" aria-label="Toggle theme" title="Toggle light/dark theme"><i class="admin-theme-icon fa-regular fa-moon" aria-hidden="true"></i></button>
+                    <button type="button" class="admin-theme-toggle" id="adminThemeToggle" aria-label="Theme" title="Theme">
+                      <span class="admin-theme-face admin-theme-face--sun" aria-hidden="true"><i class="fa-regular fa-sun"></i></span>
+                      <span class="admin-theme-face admin-theme-face--moon" aria-hidden="true"><i class="fa-regular fa-moon"></i></span>
+                      <span class="admin-theme-face admin-theme-face--auto" aria-hidden="true">A</span>
+                    </button>
                     <a href="{% url 'login_app:profile' username=request.user.username %}" class="admin-button admin-button-sm admin-header-go-site">Go to site</a>
                     <div class="comment-menu comment-menu--actions-bar admin-header-overflow-menu" id="adminHeaderOverflowMenu">
                         <button type="button" class="comment-menu-btn overflow-more-btn" aria-label="More actions" aria-expanded="false" aria-haspopup="true">

@@ -83,7 +83,7 @@
         if (localStorage.getItem(PREF_KEY) !== 'auto') return;
       } catch (e) { /* ignore */ }
       applyDomTheme('auto');
-      refreshToggleButtonFace();
+      refreshCycleButtons();
     };
     try {
       systemMql.addEventListener('change', onSystemChange);
@@ -92,133 +92,51 @@
     }
   }
 
+  function nextPreference(pref) {
+    if (pref === 'light') return 'dark';
+    if (pref === 'dark') return 'auto';
+    return 'light';
+  }
+
   function setPreference(pref) {
     if (pref !== 'light' && pref !== 'dark' && pref !== 'auto') pref = 'light';
     persistPreference(pref);
     applyDomTheme(pref);
     attachSystemListenerIfAuto(pref);
-    refreshToggleButtonFace();
-    syncMenuActiveState();
+    refreshCycleButtons();
   }
 
-  function refreshToggleButtonFace() {
-    var btn = document.getElementById('themeToggle');
-    if (!btn) return;
+  function refreshCycleButtons() {
     var pref = getStoredPreference();
-    btn.classList.toggle('theme-toggle-btn--auto', pref === 'auto');
-  }
-
-  function syncMenuActiveState() {
-    var pref = getStoredPreference();
-    document.querySelectorAll('.theme-tooltip-option[data-theme-pref]').forEach(function (el) {
-      var p = el.getAttribute('data-theme-pref');
-      el.classList.toggle('is-active', p === pref);
+    document.querySelectorAll('[data-theme-cycle]').forEach(function (btn) {
+      btn.classList.remove('theme-pref-light', 'theme-pref-dark', 'theme-pref-auto');
+      btn.classList.add('theme-pref-' + pref);
+      var label =
+        pref === 'light'
+          ? 'Theme: Light'
+          : pref === 'dark'
+            ? 'Theme: Dark'
+            : 'Theme: Auto (follows system)';
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('title', label);
     });
-  }
-
-  function closeThemeMenu() {
-    var menu = document.getElementById('themeMenu');
-    var btn = document.getElementById('themeToggle');
-    if (menu) menu.classList.remove('open');
-    if (btn) btn.setAttribute('aria-expanded', 'false');
-  }
-
-  function openThemeMenu() {
-    var menu = document.getElementById('themeMenu');
-    var btn = document.getElementById('themeToggle');
-    if (!menu || !btn) return;
-    var userMenu = document.getElementById('userMenu');
-    if (userMenu) userMenu.classList.remove('open');
-    menu.classList.add('open');
-    btn.setAttribute('aria-expanded', 'true');
-    updateThemeTooltipCaret();
-    syncMenuActiveState();
-  }
-
-  function toggleThemeMenu() {
-    var menu = document.getElementById('themeMenu');
-    if (!menu) return;
-    if (menu.classList.contains('open')) closeThemeMenu();
-    else openThemeMenu();
-  }
-
-  function updateThemeTooltipCaret() {
-    var menu = document.getElementById('themeMenu');
-    var btn = document.getElementById('themeToggle');
-    var tooltip = menu && menu.querySelector('.theme-tooltip');
-    if (!menu || !btn || !tooltip || !menu.classList.contains('open')) return;
-    var ar = btn.getBoundingClientRect();
-    var tr = tooltip.getBoundingClientRect();
-    var x = ar.left + ar.width / 2 - tr.left;
-    tooltip.style.setProperty('--theme-tooltip-caret-x', x + 'px');
   }
 
   function init() {
     var pref = getStoredPreference();
     applyDomTheme(pref);
     attachSystemListenerIfAuto(pref);
-    refreshToggleButtonFace();
-    syncMenuActiveState();
+    refreshCycleButtons();
 
     document.addEventListener(
       'click',
       function (e) {
-        var menu = document.getElementById('themeMenu');
-        if (!menu) return;
-        if (!menu.contains(e.target)) closeThemeMenu();
-      },
-      true,
-    );
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeThemeMenu();
-    });
-
-    window.addEventListener(
-      'scroll',
-      function () {
-        closeThemeMenu();
-      },
-      { passive: true },
-    );
-
-    window.addEventListener(
-      'resize',
-      function () {
-        updateThemeTooltipCaret();
-      },
-      { passive: true },
-    );
-
-    document.addEventListener(
-      'click',
-      function (e) {
-        var opt =
-          e.target && e.target.closest ? e.target.closest('.theme-tooltip-option[data-theme-pref]') : null;
-        var menu = document.getElementById('themeMenu');
-        if (!opt || !menu || !menu.contains(opt)) return;
-        e.preventDefault();
-        var nextPref = opt.getAttribute('data-theme-pref');
-        setPreference(nextPref);
-        closeThemeMenu();
-      },
-      true,
-    );
-
-    document.addEventListener(
-      'click',
-      function (e) {
-        var t = e.target && e.target.closest ? e.target.closest('#themeToggle') : null;
-        var menu = document.getElementById('themeMenu');
-        if (!menu || !t || !menu.contains(t)) return;
+        var btn =
+          e.target && e.target.closest ? e.target.closest('[data-theme-cycle]') : null;
+        if (!btn) return;
         e.preventDefault();
         e.stopPropagation();
-        toggleThemeMenu();
-        if (menu.classList.contains('open')) {
-          requestAnimationFrame(function () {
-            requestAnimationFrame(updateThemeTooltipCaret);
-          });
-        }
+        setPreference(nextPreference(getStoredPreference()));
       },
       true,
     );
@@ -228,10 +146,8 @@
     var p = getStoredPreference();
     applyDomTheme(p);
     attachSystemListenerIfAuto(p);
-    refreshToggleButtonFace();
-    syncMenuActiveState();
+    refreshCycleButtons();
     syncThemeColorMeta();
-    closeThemeMenu();
   });
 
   if (document.readyState === 'loading') {

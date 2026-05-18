@@ -49,15 +49,23 @@
           {% endif %}
         </div>
 
-        {# REMEMBER ME #}
-        <div class="form-check text-start my-3 small">
-          {{ form.remember }}
-          <label class="form-check-label ms-1 text-muted" for="checkDefault">Remember me</label>
+        {# REMEMBER ME AND PASSWORD FORGOT #}
+        <div class="my-4 d-flex align-items-center justify-content-between">
+          <div class="form-check text-start small">
+            {{ form.remember }}
+            <label class="form-check-label ms-1 text-muted" for="checkDefault">Remember me</label>
+          </div>
+          <div class="forgotten_pass_link small">
+            <a href="#" class="text-muted text-decoration-none">Forgot the password?</a>
+          </div>
         </div>
 
         {# BUTTONS #}
         <div class="auth-form-submit-row d-flex gap-1 mt-2">
-          <button type="submit" class="cstm-btn custom-primary-btn auth-form-submit-btn">Sign in</button>
+          <button type="submit" class="cstm-btn custom-primary-btn auth-form-submit-btn">
+            <i class="fa fa-angle-right me-2" aria-hidden="true"></i>
+            Sign in
+          </button>
           <a href="{% url 'login_app:register' %}" class="cstm-btn custom-secondary-btn auth-form-submit-btn">Sign up</a>
         </div>
       </form>

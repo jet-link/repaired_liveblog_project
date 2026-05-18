@@ -70,53 +70,121 @@
     });
   })();
 
-  // Theme: light → moon (click to dark), dark → sun (click to light)
-  function getAdminTheme() {
-    return document.documentElement.getAttribute('data-theme') || '';
+  // Theme: cycle Light → Dark → Auto (system); persist admin_theme
+  function getAdminPref() {
+    try {
+      var s = localStorage.getItem(STORAGE_THEME);
+      if (s === 'light' || s === 'dark' || s === 'auto') return s;
+    } catch (e) { /* ignore */ }
+    return 'dark';
   }
-  function isAdminLight() {
-    return getAdminTheme() === 'light';
-  }
-  function syncAdminThemeIcon() {
-    var icon = document.querySelector('#adminThemeToggle .admin-theme-icon');
-    if (!icon) return;
-    var light = isAdminLight();
-    icon.classList.remove('fa-moon', 'fa-sun');
-    icon.classList.add(light ? 'fa-moon' : 'fa-sun');
-  }
-  function setAdminTheme(light) {
-    var root = document.documentElement;
-    if (light) {
-      root.setAttribute('data-theme', 'light');
-      try { localStorage.setItem(STORAGE_THEME, 'light'); } catch (e) {}
-    } else {
-      root.removeAttribute('data-theme');
-      try { localStorage.setItem(STORAGE_THEME, 'dark'); } catch (e) {}
+
+  function isAdminSystemDark() {
+    try {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch (e) {
+      return true;
     }
-    syncAdminThemeIcon();
+  }
+
+  function applyAdminDomFromPref(pref) {
+    var root = document.documentElement;
+    if (pref === 'light') {
+      root.setAttribute('data-theme', 'light');
+    } else if (pref === 'dark') {
+      root.removeAttribute('data-theme');
+    } else {
+      if (isAdminSystemDark()) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'light');
+    }
+  }
+
+  function persistAdminPref(pref) {
+    try {
+      localStorage.setItem(STORAGE_THEME, pref);
+    } catch (e) { /* ignore */ }
+  }
+
+  var adminSystemMql = null;
+  var adminOnSystemChange = null;
+
+  function detachAdminSystemListener() {
+    if (adminSystemMql && adminOnSystemChange) {
+      try {
+        adminSystemMql.removeEventListener('change', adminOnSystemChange);
+      } catch (e) {
+        try {
+          adminSystemMql.removeListener(adminOnSystemChange);
+        } catch (e2) { /* ignore */ }
+      }
+    }
+    adminSystemMql = null;
+    adminOnSystemChange = null;
+  }
+
+  function attachAdminSystemListenerIfAuto(pref) {
+    detachAdminSystemListener();
+    if (pref !== 'auto') return;
+    try {
+      adminSystemMql = window.matchMedia('(prefers-color-scheme: dark)');
+    } catch (e) {
+      return;
+    }
+    adminOnSystemChange = function () {
+      try {
+        if (localStorage.getItem(STORAGE_THEME) !== 'auto') return;
+      } catch (e2) { /* ignore */ }
+      applyAdminDomFromPref('auto');
+      syncAdminThemeFaces();
+    };
+    try {
+      adminSystemMql.addEventListener('change', adminOnSystemChange);
+    } catch (e3) {
+      if (adminSystemMql.addListener) adminSystemMql.addListener(adminOnSystemChange);
+    }
+  }
+
+  function nextAdminPref(current) {
+    if (current === 'light') return 'dark';
+    if (current === 'dark') return 'auto';
+    return 'light';
+  }
+
+  function syncAdminThemeFaces() {
+    var pref = getAdminPref();
+    var btn = document.getElementById('adminThemeToggle');
+    if (!btn) return;
+    btn.classList.remove('admin-theme-pref-light', 'admin-theme-pref-dark', 'admin-theme-pref-auto');
+    btn.classList.add('admin-theme-pref-' + pref);
+    var label =
+      pref === 'light'
+        ? 'Theme: Light'
+        : pref === 'dark'
+          ? 'Theme: Dark'
+          : 'Theme: Auto (follows system)';
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
   }
 
   (function initAdminTheme() {
-    var root = document.documentElement;
-    var saved = localStorage.getItem(STORAGE_THEME);
-    if (saved === 'light') root.setAttribute('data-theme', 'light');
-    syncAdminThemeIcon();
+    var pref = getAdminPref();
+    applyAdminDomFromPref(pref);
+    attachAdminSystemListenerIfAuto(pref);
+    syncAdminThemeFaces();
 
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('#adminThemeToggle')) return;
-      e.preventDefault();
-      setAdminTheme(!isAdminLight());
-    }, true);
-
-    var observer = new MutationObserver(function(mutations) {
-      for (var i = 0; i < mutations.length; i++) {
-        if (mutations[i].attributeName === 'data-theme') {
-          syncAdminThemeIcon();
-          break;
-        }
-      }
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    document.addEventListener(
+      'click',
+      function (e) {
+        if (!e.target.closest('#adminThemeToggle')) return;
+        e.preventDefault();
+        var next = nextAdminPref(getAdminPref());
+        persistAdminPref(next);
+        applyAdminDomFromPref(next);
+        attachAdminSystemListenerIfAuto(next);
+        syncAdminThemeFaces();
+      },
+      true,
+    );
   })();
 
   // Mobile sidebar

@@ -1360,21 +1360,7 @@ html[data-theme="dark"] .theme-toggle-btn {
     box-sizing: border-box;
 }
 
-/* Light — theme toggle only (#192a56 / hover #273c75); search = same white/grey as .search-btn (dark unchanged) */
-html[data-theme="light"] .header-utility-segment .theme-toggle-btn {
-    background: #192a56;
-    color: var(--btn-primary-fg);
-    border-color: transparent;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-}
-
-html[data-theme="light"] .header-utility-segment .theme-toggle-btn:hover {
-    color: var(--btn-primary-fg);
-    background: #273c75;
-    border-color: transparent;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
+/* Light — search + theme toggle share the same capsule styling */
 html[data-theme="light"] .header-utility-segment .search-btn {
     background: var(--card-bg);
     color: var(--text-muted);
@@ -1388,35 +1374,32 @@ html[data-theme="light"] .header-utility-segment .search-btn:hover {
     border-color: var(--border-strong);
 }
 
-/* Moon/sun from data-theme (set in <head> before paint) — avoids icon swap on DOMContentLoaded */
-.theme-toggle-btn .theme-toggle-icon--moon {
-    display: inline-block;
-}
-
-.theme-toggle-btn .theme-toggle-icon--sun {
-    display: none;
-}
-
-html[data-theme="dark"] .theme-toggle-btn .theme-toggle-icon--moon {
-    display: none;
-}
-
-html[data-theme="dark"] .theme-toggle-btn .theme-toggle-icon--sun {
-    display: inline-block;
-}
-
-/* Auto preference: laptop only; moon/sun hidden via higher specificity */
+/* Theme cycle button: icon follows saved preference (light / dark / auto), not effective palette */
+.theme-toggle-btn .theme-toggle-icon--moon,
+.theme-toggle-btn .theme-toggle-icon--sun,
 .theme-toggle-btn .theme-toggle-icon--auto {
     display: none;
 }
 
-.theme-toggle-btn.theme-toggle-btn--auto .theme-toggle-icon--auto {
+.theme-toggle-btn.theme-pref-light .theme-toggle-icon--sun {
     display: inline-block;
 }
 
-.theme-toggle-btn.theme-toggle-btn--auto .theme-toggle-icon--moon,
-.theme-toggle-btn.theme-toggle-btn--auto .theme-toggle-icon--sun {
-    display: none !important;
+.theme-toggle-btn.theme-pref-dark .theme-toggle-icon--moon {
+    display: inline-block;
+}
+
+.theme-toggle-btn.theme-pref-auto .theme-toggle-icon--auto {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle-letter-a {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1;
 }
 
 /* Search dropdown — шторка под header, не влияет на высоту контента */
