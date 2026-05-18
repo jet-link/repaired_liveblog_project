@@ -105,6 +105,7 @@ def register_view(request):
 
             if avatar_file:
                 profile.set_avatar_file(avatar_file)
+                profile.avatar_url = None
                 profile.save()
             elif avatar_url:
                 profile.avatar_url = avatar_url

@@ -305,11 +305,11 @@ html[data-theme="dark"] .password-toggle.password-toggle--inside:focus-visible {
     }
 
     .auth-form-layout .auth-form-submit-row .auth-form-submit-btn {
-        padding-top: 0.95rem;
-        padding-bottom: 0.95rem;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
-        min-height: 50px;
+        min-height: 40px;
         font-size: 1rem;
     }
 

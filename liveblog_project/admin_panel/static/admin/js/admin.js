@@ -551,7 +551,10 @@
   });
 
   document.documentElement.addEventListener('turbo:load', function() {
-    syncAdminThemeIcon();
+    var pref = getAdminPref();
+    applyAdminDomFromPref(pref);
+    attachAdminSystemListenerIfAuto(pref);
+    syncAdminThemeFaces();
     bindInstantSearch(document);
     bindAdminDropdowns(document);
     if (typeof window.adminBindToolbarSelectFilters === 'function') {

@@ -147,12 +147,6 @@
     min-width: 0;
 }
 
-.avatar-url-row-table .avatar-file-trigger {
-    flex: 0 0 auto;
-    align-self: stretch;
-    border-radius: 6px !important;
-}
-
 .profile-field-visibility-btn {
     flex: 0 0 auto;
     align-self: center;

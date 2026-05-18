@@ -96,23 +96,34 @@
 
 <script>
 (function() {
-    var chartInstance = null;
-    var resizeHandler = null;
-    var resizeObserver = null;
+    var state = window.__adminActivityChartState || (window.__adminActivityChartState = {
+        chartInstance: null,
+        resizeHandler: null,
+        resizeObserver: null
+    });
+
     function destroyActivityChart() {
-        if (resizeObserver) {
-            try { resizeObserver.disconnect(); } catch (e) {}
-            resizeObserver = null;
+        if (state.resizeObserver) {
+            try { state.resizeObserver.disconnect(); } catch (e) {}
+            state.resizeObserver = null;
         }
-        if (resizeHandler) {
-            window.removeEventListener('resize', resizeHandler);
-            resizeHandler = null;
+        if (state.resizeHandler) {
+            window.removeEventListener('resize', state.resizeHandler);
+            state.resizeHandler = null;
         }
-        if (chartInstance) {
-            try { chartInstance.destroy(); } catch (e) {}
-            chartInstance = null;
+        var canvas = document.getElementById('activityChart');
+        if (canvas && typeof Chart !== 'undefined' && typeof Chart.getChart === 'function') {
+            var reg = Chart.getChart(canvas);
+            if (reg) {
+                try { reg.destroy(); } catch (e) {}
+            }
+        }
+        if (state.chartInstance) {
+            try { state.chartInstance.destroy(); } catch (e) {}
+            state.chartInstance = null;
         }
     }
+
     function initActivityChart() {
         var ctx = document.getElementById('activityChart');
         if (!ctx) {
@@ -120,12 +131,19 @@
             return;
         }
         destroyActivityChart();
+
         var attempts = 0;
         function tryInit() {
             if (typeof Chart === 'undefined') {
                 if (++attempts > 100) return;
                 setTimeout(tryInit, 40);
                 return;
+            }
+            if (typeof Chart.getChart === 'function') {
+                var reg = Chart.getChart(ctx);
+                if (reg) {
+                    try { reg.destroy(); } catch (e) {}
+                }
             }
             var data = {{ activity_json|safe }};
             if (!data || !data.labels) return;
@@ -146,32 +164,39 @@
                     onClick: function() {}
                 }
             };
-            chartInstance = new Chart(ctx, chartConfig);
+            state.chartInstance = new Chart(ctx, chartConfig);
             var cp = document.getElementById('chartPosts');
             var cc = document.getElementById('chartComments');
             var cu = document.getElementById('chartUsers');
-            if (cp) cp.onchange = function() { chartInstance.setDatasetVisibility(0, this.checked); chartInstance.update(); };
-            if (cc) cc.onchange = function() { chartInstance.setDatasetVisibility(1, this.checked); chartInstance.update(); };
-            if (cu) cu.onchange = function() { chartInstance.setDatasetVisibility(2, this.checked); chartInstance.update(); };
-            resizeHandler = function resizeChart() {
-                if (chartInstance && chartInstance.canvas && chartInstance.canvas.parentNode) {
-                    chartInstance.resize();
+            if (cp) cp.onchange = function() { state.chartInstance.setDatasetVisibility(0, this.checked); state.chartInstance.update(); };
+            if (cc) cc.onchange = function() { state.chartInstance.setDatasetVisibility(1, this.checked); state.chartInstance.update(); };
+            if (cu) cu.onchange = function() { state.chartInstance.setDatasetVisibility(2, this.checked); state.chartInstance.update(); };
+            state.resizeHandler = function resizeChart() {
+                if (state.chartInstance && state.chartInstance.canvas && state.chartInstance.canvas.parentNode) {
+                    state.chartInstance.resize();
                 }
             };
-            window.addEventListener('resize', resizeHandler);
+            window.addEventListener('resize', state.resizeHandler);
             if (typeof ResizeObserver !== 'undefined') {
                 var container = ctx.closest('.admin-chart-container');
                 if (container) {
-                    resizeObserver = new ResizeObserver(resizeHandler);
-                    resizeObserver.observe(container);
+                    state.resizeObserver = new ResizeObserver(state.resizeHandler);
+                    state.resizeObserver.observe(container);
                 }
             }
         }
         tryInit();
     }
-    document.addEventListener('DOMContentLoaded', initActivityChart);
-    document.addEventListener('turbo:load', initActivityChart);
-    document.addEventListener('turbo:before-cache', destroyActivityChart);
+
+    if (!window.__adminActivityChartListenersBound) {
+        window.__adminActivityChartListenersBound = true;
+        document.addEventListener('DOMContentLoaded', initActivityChart);
+        document.addEventListener('turbo:load', initActivityChart);
+        document.addEventListener('turbo:before-cache', destroyActivityChart);
+    }
+    if (document.getElementById('activityChart')) {
+        initActivityChart();
+    }
 })();
 </script>
 {% endblock %}

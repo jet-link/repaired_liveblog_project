@@ -161,6 +161,19 @@ class CustomUserCreationForm(UserCreationForm):
             self.add_error('password2', forms.ValidationError(self.error_messages['password_mismatch'], code='password_mismatch'))
         return cleaned_data
 
+    def clean_avatar_file(self):
+        avatar = self.cleaned_data.get('avatar_file')
+        if not avatar:
+            return avatar
+
+        if not avatar.content_type.startswith('image/'):
+            raise ValidationError(_("Only image files are allowed."))
+
+        if avatar.size > 5 * 1024 * 1024:  # 5 MB
+            raise ValidationError(_("Image file is too large (max 5MB)."))
+
+        return avatar
+
 
 # Login
 class LoginForm(forms.Form):

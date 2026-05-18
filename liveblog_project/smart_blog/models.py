@@ -89,11 +89,47 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def _slug_base_from_name(self):
+        base = slugify(self.name, allow_unicode=False)
+        if not base and translit:
+            try:
+                base = slugify(translit(self.name, 'ru', reversed=True))
+            except Exception:
+                base = ''
+        if not base:
+            base = ''.join(ch for ch in self.name if ch.isalnum())[:50]
+        return base or 'category'
+
+    def _assign_unique_slug_from_name(self):
+        base = self._slug_base_from_name()
+        candidate = base
+        n = 1
+        while True:
+            qs = Category.all_objects.filter(slug=candidate)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if not qs.exists():
+                self.slug = candidate
+                return
+            candidate = f"{base}-{n}"
+            n += 1
+
     def save(self, *args, **kwargs):
         self.name = self.name.strip()
 
+        regen_slug = False
         if not self.slug:
-            self.slug = slugify(self.name)
+            regen_slug = True
+        elif self.pk:
+            try:
+                prev = Category.all_objects.only('name').get(pk=self.pk)
+                if prev.name.strip() != self.name:
+                    regen_slug = True
+            except Category.DoesNotExist:
+                regen_slug = True
+
+        if regen_slug:
+            self._assign_unique_slug_from_name()
 
         super().save(*args, **kwargs)
 
@@ -137,20 +173,38 @@ class Tag(models.Model):
         from django.urls import reverse
         return reverse('smart_blog:tag_list', kwargs={'slug': self.slug})
 
+    def _assign_unique_slug_from_tag_name(self):
+        base = slugify(self.tag_name) or 'tag'
+        candidate = base
+        n = 1
+        while True:
+            qs = Tag.all_objects.filter(slug=candidate)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if not qs.exists():
+                self.slug = candidate
+                return
+            n += 1
+            candidate = f"{base}-{n}"
+
     def save(self, *args, **kwargs):
         # Match public tag entry style (lowercase); slugify lowercases anyway
         self.tag_name = (self.tag_name or '').strip().lower()
-        # Автогенерация slug при сохранении (если не указан)
+
+        regen_slug = False
         if not self.slug:
-            base = slugify(self.tag_name)
-            slug_candidate = base or "tag"
-            # Убедимся в уникальности: добавляем суффикс при необходимости
-            counter = 0
-            from django.db.models import Q
-            while Tag.objects.filter(Q(slug=slug_candidate)).exclude(pk=self.pk).exists():
-                counter += 1
-                slug_candidate = f"{base}-{counter}"
-            self.slug = slug_candidate
+            regen_slug = True
+        elif self.pk:
+            try:
+                prev = Tag.all_objects.only('tag_name').get(pk=self.pk)
+                if prev.tag_name != self.tag_name:
+                    regen_slug = True
+            except Tag.DoesNotExist:
+                regen_slug = True
+
+        if regen_slug:
+            self._assign_unique_slug_from_tag_name()
+
         super().save(*args, **kwargs)
 
     def soft_delete(self):

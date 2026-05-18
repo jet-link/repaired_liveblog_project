@@ -144,14 +144,32 @@ img.avatar-load-failed {
 }
 
 .avatar-file-trigger {
+    flex: 0 0 auto;
+    align-self: stretch;
     min-width: 46px;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Same corner radius as edit profile (.avatar-url-row-table); overrides .cstm-btn pill */
+    border-radius: 6px !important;
 }
 
 .avatar-file-trigger i {
     font-size: 20px;
+}
+
+/* Edit profile: vertical rhythm around avatar previews */
+#profileForm #avatarUrlPreview,
+#profileForm #avatarFilePreview {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Register: vertical rhythm around URL/file previews */
+#registerForm #avatarUrlPreview,
+#registerForm #avatarFilePreview {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 
 /* ===== AVATAR LIGHTBOX OVERLAY ===== */

@@ -16,7 +16,7 @@
             <button id="showPasswordBtn" type="button" class="btn btn-link text-decoration-none btn-sm text-muted p-0">Change password</button>
           </div>
 
-          <form id="profileForm" method="post" enctype="multipart/form-data" novalidate data-validate="true">
+          <form id="profileForm" method="post" enctype="multipart/form-data" novalidate data-validate="true" data-avatar-picker>
             {% csrf_token %}
             {% if form.non_field_errors %}
               <div class="custom-alert custom-alert-danger mb-2" data-auto-dismiss="3000">
@@ -168,7 +168,6 @@
               <button type="button" class="avatar-preview-delete" aria-label="Remove avatar"><i class="fa fa-times" aria-hidden="true"></i></button>
             </div>
 
-            <div id="avatarFileName" class="small mb-2 d-none"></div>
             <input type="hidden" name="avatar_clear" id="avatarClearFlag" value="0" />
 
             <div class="d-flex gap-2 mb-0 mt-2">
