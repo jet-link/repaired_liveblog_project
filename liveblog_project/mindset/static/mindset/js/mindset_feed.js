@@ -17,6 +17,7 @@
   var REPLY_COOLDOWN_KEY_PREFIX = 'mindset_reply_cooldown_until_';
   var THEME_CREATE_COOLDOWN_SEC = 60;
   var THEME_CREATE_COOLDOWN_KEY_PREFIX = 'mindset_theme_create_until_';
+  var MINDSET_WALL_PAGE_STORAGE_PREFIX = 'mindsetWallPages:';
 
   function humanize(n) {
     n = Number(n);
@@ -129,7 +130,7 @@
     if (!feedList) return;
     if (feedList.querySelector('article.mindset-theme')) return;
     if (feedList.querySelector('.mindset-following-wall-empty')) return;
-    var pag = feedList.querySelector('nav.mindset-pagination');
+    var pag = feedList.querySelector('#mindsetListPagination');
     if (pag) pag.remove();
     var empty = document.createElement('div');
     empty.className = 'mindset-empty text-muted text-center py-5 mindset-following-wall-empty';
@@ -933,6 +934,51 @@
       .replace(/\?$/, '');
   }
 
+  function mindsetWallPageStorageKey(pathname) {
+    return MINDSET_WALL_PAGE_STORAGE_PREFIX + pathname;
+  }
+
+  function readMindsetWallPages(pathname) {
+    try {
+      return JSON.parse(sessionStorage.getItem(mindsetWallPageStorageKey(pathname)) || '{}');
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function writeMindsetWallPage(pathname, wallKey, page) {
+    var map = readMindsetWallPages(pathname);
+    map[wallKey] = page;
+    try {
+      sessionStorage.setItem(mindsetWallPageStorageKey(pathname), JSON.stringify(map));
+    } catch (_) { /* ignore quota / private mode */ }
+  }
+
+  function persistCurrentMindsetWallPage(root) {
+    if (!root || root.getAttribute('data-user-authenticated') !== '1') return;
+    var wall = root.getAttribute('data-mindset-wall') || 'main';
+    var wallKey = wall === 'following' ? 'following' : 'main';
+    var pathname = window.location.pathname;
+    var params = new URLSearchParams(window.location.search);
+    var page = parseInt(params.get('page') || '1', 10);
+    if (!isFinite(page) || page < 1) page = 1;
+    writeMindsetWallPage(pathname, wallKey, page);
+  }
+
+  function urlWithRememberedWallPage(href, targetMode) {
+    var u = new URL(href, window.location.origin);
+    var pathname = u.pathname;
+    var map = readMindsetWallPages(pathname);
+    var wallKey = targetMode === 'following' ? 'following' : 'main';
+    var page = map[wallKey];
+    if (page && page > 1) {
+      u.searchParams.set('page', String(page));
+    } else {
+      u.searchParams.delete('page');
+    }
+    return u.pathname + u.search + u.hash;
+  }
+
   function setActiveWallTab(tabsRoot, mode) {
     if (!tabsRoot) return;
     tabsRoot.querySelectorAll('.mindset-wall-tab').forEach(function (a) {
@@ -985,6 +1031,8 @@
           window.history.pushState({ mindsetWall: mode, url: visibleUrl }, '', visibleUrl);
         }
 
+        persistCurrentMindsetWallPage(root);
+
         refreshFeedAfterPartial(root);
 
         try {
@@ -1017,7 +1065,8 @@
       ev.preventDefault();
       var mode = href.indexOf('wall=following') !== -1 ? 'following' : 'main';
       if ((root.getAttribute('data-mindset-wall') || 'main') === mode) return;
-      loadWall(root, href, mode);
+      var targetUrl = urlWithRememberedWallPage(href, mode);
+      loadWall(root, targetUrl, mode);
     });
 
     window.addEventListener('popstate', function () {
@@ -1040,6 +1089,7 @@
     initAllReplyCooldowns(root);
     initMindsetNewThemeCooldown(root);
     handleMindsetNotificationHash();
+    persistCurrentMindsetWallPage(root);
 
     if (!root.__mindsetTimers) {
       root.__mindsetTimers = true;

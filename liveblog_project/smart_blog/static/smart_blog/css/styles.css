@@ -1042,15 +1042,15 @@ html[data-theme="dark"] .form-floating>textarea:not(:placeholder-shown)~label {
 }
 
 .paginator-page:hover {
-    color: var(--btn-primary-bg);
+    color: #0984e3;
     background: var(--bg-subtle);
     border-color: var(--border-strong);
 }
 
 .paginator-page.paginator-current {
-    color: var(--btn-primary-fg);
-    background: var(--btn-primary-bg);
-    border-color: var(--btn-primary-bg);
+    color: var(--paginator-active-fg);
+    background: var(--paginator-active-bg);
+    border-color: var(--paginator-active-bg);
     cursor: default;
 }
 
@@ -1073,12 +1073,6 @@ html[data-theme="dark"] .paginator-btn:hover,
 html[data-theme="dark"] .paginator-page:hover {
     background: var(--bg-muted);
     border-color: var(--border-strong);
-}
-
-html[data-theme="dark"] .paginator-page.paginator-current {
-    background: var(--btn-primary-bg);
-    border-color: var(--btn-primary-bg);
-    color: var(--btn-primary-fg);
 }
 
 .modal .modal-close-btn {

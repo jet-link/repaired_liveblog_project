@@ -269,7 +269,7 @@
   color: var(--text-muted, #6c757d);
   text-decoration: none;
   white-space: nowrap;
-  padding: 0.4rem 1rem;
+  padding: 0.4rem 1.2rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -765,11 +765,6 @@ html[data-theme="dark"] .mindset-reply {
 
 html[data-theme="dark"] .mindset-back-link__target {
   color: #58a6ff;
-}
-
-/* Pagination */
-.mindset-pagination .page-link {
-  border-radius: 999px;
 }
 
 /* Create page */

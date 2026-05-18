@@ -308,11 +308,6 @@ def _mindset_wall_mode(request) -> str:
     return 'main'
 
 
-def _path_with_query(path: str, querydict) -> str:
-    qs = querydict.urlencode()
-    return f'{path}?{qs}' if qs else path
-
-
 def theme_list(request, *, active_tag: Hashtag | None = None):
     fil, tag = _resolve_filter(request)
     if active_tag is not None:
@@ -350,29 +345,27 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
     page_number = request.GET.get('page') or 1
     page_obj = paginator.get_page(page_number)
 
-    prev_page_url = None
-    next_page_url = None
-    if page_obj.number > 1:
-        q = request.GET.copy()
-        q['page'] = page_obj.previous_page_number()
-        q.pop('partial', None)
-        prev_page_url = _path_with_query(request.path, q)
-    if page_obj.number < page_obj.paginator.num_pages:
-        q = request.GET.copy()
-        q['page'] = page_obj.next_page_number()
-        q.pop('partial', None)
-        next_page_url = _path_with_query(request.path, q)
+    page_range = paginator.get_elided_page_range(
+        number=page_obj.number,
+        on_each_side=1,
+        on_ends=1,
+    )
+    q_extra = request.GET.copy()
+    q_extra.pop('page', None)
+    q_extra.pop('partial', None)
+    extra_encoded = q_extra.urlencode()
+    pagination_extra = f'&{extra_encoded}' if extra_encoded else ''
 
     context = {
         'page_obj': page_obj,
+        'page_range': page_range,
+        'pagination_extra': pagination_extra,
         'themes': page_obj.object_list,
         'active_filter': fil,
         'active_tag': tag,
         'mindset_wall': wall_mode,
         'mindset_main_wall_url': main_path,
         'mindset_following_wall_url': following_path,
-        'prev_page_url': prev_page_url,
-        'next_page_url': next_page_url,
     }
 
     is_partial = (

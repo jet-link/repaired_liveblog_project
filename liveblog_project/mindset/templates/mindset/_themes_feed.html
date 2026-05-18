@@ -16,15 +16,7 @@
 {% endfor %}
 
 {% if page_obj.has_other_pages %}
-  <nav class="mindset-pagination mt-4" aria-label="Pagination">
-    <ul class="pagination justify-content-center">
-      {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link" href="{{ prev_page_url }}">Prev</a></li>
-      {% endif %}
-      <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
-      {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link" href="{{ next_page_url }}">Next</a></li>
-      {% endif %}
-    </ul>
-  </nav>
+  <div id="mindsetListPagination" class="brainews-pagination filter-pagination-extra">
+    {% include 'includes/pagination.html' %}
+  </div>
 {% endif %}

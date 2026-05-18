@@ -76,6 +76,10 @@
 
     /* Form fields — focus ring (color-mix with link accent) */
     --input-focus-ring: color-mix(in srgb, var(--text-link) 28%, transparent);
+
+    /* Pagination — active page chip */
+    --paginator-active-bg: var(--btn-primary-bg);
+    --paginator-active-fg: var(--btn-primary-fg);
 }
 
 /* GitHub-style dark theme */
@@ -123,4 +127,7 @@ html[data-theme="dark"] {
     --toggle-thumb: var(--toggle-thumb-dark);
 
     --input-focus-ring: color-mix(in srgb, var(--text-link) 32%, transparent);
+
+    --paginator-active-bg: #0984e3;
+    --paginator-active-fg: #ffffff;
 }
