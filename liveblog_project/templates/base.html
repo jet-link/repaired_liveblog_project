@@ -15,7 +15,9 @@
 
     {% load static %}
     {% load cache %}
-    <link rel="icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}?v=7" />
+    <link rel="shortcut icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}?v=7" />
+    <link rel="apple-touch-icon" href="{% static 'admin/favicon-cube.svg' %}?v=7" />
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js" crossorigin="anonymous"></script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -4,6 +4,8 @@ from django.conf.urls.static import static
 from django.contrib.sitemaps.views import index as sitemap_index
 from django.contrib.sitemaps.views import sitemap as sitemap_section
 from django.http import HttpResponse
+from django.templatetags.static import static as static_url
+from django.views.generic.base import RedirectView
 from smart_blog import views as smart_views
 from smart_blog.sitemaps import PUBLIC_SITEMAPS
 
@@ -32,6 +34,14 @@ urlpatterns = [
         name='django.contrib.sitemaps.views.sitemap',
     ),
     path('robots.txt', robots_txt, name='robots_txt'),
+
+    # Legacy/auto requests for /favicon.ico → cube SVG (browsers cache the
+    # ICO from older deploys, this guarantees the new icon wins).
+    path(
+        'favicon.ico',
+        RedirectView.as_view(url=static_url('admin/favicon-cube.svg'), permanent=True),
+        name='favicon_ico',
+    ),
 
     # Global search at /search/
     path('search/', smart_views.search_view, name='global_search'),

@@ -7,7 +7,7 @@
     align-items: center;
     flex-wrap: nowrap;
     gap: 7px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: var(--text-muted);
     overflow-x: auto;
     overflow-y: hidden;
@@ -496,7 +496,7 @@ html[data-theme="dark"] .faq-item-answer {
 /* ========== Static pages: About / Contacts (minimal, informative) ========== */
 /* Top spacing like BraiNews/Popular: parent .container.content_block (styles.css) */
 .page-static {
-    --page-static-max: 55rem;
+    --page-static-max: 60rem;
     padding: 0 0 clamp(2.5rem, 6vw, 4rem);
     color: var(--text-default, #1f2328);
     background: transparent;

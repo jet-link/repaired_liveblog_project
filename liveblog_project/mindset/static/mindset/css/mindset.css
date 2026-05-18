@@ -264,7 +264,7 @@
   display: inline-block;
   font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 600;
+  /* font-weight: 600; */
   line-height: 1.25;
   color: var(--text-muted, #6c757d);
   text-decoration: none;
@@ -316,6 +316,12 @@ html[data-theme="dark"] .mindset-wall-tab.is-active {
 html[data-theme="dark"] .mindset-wall-tab.is-active:hover,
 html[data-theme="dark"] .mindset-wall-tab.is-active:focus-visible {
   background-color: rgba(93, 173, 226, 0.22);
+}
+
+.mindset-feed--loading {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
 }
 
 /* Action row */

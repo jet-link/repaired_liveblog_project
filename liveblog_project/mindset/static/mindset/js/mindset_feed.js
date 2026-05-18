@@ -918,6 +918,117 @@
     });
   }
 
+  // ---- wall tabs (Main wall / Following wall) without reload --------------
+
+  function appendPartialFlag(url) {
+    var sep = url.indexOf('?') === -1 ? '?' : '&';
+    return url + sep + 'partial=1';
+  }
+
+  function stripPartialFlag(url) {
+    return url
+      .replace(/([?&])partial=1(&|$)/, function (_m, lead, tail) {
+        return tail === '&' ? lead : (lead === '?' ? '' : '');
+      })
+      .replace(/\?$/, '');
+  }
+
+  function setActiveWallTab(tabsRoot, mode) {
+    if (!tabsRoot) return;
+    tabsRoot.querySelectorAll('.mindset-wall-tab').forEach(function (a) {
+      var isFollowing = (a.getAttribute('href') || '').indexOf('wall=following') !== -1;
+      var thisMode = isFollowing ? 'following' : 'main';
+      a.classList.toggle('is-active', thisMode === mode);
+    });
+  }
+
+  function refreshFeedAfterPartial(root) {
+    initAllReplyCooldowns(root);
+  }
+
+  var wallNavInFlight = null;
+
+  function loadWall(root, targetUrl, mode, opts) {
+    opts = opts || {};
+    var feedList = root.querySelector('[data-mindset-feed-list]');
+    if (!feedList) {
+      window.location.href = targetUrl;
+      return;
+    }
+    var tabs = root.querySelector('.mindset-wall-tabs');
+
+    if (wallNavInFlight) {
+      try { wallNavInFlight.abort(); } catch (_) { /* ignore */ }
+    }
+    var ctrl = window.AbortController ? new AbortController() : null;
+    wallNavInFlight = ctrl;
+
+    feedList.classList.add('mindset-feed--loading');
+
+    fetch(appendPartialFlag(targetUrl), {
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' },
+      signal: ctrl ? ctrl.signal : undefined,
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.text();
+      })
+      .then(function (html) {
+        feedList.innerHTML = html;
+        feedList.classList.remove('mindset-feed--loading');
+        root.setAttribute('data-mindset-wall', mode);
+        setActiveWallTab(tabs, mode);
+
+        if (!opts.skipHistory) {
+          var visibleUrl = stripPartialFlag(targetUrl);
+          window.history.pushState({ mindsetWall: mode, url: visibleUrl }, '', visibleUrl);
+        }
+
+        refreshFeedAfterPartial(root);
+
+        try {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (_) {
+          window.scrollTo(0, 0);
+        }
+      })
+      .catch(function (err) {
+        if (err && err.name === 'AbortError') return;
+        feedList.classList.remove('mindset-feed--loading');
+        window.location.href = targetUrl;
+      })
+      .then(function () {
+        if (wallNavInFlight === ctrl) wallNavInFlight = null;
+      });
+  }
+
+  function bindWallTabs(root) {
+    if (root.__mindsetWallBound) return;
+    root.__mindsetWallBound = true;
+    var tabsRoot = root.querySelector('.mindset-wall-tabs');
+    if (!tabsRoot) return;
+    tabsRoot.addEventListener('click', function (ev) {
+      var link = ev.target.closest('.mindset-wall-tab');
+      if (!link || !tabsRoot.contains(link)) return;
+      if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button === 1) return;
+      var href = link.getAttribute('href') || '';
+      if (!href) return;
+      ev.preventDefault();
+      var mode = href.indexOf('wall=following') !== -1 ? 'following' : 'main';
+      if ((root.getAttribute('data-mindset-wall') || 'main') === mode) return;
+      loadWall(root, href, mode);
+    });
+
+    window.addEventListener('popstate', function () {
+      var url = window.location.pathname + window.location.search;
+      var mode = url.indexOf('wall=following') !== -1 ? 'following' : 'main';
+      var current = root.getAttribute('data-mindset-wall') || 'main';
+      if (mode === current) return;
+      loadWall(root, url, mode, { skipHistory: true });
+    });
+  }
+
   // ---- init ----------------------------------------------------------------
 
   function init() {
@@ -925,6 +1036,7 @@
     if (!root) return;
     bindRoot(root);
     bindDeleteModal();
+    bindWallTabs(root);
     initAllReplyCooldowns(root);
     initMindsetNewThemeCooldown(root);
     handleMindsetNotificationHash();

@@ -350,35 +350,40 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
     page_number = request.GET.get('page') or 1
     page_obj = paginator.get_page(page_number)
 
-    sidebar = _sidebar_payload()
-
     prev_page_url = None
     next_page_url = None
     if page_obj.number > 1:
         q = request.GET.copy()
         q['page'] = page_obj.previous_page_number()
+        q.pop('partial', None)
         prev_page_url = _path_with_query(request.path, q)
     if page_obj.number < page_obj.paginator.num_pages:
         q = request.GET.copy()
         q['page'] = page_obj.next_page_number()
+        q.pop('partial', None)
         next_page_url = _path_with_query(request.path, q)
 
-    return render(
-        request,
-        'mindset/theme_list.html',
-        {
-            'page_obj': page_obj,
-            'themes': page_obj.object_list,
-            'sidebar': sidebar,
-            'active_filter': fil,
-            'active_tag': tag,
-            'mindset_wall': wall_mode,
-            'mindset_main_wall_url': main_path,
-            'mindset_following_wall_url': following_path,
-            'prev_page_url': prev_page_url,
-            'next_page_url': next_page_url,
-        },
+    context = {
+        'page_obj': page_obj,
+        'themes': page_obj.object_list,
+        'active_filter': fil,
+        'active_tag': tag,
+        'mindset_wall': wall_mode,
+        'mindset_main_wall_url': main_path,
+        'mindset_following_wall_url': following_path,
+        'prev_page_url': prev_page_url,
+        'next_page_url': next_page_url,
+    }
+
+    is_partial = (
+        request.GET.get('partial') == '1'
+        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     )
+    if is_partial:
+        return render(request, 'mindset/_themes_feed.html', context)
+
+    context['sidebar'] = _sidebar_payload()
+    return render(request, 'mindset/theme_list.html', context)
 
 
 def theme_list_by_tag(request, slug):

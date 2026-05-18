@@ -1,0 +1,30 @@
+{% load static %}
+{% for theme in themes %}
+  {% include 'mindset/_theme_card.html' with theme=theme %}
+{% empty %}
+  <div class="mindset-empty text-muted text-center py-5">
+    {% if user.is_authenticated and mindset_wall == 'following' %}
+      <p class="m-0">No themes from people you follow yet.</p>
+      <p class="small m-0 mt-2">Follow authors from the main wall to see their themes here.</p>
+    {% else %}
+      <p class="m-0">No themes yet.</p>
+      {% if user.is_authenticated %}
+        <p class="small m-0">Be the first — <a href="{% url 'mindset:theme_create' %}">share a thought</a>.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endfor %}
+
+{% if page_obj.has_other_pages %}
+  <nav class="mindset-pagination mt-4" aria-label="Pagination">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="{{ prev_page_url }}">Prev</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ next_page_url }}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
