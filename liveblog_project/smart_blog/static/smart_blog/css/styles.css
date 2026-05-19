@@ -1015,6 +1015,8 @@ html[data-theme="dark"] .form-floating>textarea:not(:placeholder-shown)~label {
     color: var(--text-muted);
     cursor: default;
     pointer-events: none;
+    text-decoration: line-through;
+    font-weight: 600;
 }
 
 .paginator-pages {

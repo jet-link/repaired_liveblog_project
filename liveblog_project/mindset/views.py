@@ -54,7 +54,7 @@ from .models import (
 
 User = get_user_model()
 
-THEME_PAGE_SIZE = 20
+THEME_PAGE_SIZE = 50
 SIDEBAR_LIMIT = 6
 REPLY_COOLDOWN_SECONDS = 30
 

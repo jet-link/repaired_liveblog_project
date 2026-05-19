@@ -1200,7 +1200,7 @@
       return s.trim();
     }
     const d = document.createElement('div');
-    d.innerHTML = s;
+    d.innerHTML = s.replace(/<br\s*\/?>/gi, '\n');
     return (d.textContent || d.innerText || '').replace(/\r\n/g, '\n').trim();
   }
 
@@ -2353,9 +2353,12 @@ function buildShortHTML(fullHTML, maxLen = 400) {
     }
 
     if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.nodeName === 'BR') {
+        return;
+      }
       Array.from(node.childNodes).forEach(walk);
 
-      // если элемент стал пустым — удалить
+      // если элемент стал пустым — удалить (но <br> выше уже сохранены)
       if (!node.textContent.trim()) {
         node.remove();
       }

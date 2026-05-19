@@ -169,4 +169,6 @@ def sanitize_and_linkify_comment_html(fragment: str) -> str:
 
 def comment_html_for_template(text: str) -> str:
     """Sanitize, linkify, newlines → br (caller wraps with mark_safe)."""
-    return sanitize_and_linkify_comment_html(text or '').replace('\n', '<br>')
+    html = sanitize_and_linkify_comment_html(text or '')
+    html = html.replace('\r\n', '\n').replace('\r', '\n')
+    return html.replace('\n', '<br>')

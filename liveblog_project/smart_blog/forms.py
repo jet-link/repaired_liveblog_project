@@ -451,6 +451,7 @@ class CommentForm(forms.ModelForm):
 
         expanded = expand_bare_domains(normalized)
         cleaned = sanitize_and_linkify_comment_html(expanded)
+        cleaned = cleaned.replace('\r\n', '\n').replace('\r', '\n').replace('\n', '<br>')
 
         plain = re.sub(r'<[^>]+>', '', cleaned).strip()
         if not plain or len(plain) < 2:
