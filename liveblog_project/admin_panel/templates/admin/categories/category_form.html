@@ -4,15 +4,18 @@
 {% block page_title %}{% if is_create %}Create Category{% else %}Edit {{ category.name }}{% endif %}{% endblock %}
 {% block content %}
 <div class="admin-card">
-    <form method="post" class="admin-form">
+    {% if already_exists %}
+    <div class="admin-alert admin-alert-info">Category already exists.</div>
+    {% endif %}
+    <form method="post" class="admin-form" data-turbo="false">
         {% csrf_token %}
         <div class="admin-form-group">
             <label for="id_category_name">Name</label>
-            <input type="text" id="id_category_name" name="name" value="{% if category %}{{ category.name }}{% endif %}" class="admin-input" placeholder="Category name" required spellcheck="true">
+            <input type="text" id="id_category_name" name="name" value="{% if category %}{{ category.name }}{% elif name %}{{ name }}{% endif %}" class="admin-input" placeholder="Category name" required spellcheck="true">
         </div>
         <div class="admin-form-group">
             <label for="id_category_description">Description</label>
-            <textarea id="id_category_description" name="description" class="admin-textarea" placeholder="Description · optional" spellcheck="true">{% if category %}{{ category.description }}{% endif %}</textarea>
+            <textarea id="id_category_description" name="description" class="admin-textarea" placeholder="Description · optional" spellcheck="true">{% if category %}{{ category.description }}{% elif description %}{{ description }}{% endif %}</textarea>
         </div>
         <div class="admin-form-actions">
             <button type="submit" class="admin-button admin-button-primary">{% if is_create %}Create{% else %}Save{% endif %}</button>

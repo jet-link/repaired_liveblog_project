@@ -4,9 +4,12 @@
 {% block page_title %}{% if is_create %}Create Tag{% else %}Edit {{ tag.tag_name }}{% endif %}{% endblock %}
 {% block content %}
 <div class="admin-card">
-    <form method="post" class="admin-form">
+    {% if already_exists %}
+    <div class="admin-alert admin-alert-info">Tag already exists.</div>
+    {% endif %}
+    <form method="post" class="admin-form" data-turbo="false">
         {% csrf_token %}
-        <div class="admin-form-group"><label for="id_tag_name">Tag name</label><input type="text" id="id_tag_name" name="tag_name" value="{% if tag %}{{ tag.tag_name }}{% endif %}" class="admin-input" placeholder="{% if is_create %}Tag name or multiple tags separated by spaces{% else %}Tag name{% endif %}" required></div>
+        <div class="admin-form-group"><label for="id_tag_name">Tag name</label><input type="text" id="id_tag_name" name="tag_name" value="{% if tag %}{{ tag.tag_name }}{% elif tag_name %}{{ tag_name }}{% endif %}" class="admin-input" placeholder="{% if is_create %}Tag name or multiple tags separated by spaces{% else %}Tag name{% endif %}" required></div>
         <div class="admin-form-actions"><button type="submit" class="admin-button admin-button-primary">{% if is_create %}Create{% else %}Save{% endif %}</button><a href="{% url 'admin_panel:tags_list' %}" class="admin-button admin-button-outline">Cancel</a></div>
     </form>
 </div>

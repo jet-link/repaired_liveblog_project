@@ -1,6 +1,11 @@
 """Helpers for admin_panel."""
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
+
+
+def admin_form_error_response(request, template, context):
+    """Re-render admin form after validation failure (forms use data-turbo=\"false\")."""
+    return render(request, template, context)
 
 
 def redirect_preserve_query(request, url_name, **reverse_kwargs):

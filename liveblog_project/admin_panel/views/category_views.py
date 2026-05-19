@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 from admin_panel.decorators import admin_required
-from admin_panel.utils import redirect_preserve_query
+from admin_panel.utils import redirect_preserve_query, admin_form_error_response
 from smart_blog.models import Category
 
 
@@ -28,14 +28,24 @@ def category_create(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
+        context = {
+            'is_create': True,
+            'name': name,
+            'description': description,
+        }
         if not name:
             messages.error(request, 'Name is required.')
-        elif Category.objects.filter(name__iexact=name).exists():
-            messages.error(request, f'Category "{name}" already exists.')
-        else:
-            Category.objects.create(name=name, description=description)
-            messages.success(request, 'Category created.')
-            return redirect('admin_panel:categories_list')
+            return admin_form_error_response(
+                request, 'admin/categories/category_form.html', context
+            )
+        if Category.objects.filter(name__iexact=name).exists():
+            context['already_exists'] = True
+            return admin_form_error_response(
+                request, 'admin/categories/category_form.html', context
+            )
+        Category.objects.create(name=name, description=description)
+        messages.success(request, 'Category created.')
+        return redirect('admin_panel:categories_list')
     return render(request, 'admin/categories/category_form.html', {'is_create': True})
 
 

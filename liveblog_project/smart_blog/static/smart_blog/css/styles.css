@@ -5,6 +5,14 @@ html[data-theme="dark"] .personal-info-row {
     border-color: var(--border-default);
 }
 
+.text-danger{
+    margin-bottom: 10px !important;
+}
+
+.invalid-feedback {
+    margin-bottom: 10px !important;
+}
+
 /* Light + shared: modal dimmer (semi-transparent, not milky/white) */
 .modal-backdrop.show {
     background-color: rgba(0, 0, 0, 0.52) !important;

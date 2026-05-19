@@ -54,7 +54,8 @@ from .models import (
 
 User = get_user_model()
 
-THEME_PAGE_SIZE = 50
+THEME_PAGE_SIZE = 20
+MINDSET_LIST_PAGE_SIZE = 50
 SIDEBAR_LIMIT = 6
 REPLY_COOLDOWN_SECONDS = 30
 
@@ -341,7 +342,7 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
         else:
             qs = qs.order_by('-created_at')
 
-    paginator = Paginator(qs, THEME_PAGE_SIZE)
+    paginator = Paginator(qs, MINDSET_LIST_PAGE_SIZE)
     page_number = request.GET.get('page') or 1
     page_obj = paginator.get_page(page_number)
 

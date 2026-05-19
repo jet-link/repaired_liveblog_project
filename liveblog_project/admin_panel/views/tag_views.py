@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 
 from admin_panel.decorators import admin_required
-from admin_panel.utils import redirect_preserve_query
+from admin_panel.utils import redirect_preserve_query, admin_form_error_response
 from smart_blog.models import Tag
 
 
@@ -28,18 +28,24 @@ def tag_create(request):
     """Create tag(s). Multiple tags separated by spaces create multiple tags (like smart_blog)."""
     if request.method == 'POST':
         raw = request.POST.get('tag_name', '').strip()
-        if raw:
-            tags_created = 0
-            for tg in [t.strip().lower() for t in re.split(r'\s+', raw) if t.strip()]:
-                _, created = Tag.objects.get_or_create(tag_name=tg)
-                if created:
-                    tags_created += 1
-            if tags_created:
-                messages.success(request, f'{tags_created} tag(s) created.')
-            else:
-                messages.info(request, 'Tag(s) already exist.')
+        context = {'is_create': True, 'tag_name': raw}
+        if not raw:
+            messages.error(request, 'Tag name is required.')
+            return admin_form_error_response(
+                request, 'admin/tags/tag_form.html', context
+            )
+        tags_created = 0
+        for tg in [t.strip().lower() for t in re.split(r'\s+', raw) if t.strip()]:
+            _, created = Tag.objects.get_or_create(tag_name=tg)
+            if created:
+                tags_created += 1
+        if tags_created:
+            messages.success(request, f'{tags_created} tag(s) created.')
             return redirect('admin_panel:tags_list')
-        messages.error(request, 'Tag name is required.')
+        context['already_exists'] = True
+        return admin_form_error_response(
+            request, 'admin/tags/tag_form.html', context
+        )
     return render(request, 'admin/tags/tag_form.html', {'is_create': True})
 
 
