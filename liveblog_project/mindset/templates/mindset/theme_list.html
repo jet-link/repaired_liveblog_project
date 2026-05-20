@@ -28,7 +28,7 @@
         {% endif %}
       </div>
 
-      {% if user.is_authenticated %}
+      {% if user.is_authenticated and not active_tag %}
         <div class="filter-segment-outer mb-3 mindset-wall-tabs-outer">
           <div class="filter-segment-shell">
             <div class="filter-segment-scroll filter-segment-scroll--even-mobile">

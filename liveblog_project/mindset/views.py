@@ -33,7 +33,7 @@ from smart_blog.notification_utils import (
     notify_mindset_theme_reply,
     notify_or_bump_mindset_theme_repost,
 )
-from smart_blog.utils import count_convert
+from smart_blog.utils import breadcrumb, build_breadcrumbs, count_convert
 
 from .body_html import (
     extract_hashtags,
@@ -315,6 +315,8 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
         tag = active_tag
 
     wall_mode = _mindset_wall_mode(request)
+    if tag is not None:
+        wall_mode = 'main'
     main_path = _mindset_main_wall_path(tag)
     following_path = f'{main_path}?wall=following'
 
@@ -394,15 +396,34 @@ def theme_list_by_tag(request, slug):
     return theme_list(request, active_tag=tag)
 
 
+THEME_BREADCRUMB_LABEL_MAX = 36
+
+
+def _theme_breadcrumb_label(theme, max_len=THEME_BREADCRUMB_LABEL_MAX):
+    text = (theme.body_text or '').strip()
+    if not text:
+        return f'Theme #{theme.pk}'
+    if len(text) <= max_len:
+        return text
+    return text[: max_len - 1].rstrip() + '…'
+
+
 def theme_detail(request, pk):
     theme = get_object_or_404(_theme_base_qs(), pk=pk)
     annotated = _theme_qs_for_listing(request.user).filter(pk=theme.pk).first()
+    theme_obj = annotated or theme
+    crumb_title = _theme_breadcrumb_label(theme_obj)
+    breadcrumbs = build_breadcrumbs(
+        breadcrumb('Mindset', reverse('mindset:theme_list')),
+        breadcrumb(crumb_title, None),
+    )
     return render(
         request,
         'mindset/theme_detail.html',
         {
-            'theme': annotated or theme,
+            'theme': theme_obj,
             'sidebar': _sidebar_payload(),
+            'breadcrumbs': breadcrumbs,
         },
     )
 

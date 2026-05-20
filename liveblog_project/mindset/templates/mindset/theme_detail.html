@@ -17,15 +17,7 @@
     data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
     data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
     <div class="listing-filter-sticky-scope">
-      {% comment %} <h4 class="text-muted mb-4">
-
-        Mindset
-      </h4> {% endcomment %}
-      <div class="mindset-back-link mb-3 d-flex gap-1 align-items-center">
-        <i class="fa fa-angle-left me-2"></i>
-        <span class="mindset-back-link__text">Go back to</span>
-        <a class="mindset-back-link__link" href="{% url 'mindset:theme_list' %}"><span class="mindset-back-link__target">Mindset</span></a>
-      </div>
+      {% include 'includes/breadcrumbs.html' %}
 
       <div class="mindset-layout">
         <section class="mindset-feed" data-mindset-feed-list>

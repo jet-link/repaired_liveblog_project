@@ -485,7 +485,7 @@
   padding: 0.55rem 0.8rem;
   border-left: 2px solid var(--border-default, #e5e7eb);
   background: rgba(0, 0, 0, 0.03);
-  border-radius: 0 10px 10px 0;
+  border-radius: 10px;
 }
 
 html[data-theme="dark"] .mindset-reply {
@@ -662,6 +662,16 @@ html[data-theme="dark"] .mindset-reply {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+/* Theme detail: keep last breadcrumb segment short on narrow layouts */
+.mindset-page .breadcrumb-trail .breadcrumb-current {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: min(36ch, 72vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Theme detail: "Go back to Mindset" return link.
