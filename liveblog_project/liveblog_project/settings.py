@@ -171,6 +171,7 @@ TEMPLATES = [
                 'smart_blog.context_processors.notifications_context',
                 'smart_blog.context_processors.spellcheck_context',
                 'smart_blog.context_processors.nav_categories_context',
+                'smart_blog.context_processors.post_publish_limit_context',
                 'admin_panel.context_processors.admin_online_count',
             ],
             'loaders': [

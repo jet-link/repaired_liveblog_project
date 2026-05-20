@@ -29,10 +29,30 @@
       </div>
 
       {% if user.is_authenticated %}
-        <nav class="mindset-wall-tabs d-flex flex-wrap align-items-center gap-1 mb-3" aria-label="Mindset feed">
-          <a href="{{ mindset_main_wall_url }}" class="mindset-wall-tab{% if mindset_wall == 'main' %} is-active{% endif %}">Main wall</a>
-          <a href="{{ mindset_following_wall_url }}" class="mindset-wall-tab{% if mindset_wall == 'following' %} is-active{% endif %}">Following wall</a>
-        </nav>
+        <div class="filter-segment-outer mb-3 mindset-wall-tabs-outer">
+          <div class="filter-segment-shell">
+            <div class="filter-segment-scroll filter-segment-scroll--even-mobile">
+              <nav
+                class="mindset-wall-tabs filter-segment-bar"
+                role="tablist"
+                aria-label="Mindset feed"
+              >
+                <a
+                  href="{{ mindset_main_wall_url }}"
+                  class="filter-reason-btn{% if mindset_wall == 'main' %} is-selected{% endif %}"
+                  role="tab"
+                  {% if mindset_wall == 'main' %}aria-current="page"{% endif %}
+                >Main wall</a>
+                <a
+                  href="{{ mindset_following_wall_url }}"
+                  class="filter-reason-btn{% if mindset_wall == 'following' %} is-selected{% endif %}"
+                  role="tab"
+                  {% if mindset_wall == 'following' %}aria-current="page"{% endif %}
+                >Following wall</a>
+              </nav>
+            </div>
+          </div>
+        </div>
       {% endif %}
 
       {% if active_tag %}

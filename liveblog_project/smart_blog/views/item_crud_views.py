@@ -20,6 +20,11 @@ from django.views.decorators.http import require_POST
 from smart_blog.forms import ItemCreateForm
 from smart_blog.models import BodyPinContentType, Item, ItemImage, ItemVideo
 from smart_blog.services.document_converter import process_item_document
+from smart_blog.services.post_publish_limits import (
+    DAILY_POST_LIMIT_MESSAGE,
+    can_user_publish_post_today,
+    get_daily_post_limit_ui_context,
+)
 from smart_blog.services.item_write import (
     attach_item_images_from_uploads,
     delete_item_images_by_ids,
@@ -89,6 +94,38 @@ def _json_form_errors(form):
     return {k: [str(x) for x in v] for k, v in form.errors.items()}
 
 
+def _daily_post_limit_context(request):
+    return get_daily_post_limit_ui_context(request.user)
+
+
+def _deny_daily_post_limit(request):
+    ctx = get_daily_post_limit_ui_context(request.user)
+    if request.method != "POST":
+        form = ItemCreateForm(is_create=True)
+        return render(
+            request,
+            "smart_blog/create_item.html",
+            {"form": form, "selected_tag_ids": [], **ctx},
+        )
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse(
+            {
+                "success": False,
+                "error": ctx.get("post_daily_limit_message") or DAILY_POST_LIMIT_MESSAGE,
+                "daily_post_limit": True,
+                "reset_at": ctx.get("post_daily_limit_reset_at", ""),
+            },
+            status=403,
+        )
+    form = ItemCreateForm(request.POST, request.FILES, is_create=True)
+    selected_tag_ids = [int(x) for x in request.POST.getlist("tags") if x.isdigit()]
+    return render(
+        request,
+        "smart_blog/create_item.html",
+        {"form": form, "selected_tag_ids": selected_tag_ids, **ctx},
+    )
+
+
 def _image_validation_ok_create(form, files) -> bool:
     return validate_uploaded_image_files(files, form)
 
@@ -105,12 +142,20 @@ def create_item(request):
     if denied is not None:
         return denied
 
+    allowed_today, _limit_msg = can_user_publish_post_today(request.user)
+    if not allowed_today:
+        return _deny_daily_post_limit(request)
+
     if request.method != "POST":
         form = ItemCreateForm(is_create=True)
         return render(
             request,
             "smart_blog/create_item.html",
-            {"form": form, "selected_tag_ids": []},
+            {
+                "form": form,
+                "selected_tag_ids": [],
+                **_daily_post_limit_context(request),
+            },
         )
 
     form = ItemCreateForm(request.POST, request.FILES, is_create=True)
@@ -121,7 +166,11 @@ def create_item(request):
         return render(
             request,
             "smart_blog/create_item.html",
-            {"form": form, "selected_tag_ids": selected_tag_ids},
+            {
+                "form": form,
+                "selected_tag_ids": selected_tag_ids,
+                **_daily_post_limit_context(request),
+            },
         )
 
     files = request.FILES.getlist("images")
@@ -133,7 +182,11 @@ def create_item(request):
         return render(
             request,
             "smart_blog/create_item.html",
-            {"form": form, "selected_tag_ids": selected_tag_ids},
+            {
+                "form": form,
+                "selected_tag_ids": selected_tag_ids,
+                **_daily_post_limit_context(request),
+            },
         )
 
     if video_files and not validate_uploaded_video_files(video_files, form):
@@ -143,7 +196,11 @@ def create_item(request):
         return render(
             request,
             "smart_blog/create_item.html",
-            {"form": form, "selected_tag_ids": selected_tag_ids},
+            {
+                "form": form,
+                "selected_tag_ids": selected_tag_ids,
+                **_daily_post_limit_context(request),
+            },
         )
 
     chunked_video_ids = request.POST.getlist("chunked_video_ids")
@@ -183,7 +240,11 @@ def create_item(request):
         return render(
             request,
             "smart_blog/create_item.html",
-            {"form": form, "selected_tag_ids": selected_tag_ids},
+            {
+                "form": form,
+                "selected_tag_ids": selected_tag_ids,
+                **_daily_post_limit_context(request),
+            },
         )
 
     profile_url = redirect('login_app:profile', username=request.user.username).url

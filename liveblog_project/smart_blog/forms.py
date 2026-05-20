@@ -147,6 +147,11 @@ def sanitize_item_text_html(raw: str) -> str:
     return cleaned
 
 
+# Post create/edit: popular tags in queryset (max), first chunk visible in UI
+ITEM_FORM_TAGS_DISPLAY_LIMIT = 60
+ITEM_FORM_TAGS_VISIBLE_INITIAL = 30
+
+
 # ---------- форма ----------
 class ItemCreateForm(forms.ModelForm):
     images = MultipleFileField(
@@ -226,7 +231,12 @@ class ItemCreateForm(forms.ModelForm):
         }
 
     def __init__(
-        self, *args, item=None, tags_recent_limit=30, is_create=False, **kwargs
+        self,
+        *args,
+        item=None,
+        tags_recent_limit=ITEM_FORM_TAGS_DISPLAY_LIMIT,
+        is_create=False,
+        **kwargs
     ):
         self.is_create = bool(is_create)
         self._item = item
@@ -237,7 +247,7 @@ class ItemCreateForm(forms.ModelForm):
         if tags_recent_limit is None:
             self.fields["tags"].queryset = Tag.objects.all().order_by("tag_name")
             return
-        limit = int(tags_recent_limit)
+        limit = min(int(tags_recent_limit), ITEM_FORM_TAGS_DISPLAY_LIMIT)
         published_items_filter = Q(items__is_published=True, items__deleted_at__isnull=True)
         top_qs = (
             Tag.objects.annotate(
@@ -248,8 +258,11 @@ class ItemCreateForm(forms.ModelForm):
         ids = list(top_qs.values_list("pk", flat=True))
         if item is not None:
             for pk in item.tags.values_list("pk", flat=True):
-                if pk not in ids:
-                    ids.append(pk)
+                if pk in ids:
+                    continue
+                if len(ids) >= limit:
+                    ids.pop()
+                ids.append(pk)
         if not ids:
             self.fields["tags"].queryset = Tag.objects.none()
             return

@@ -2378,18 +2378,30 @@ function buildShortHTML(fullHTML, maxLen = 400) {
 
       if (textEl.textContent.trim().length <= 350) return;
 
-      textEl.dataset.fullHtml ||= textEl.innerHTML;
+      let contentEl = textEl.querySelector('.comment-text-content');
+      if (!contentEl) {
+        contentEl = document.createElement('div');
+        contentEl.className = 'comment-text-content';
+        while (textEl.firstChild) {
+          contentEl.appendChild(textEl.firstChild);
+        }
+        textEl.appendChild(contentEl);
+      }
+
+      contentEl.dataset.fullHtml ||= contentEl.innerHTML;
+      textEl.dataset.fullHtml = contentEl.dataset.fullHtml;
 
       const btn = document.createElement('button');
-      btn.className = 'comment-toggle-btn';
+      btn.type = 'button';
+      btn.className = 'comment-toggle-btn cstm-btn cstm-btn-sm custom-primary-btn';
       btn.textContent = 'Show more';
 
       let expanded = false;
 
       function render() {
-        textEl.innerHTML = expanded
-          ? textEl.dataset.fullHtml
-          : buildShortHTML(textEl.dataset.fullHtml, 350);
+        contentEl.innerHTML = expanded
+          ? contentEl.dataset.fullHtml
+          : buildShortHTML(contentEl.dataset.fullHtml, 350);
 
         btn.textContent = expanded ? 'Show less' : 'Show more';
         textEl.classList.toggle('comment-text--truncated', !expanded);
@@ -2401,7 +2413,7 @@ function buildShortHTML(fullHTML, maxLen = 400) {
       });
 
       render();
-      textEl.after(btn);
+      textEl.appendChild(btn);
       textEl.dataset.toggleInit = '1';
     });
   }

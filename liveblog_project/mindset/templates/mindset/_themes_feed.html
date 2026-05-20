@@ -5,7 +5,7 @@
   <div class="mindset-empty text-muted text-center py-5">
     {% if user.is_authenticated and mindset_wall == 'following' %}
       <p class="m-0">No themes from people you follow yet.</p>
-      <p class="small m-0 mt-2">Follow authors from the main wall to see their themes here.</p>
+      <p class="small m-0">Follow authors from the <b>Main Wall</b> to see their themes here.</p>
     {% else %}
       <p class="m-0">No themes yet.</p>
       {% if user.is_authenticated %}

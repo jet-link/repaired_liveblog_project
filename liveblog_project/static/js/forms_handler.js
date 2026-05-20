@@ -63,7 +63,45 @@
         } catch (e) { /* ignore */ }
     }
 
-    function showNonFieldErrors(container, messages) {
+    function showPostDailyLimitAlert(container, messages, resetAt) {
+        const scope = container.closest('.create-field') || container;
+        const alert = scope.querySelector('#postDailyLimitAlert');
+        if (!alert) return false;
+        const msg = (messages && messages.length) ? messages.join(' ') : 'The post publishing limit has been reached!';
+        const hours = '24';
+        alert.textContent = '';
+        alert.append(
+            document.createTextNode(msg + ' Try again in '),
+            (function () {
+                const strong = document.createElement('strong');
+                strong.className = 'post-daily-limit-alert__timer';
+                strong.setAttribute('data-post-limit-timer', '');
+                strong.textContent = hours;
+                return strong;
+            })(),
+            document.createTextNode(' hours.')
+        );
+        if (resetAt) {
+            alert.setAttribute('data-reset-at', resetAt);
+        }
+        alert.classList.remove('d-none');
+        alert.hidden = false;
+        const submitBtn = container.querySelector('.create-post-submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.setAttribute('aria-disabled', 'true');
+            submitBtn.classList.add('create-post-submit-btn--blocked');
+        }
+        if (typeof window.initPostDailyLimitTimer === 'function') {
+            window.initPostDailyLimitTimer(alert);
+        }
+        alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return true;
+    }
+
+    function showNonFieldErrors(container, messages, options) {
+        const opts = options || {};
+        if (showPostDailyLimitAlert(container, messages, opts.resetAt)) return;
         let box = container.querySelector('.form-errors-global');
         if (!box) {
             box = document.createElement('div');
@@ -398,6 +436,9 @@
                 } else if (resp.status === 429) {
                     const msg = (data && data.error) ? data.error : 'Too many requests';
                     showNonFieldErrors(form, [msg]);
+                } else if (resp.status === 403 && data && data.daily_post_limit) {
+                    const msg = data.error || 'The post publishing limit has been reached!';
+                    showNonFieldErrors(form, [msg], { resetAt: data.reset_at || '' });
                 } else {
                     showNonFieldErrors(form, ['Server error. Try again.']);
                 }

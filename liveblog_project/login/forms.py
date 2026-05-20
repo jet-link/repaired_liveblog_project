@@ -34,10 +34,12 @@ def is_valid_image_url(url: str) -> bool:
 
 
 
+REGISTER_NAME_MAX_LENGTH = 50
+
 # Register
 class CustomUserCreationForm(UserCreationForm):
     username = forms.CharField(
-        max_length=100,
+        max_length=REGISTER_NAME_MAX_LENGTH,
         required=True,
         label=_('Username'),
         widget=forms.TextInput(attrs={
@@ -45,18 +47,20 @@ class CustomUserCreationForm(UserCreationForm):
             'id': 'floatingUsername',
             'placeholder': ' ',
             'autocomplete': 'username',
-            'maxlength': '100',
+            'maxlength': str(REGISTER_NAME_MAX_LENGTH),
             "required": True
         }),
         error_messages={
             'required': _('Enter username'),
-            'max_length': _('Username must be at most 100 characters.'),
+            'max_length': _(
+                'Username length exceeds the allowed limit (50 characters).'
+            ),
         },
         validators=[validate_username],
     )
 
     first_name = forms.CharField(
-        max_length=30,
+        max_length=REGISTER_NAME_MAX_LENGTH,
         required=False,
         label=_('First name'),
         widget=forms.TextInput(attrs={
@@ -64,10 +68,16 @@ class CustomUserCreationForm(UserCreationForm):
             'id': 'floatingFirst',
             'placeholder': ' ',
             'autocomplete': 'given-name',
+            'maxlength': str(REGISTER_NAME_MAX_LENGTH),
             }),
+        error_messages={
+            'max_length': _(
+                'First name length exceeds the allowed limit (50 characters).'
+            ),
+        },
     )
     last_name = forms.CharField(
-        max_length=150,
+        max_length=REGISTER_NAME_MAX_LENGTH,
         required=False,
         label=_('Surname'),
         widget=forms.TextInput(attrs={
@@ -75,7 +85,13 @@ class CustomUserCreationForm(UserCreationForm):
             'id': 'floatingLast',
             'placeholder': ' ',
             'autocomplete': 'family-name',
+            'maxlength': str(REGISTER_NAME_MAX_LENGTH),
             }),
+        error_messages={
+            'max_length': _(
+                'Surname length exceeds the allowed limit (50 characters).'
+            ),
+        },
     )
     email = forms.EmailField(
         required=False,

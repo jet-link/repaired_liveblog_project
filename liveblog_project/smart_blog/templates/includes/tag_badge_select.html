@@ -1,12 +1,12 @@
 {% load i18n %}
-<div class="tags-badge-select mb-3">
+<div class="tags-badge-select mb-3" data-tags-visible-initial="30" data-tags-display-max="60">
   <fieldset class="border-0 p-0 m-0">
     <legend class="form-label text-muted mb-1 d-flex justify-content-between align-items-center" style="width:100%;float:none;">
       <small>{{ form.tags.label }}</small>
     </legend>
   <div class="tags-badge-wrap d-flex flex-wrap gap-1 align-items-center" data-field-name="{{ form.tags.html_name }}">
     {% for tag in form.tags.field.queryset %}
-      <label class="tag-vlb tag-badge-option text-decoration-none mb-0 cursor-pointer{% if tag.pk in selected_tag_ids %} tag-badge-selected{% endif %}{% if forloop.counter > 15 %} tag-badge-overflow d-none{% endif %}">
+      <label class="tag-vlb tag-badge-option text-decoration-none mb-0 cursor-pointer{% if tag.pk in selected_tag_ids %} tag-badge-selected{% endif %}{% if forloop.counter > 30 %} tag-badge-overflow d-none{% endif %}">
         <input type="checkbox" name="{{ form.tags.html_name }}" value="{{ tag.pk }}" class="tag-badge-checkbox d-none"{% if tag.pk in selected_tag_ids %} checked{% endif %}>
         {{ tag.tag_name }}
       </label>
@@ -16,12 +16,12 @@
   </div>
   {% with tag_count=form.tags.field.queryset.count %}
   {% if tag_count > 0 %}
-  <div class="tags-badge-actions d-flex align-items-center flex-wrap gap-1 mt-2 small">
+  <div class="tags-badge-actions d-flex align-items-center flex-wrap gap-1 mt-3 small">
     <button type="button"
             class="btn-tag-select-all text-muted text-decoration-none border-0 p-0 bg-transparent"
             data-label-all="{% trans 'Select all' %}"
             data-label-none="{% trans 'Deselect all' %}">{% trans "Select all" %}</button>
-    {% if tag_count > 15 %}
+    {% if tag_count > 30 %}
     <span class="text-muted user-select-none" aria-hidden="true">·</span>
     <button type="button"
             class="btn-tag-show-more"
@@ -36,8 +36,12 @@
 </div>
 <script>
 (function() {
-  var wrap = document.querySelector('.tags-badge-select');
+  var wrap = document.currentScript && document.currentScript.previousElementSibling;
+  if (!wrap || !wrap.classList.contains('tags-badge-select')) {
+    wrap = document.querySelector('.tags-badge-select');
+  }
   if (!wrap) return;
+
   var labels = wrap.querySelectorAll('.tag-badge-option');
   var toggleBtn = wrap.querySelector('.btn-tag-select-all');
   var showMoreBtn = wrap.querySelector('.btn-tag-show-more');
@@ -50,27 +54,36 @@
 
   function updateToggleBtn() {
     var checkboxes = wrap.querySelectorAll('.tag-badge-checkbox');
-    var anyUnchecked = Array.from(checkboxes).some(function(c) { return !c.checked; });
+    var targets = Array.from(checkboxes).filter(function(cb) {
+      var lbl = cb.closest('.tag-badge-option');
+      return lbl && !lbl.classList.contains('d-none');
+    });
+    if (!targets.length) targets = Array.from(checkboxes);
+    var anyUnchecked = targets.some(function(c) { return !c.checked; });
     if (toggleBtn) toggleBtn.textContent = anyUnchecked ? allLabel : noneLabel;
   }
   updateToggleBtn();
 
+  function setTagsExpanded(expanded) {
+    if (!showMoreBtn || !overflowLabels.length) return;
+    overflowLabels.forEach(function(lbl) {
+      lbl.classList.toggle('d-none', !expanded);
+    });
+    showMoreBtn.textContent = expanded ? lessLabel : moreLabel;
+    showMoreBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    updateToggleBtn();
+  }
+
   if (showMoreBtn && overflowLabels.length > 0) {
+    var hasSelectedOverflow = Array.from(overflowLabels).some(function(lbl) {
+      var cb = lbl.querySelector('.tag-badge-checkbox');
+      return cb && cb.checked;
+    });
+    if (hasSelectedOverflow) {
+      setTagsExpanded(true);
+    }
     showMoreBtn.addEventListener('click', function() {
-      var expanded = showMoreBtn.getAttribute('aria-expanded') === 'true';
-      if (expanded) {
-        overflowLabels.forEach(function(lbl) {
-          lbl.classList.add('d-none');
-        });
-        showMoreBtn.textContent = moreLabel;
-        showMoreBtn.setAttribute('aria-expanded', 'false');
-      } else {
-        overflowLabels.forEach(function(lbl) {
-          lbl.classList.remove('d-none');
-        });
-        showMoreBtn.textContent = lessLabel;
-        showMoreBtn.setAttribute('aria-expanded', 'true');
-      }
+      setTagsExpanded(showMoreBtn.getAttribute('aria-expanded') !== 'true');
     });
   }
 
@@ -87,13 +100,20 @@
   if (toggleBtn) {
     toggleBtn.addEventListener('click', function() {
       var checkboxes = wrap.querySelectorAll('.tag-badge-checkbox');
-      var anyUnchecked = Array.from(checkboxes).some(function(c) { return !c.checked; });
-      checkboxes.forEach(function(cb) {
+      var targets = Array.from(checkboxes).filter(function(cb) {
+        var lbl = cb.closest('.tag-badge-option');
+        return lbl && !lbl.classList.contains('d-none');
+      });
+      if (!targets.length) targets = Array.from(checkboxes);
+      var anyUnchecked = targets.some(function(c) { return !c.checked; });
+      targets.forEach(function(cb) {
         cb.checked = anyUnchecked;
       });
       labels.forEach(function(lbl) {
         var cb = lbl.querySelector('input[type="checkbox"]');
-        lbl.classList.toggle('tag-badge-selected', cb ? cb.checked : false);
+        if (!lbl.classList.contains('d-none')) {
+          lbl.classList.toggle('tag-badge-selected', cb ? cb.checked : false);
+        }
       });
       updateToggleBtn();
     });

@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from .models import Notification, Category, Item
 from smart_blog.feed_queryset import feed_list_optimizations
+from smart_blog.services.post_publish_limits import get_daily_post_limit_ui_context
 from .search_utils import apply_popular_filter
 
 NOTIFICATIONS_CACHE_TIMEOUT = 30  # seconds
@@ -146,3 +147,10 @@ def nav_categories_context(request):
         data = _build_nav_categories_data()
         cache.set(NAV_CATEGORIES_CACHE_KEY, data, NAV_CATEGORIES_CACHE_TTL)
     return data
+
+
+def post_publish_limit_context(request):
+    """Global UI flags for daily post limit (nav strikethrough, etc.)."""
+    if not request.user.is_authenticated:
+        return get_daily_post_limit_ui_context(None)
+    return get_daily_post_limit_ui_context(request.user)

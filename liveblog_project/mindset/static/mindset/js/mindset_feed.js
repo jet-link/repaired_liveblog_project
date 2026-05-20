@@ -981,10 +981,16 @@
 
   function setActiveWallTab(tabsRoot, mode) {
     if (!tabsRoot) return;
-    tabsRoot.querySelectorAll('.mindset-wall-tab').forEach(function (a) {
+    tabsRoot.querySelectorAll('.filter-reason-btn').forEach(function (a) {
       var isFollowing = (a.getAttribute('href') || '').indexOf('wall=following') !== -1;
       var thisMode = isFollowing ? 'following' : 'main';
-      a.classList.toggle('is-active', thisMode === mode);
+      var selected = thisMode === mode;
+      a.classList.toggle('is-selected', selected);
+      if (selected) {
+        a.setAttribute('aria-current', 'page');
+      } else {
+        a.removeAttribute('aria-current');
+      }
     });
   }
 
@@ -1057,7 +1063,7 @@
     var tabsRoot = root.querySelector('.mindset-wall-tabs');
     if (!tabsRoot) return;
     tabsRoot.addEventListener('click', function (ev) {
-      var link = ev.target.closest('.mindset-wall-tab');
+      var link = ev.target.closest('.filter-reason-btn');
       if (!link || !tabsRoot.contains(link)) return;
       if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || ev.button === 1) return;
       var href = link.getAttribute('href') || '';

@@ -13,6 +13,14 @@
 {% block content %}
   <div class="container-main content_block">
     <main class="create-field mx-auto">
+      <div
+        id="postDailyLimitAlert"
+        class="custom-alert custom-alert-danger mb-5 post-daily-limit-alert--oneline{% if not post_daily_limit_reached %} d-none{% endif %}"
+        role="alert"
+        {% if post_daily_limit_reset_at %}data-reset-at="{{ post_daily_limit_reset_at }}"{% endif %}
+        {% if not post_daily_limit_reached %}hidden{% endif %}
+      >{% if post_daily_limit_message %}{{ post_daily_limit_message }}{% else %}The post publishing limit has been reached!{% endif %} Try again in <strong class="post-daily-limit-alert__timer" data-post-limit-timer>{% if post_daily_limit_timer_initial %}{{ post_daily_limit_timer_initial }}{% else %}24{% endif %}</strong> hours.</div>
+
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="text-muted text-uppercase m-0">Create post</h5>
       </div>
@@ -99,7 +107,7 @@
         </div>
         <div id="postSizeWarning" class="post-size-warning" hidden></div>
         <div class="item-form-actions d-flex gap-1 align-items-center mt-2">
-          <button class="cstm-btn custom-primary-btn" type="submit">Create</button>
+          <button class="cstm-btn custom-primary-btn create-post-submit-btn{% if post_daily_limit_reached %} create-post-submit-btn--blocked{% endif %}" type="submit"{% if post_daily_limit_reached %} disabled aria-disabled="true"{% endif %}>Create post</button>
           <a href="{% url 'login_app:profile' user.username %}" class="cstm-btn custom-secondary-btn">Cancel</a>
         </div>
       </form>
@@ -126,6 +134,17 @@
       }
 
       clearListing();
+
+      (function syncCreatePostBlockedState() {
+        var alertEl = document.getElementById('postDailyLimitAlert');
+        var submitBtn = document.querySelector('.create-post-submit-btn');
+        if (!alertEl || !submitBtn) return;
+        var blocked = !alertEl.hidden && !alertEl.classList.contains('d-none');
+        if (!blocked) return;
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-disabled', 'true');
+        submitBtn.classList.add('create-post-submit-btn--blocked');
+      })();
 
       const form = document.getElementById('itemForm');
       if (form) {
@@ -180,5 +199,6 @@
       }
     })();
   </script>
+  <script defer src="{% static 'smart_blog/js/post_daily_limit_timer.js' %}"></script>
   <script defer src="{% static 'smart_blog/js/category_select.js' %}"></script>
 {% endblock %}

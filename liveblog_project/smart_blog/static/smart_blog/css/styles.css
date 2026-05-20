@@ -4730,11 +4730,11 @@ html[data-theme="dark"] .avatar-file-trigger:hover {
     font-size: 0.88rem;
 }
 
-.comment-text.comment-text--truncated {
+.comment-text.comment-text--truncated .comment-text-content {
     position: relative;
 }
 
-.comment-text.comment-text--truncated::after {
+.comment-text.comment-text--truncated .comment-text-content::after {
     content: '';
     position: absolute;
     left: 0;
@@ -4743,6 +4743,15 @@ html[data-theme="dark"] .avatar-file-trigger:hover {
     height: 2.4rem;
     pointer-events: none;
     background: linear-gradient(to top, var(--card-bg) 0%, var(--excerpt-fade) 42%, transparent 100%);
+}
+
+.comment-text .comment-toggle-btn.cstm-btn {
+    display: inline-flex;
+    position: relative;
+    z-index: 2;
+    margin-top: 0.65rem;
+    align-self: flex-start;
+    flex-shrink: 0;
 }
 
 /* ===============================
@@ -5404,17 +5413,14 @@ a.comment-replies-thread-link:focus-visible {
     font-weight: 500;
 }
 
-.comment-toggle-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-primary);
-    border-radius: 25px;
-    font-size: .775rem;
-    cursor: pointer;
-    text-decoration: none;
+#postDailyLimitAlert.post-daily-limit-alert--oneline {
+    white-space: nowrap;
+    overflow-x: auto;
     font-weight: 600;
-    margin-top: 15px;
-    padding: 0;
+}
+
+#postDailyLimitAlert .post-daily-limit-alert__timer {
+    font-variant-numeric: tabular-nums;
 }
 
 .show-more-btn-toggle {
@@ -5734,6 +5740,20 @@ html[data-theme="dark"] .custom-primary-btn:hover {
     color: var(--text-default);
     border-color: color-mix(in srgb, #58a6ff 50%, var(--border-default));
     background: color-mix(in srgb, #58a6ff 20%, var(--card-bg));
+}
+
+/* Create post page: daily limit — strikethrough disabled submit (beats .cstm-btn text-decoration:none) */
+.create-field .cstm-btn.create-post-submit-btn.create-post-submit-btn--blocked,
+.create-field .cstm-btn.create-post-submit-btn:disabled {
+    text-decoration: line-through !important;
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+html[data-theme="dark"] .create-field .cstm-btn.create-post-submit-btn.create-post-submit-btn--blocked,
+html[data-theme="dark"] .create-field .cstm-btn.create-post-submit-btn:disabled {
+    opacity: 0.5;
 }
 
 /* Comment submit cooldown: danger surface (must beat html[data-theme=dark] .custom-primary-btn*) */
@@ -6058,6 +6078,8 @@ html[data-theme="dark"] .report-reason-btn.is-selected {
 }
 
 .comment-text {
+    display: flex;
+    flex-direction: column;
     padding: 17px;
     background-color: var(--card-bg);
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
