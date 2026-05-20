@@ -52,7 +52,7 @@
   {% include 'includes/profile_avatar_viewer.html' %}
 </div>
 {% if user.is_authenticated and user.username == user_obj.username and user_obj.is_staff %}
-<hr class="text-muted" />
+{% comment %} <hr class="text-muted" /> {% endcomment %}
 <div class="profile-owner-admin mt-3">
   <a href="{% url 'admin_panel:dashboard' %}" class="cstm-btn-sm custom-secondary-btn profile-owner-admin-link">Admin-panel</a>
 </div>

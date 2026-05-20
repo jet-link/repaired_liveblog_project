@@ -2372,20 +2372,28 @@ function buildShortHTML(fullHTML, maxLen = 400) {
 
 // comments-toggle.js (MENTION-SAFE)
 (function () {
+  function ensureCommentTextContent(textEl) {
+    var contentEl = textEl.querySelector('.comment-text-content');
+    if (contentEl) return contentEl;
+    contentEl = document.createElement('div');
+    contentEl.className = 'comment-text-content';
+    while (textEl.firstChild) {
+      contentEl.appendChild(textEl.firstChild);
+    }
+    textEl.appendChild(contentEl);
+    return contentEl;
+  }
+
   function initCommentToggles(root = document) {
     root.querySelectorAll('.comment-text').forEach(textEl => {
       if (textEl.dataset.toggleInit) return;
 
-      if (textEl.textContent.trim().length <= 350) return;
+      var contentEl = ensureCommentTextContent(textEl);
+      var plainLen = (textEl.textContent || '').trim().length;
 
-      let contentEl = textEl.querySelector('.comment-text-content');
-      if (!contentEl) {
-        contentEl = document.createElement('div');
-        contentEl.className = 'comment-text-content';
-        while (textEl.firstChild) {
-          contentEl.appendChild(textEl.firstChild);
-        }
-        textEl.appendChild(contentEl);
+      if (plainLen <= 350) {
+        textEl.dataset.toggleInit = '1';
+        return;
       }
 
       contentEl.dataset.fullHtml ||= contentEl.innerHTML;

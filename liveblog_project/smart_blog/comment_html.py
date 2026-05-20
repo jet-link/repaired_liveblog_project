@@ -167,8 +167,30 @@ def sanitize_and_linkify_comment_html(fragment: str) -> str:
     return t
 
 
+def compact_inline_comment_html(html: str) -> str:
+    """
+    Short single-line replies (e.g. ``@[user:1], nice!``) must not get extra
+    line breaks from a lone ``<p>`` wrapper left by the editor.
+    """
+    if not html:
+        return ''
+    if '<br' in html.lower():
+        return html
+    p_count = len(re.findall(r'<p\b', html, re.I))
+    if p_count != 1:
+        return html
+    plain = re.sub(r'<[^>]+>', ' ', html)
+    plain = re.sub(r'\s+', ' ', plain).strip()
+    if not plain or len(plain) > 400:
+        return html
+    unwrapped = re.sub(r'<p[^>]*>\s*', '', html, flags=re.I)
+    unwrapped = re.sub(r'\s*</p>\s*', '', unwrapped, flags=re.I)
+    return unwrapped.strip() or html
+
+
 def comment_html_for_template(text: str) -> str:
     """Sanitize, linkify, newlines → br (caller wraps with mark_safe)."""
     html = sanitize_and_linkify_comment_html(text or '')
     html = html.replace('\r\n', '\n').replace('\r', '\n')
-    return html.replace('\n', '<br>')
+    html = html.replace('\n', '<br>')
+    return compact_inline_comment_html(html)

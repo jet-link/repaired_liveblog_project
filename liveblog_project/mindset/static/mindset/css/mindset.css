@@ -535,8 +535,8 @@ html[data-theme="dark"] .mindset-reply {
   font-size: 1rem;
   /* text-transform: uppercase; */
   /* letter-spacing: 0.08em; */
-  /* color: var(--bs-primary, #0d6efd); */
-  color: #273c75;
+  /* color: #273c75; */
+  color: #01a3a4;
   font-weight: 700;
   margin: 0 0 0.55rem;
   /* border-bottom: 1px solid var(--border-default, #e5e7eb); */

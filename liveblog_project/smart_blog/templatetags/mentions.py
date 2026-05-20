@@ -4,7 +4,11 @@ from django.contrib.auth import get_user_model
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from smart_blog.comment_html import comment_html_for_template, sanitize_and_linkify_comment_html
+from smart_blog.comment_html import (
+    comment_html_for_template,
+    compact_inline_comment_html,
+    sanitize_and_linkify_comment_html,
+)
 
 register = template.Library()
 User = get_user_model()
@@ -59,6 +63,7 @@ def render_mentions(text, parent_comment_id=None):
 
     text = MENTION_RE.sub(repl, text)
     text = text.replace('\n', '<br>')
+    text = compact_inline_comment_html(text)
     return mark_safe(text)
 
 
