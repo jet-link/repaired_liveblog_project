@@ -1204,6 +1204,55 @@
     return (d.textContent || d.innerText || '').replace(/\r\n/g, '\n').trim();
   }
 
+  /**
+   * Replace edited comment markup without touching reply subtree (likes + open panel).
+   */
+  function swapEditedCommentNode(commentNode, commentHtml) {
+    if (!commentNode || !commentHtml) return null;
+
+    const tail = [];
+    const main = commentNode.querySelector('.comment-main');
+    const bar = main?.querySelector('.comment-actions-bar');
+    if (bar) {
+      let sib = bar.nextElementSibling;
+      while (sib) {
+        tail.push(sib);
+        sib = sib.nextElementSibling;
+      }
+    }
+
+    const wasRepliesOpen = !!commentNode.querySelector('.comment-replies-outer.is-expanded');
+    const commentId = (commentNode.id || '').replace(/^comment-/, '');
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = commentHtml;
+    const newNode = wrapper.firstElementChild;
+    if (!newNode) return null;
+
+    const newMain = newNode.querySelector('.comment-main');
+    const newBar = newMain?.querySelector('.comment-actions-bar');
+    if (newBar) {
+      let sib = newBar.nextElementSibling;
+      while (sib) {
+        const next = sib.nextElementSibling;
+        sib.remove();
+        sib = next;
+      }
+    }
+
+    commentNode.replaceWith(newNode);
+
+    if (newMain && newBar && tail.length) {
+      tail.forEach((el) => newMain.appendChild(el));
+    }
+
+    if (wasRepliesOpen && commentId) {
+      window.expandRepliesBucketForParent?.(newNode, commentId);
+    }
+
+    return newNode;
+  }
+
   function openEditor(commentNode, commentId, editUrl) {
     if (window.closeAllReplyForms) {
       window.closeAllReplyForms();
@@ -1363,17 +1412,16 @@
     btnCancel.addEventListener('click', () => {
       body.innerHTML = originalHtml;
 
-      // сбросить toggle, чтобы Show more/less снова работал
-      const textEl = commentNode.querySelector('.comment-text');
+      const textEl = body.querySelector('.comment-text');
       if (textEl) {
         const cached = commentNode.dataset.fullHtmlCache || textEl.innerHTML;
         textEl.innerHTML = cached;
         textEl.dataset.fullHtml = cached;
         delete textEl.dataset.toggleInit;
+        textEl.querySelector('.comment-toggle-btn')?.remove();
       }
-      commentNode.querySelectorAll('.comment-toggle-btn').forEach(btn => btn.remove());
 
-      restoreCommentUI(commentNode);
+      restoreCommentUI(body);
     });
 
     /* ===============================
@@ -1445,14 +1493,9 @@
 
         const data = await resp.json().catch(() => null);
         if (resp.ok && data?.success) {
-          const wrapper = document.createElement('div');
-          wrapper.innerHTML = data.comment_html;
-
-          const newNode = wrapper.firstElementChild;
-          commentNode.replaceWith(newNode);
-          if (window.initCommentToggles) {
-            restoreCommentUI(newNode);
-          }
+          const newNode = swapEditedCommentNode(commentNode, data.comment_html);
+          if (!newNode) return;
+          restoreCommentUI(newNode);
           window.initCommentLikes?.();
           if (window.initAutoDismiss) window.initAutoDismiss(newNode);
           initEditButtons();
@@ -1866,23 +1909,6 @@
     },
     { passive: true, capture: true }
   );
-
-  /* ===============================
-     CLOSE FORMS ON OUTSIDE CLICK
-  =============================== */
-  document.addEventListener('click', (e) => {
-    const clickedReplyForm = e.target.closest?.('.reply-form');
-    const clickedEditForm = e.target.closest?.('.comment-edit-form');
-    const replyTrigger = e.target.closest?.('.btn-reply, .comment-menu-action[data-action="reply"]');
-    const editTrigger = e.target.closest?.('.btn-edit-comment');
-
-    if (!clickedReplyForm && !replyTrigger) {
-      closeAllReplyForms();
-    }
-    if (!clickedEditForm && !editTrigger) {
-      closeAllCommentEditForms();
-    }
-  });
 
   function buildCommentShareUrl(commentId) {
     const base = window.location.href.split('#')[0];

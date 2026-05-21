@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Exists, OuterRef, Q
+from django.db.models import Count, Exists, OuterRef, Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -14,6 +14,43 @@ from smart_blog.models import Comment, CommentLike, Item, Notification
 from smart_blog.utils import count_convert
 
 EDITABLE_HOURS = 24
+
+
+def _comment_with_annotated_replies(pk, user):
+    """Match item_detail prefetch so nested reply HTML has correct user_liked."""
+    if user.is_authenticated:
+        likes_subq = CommentLike.objects.filter(
+            comment=OuterRef('pk'),
+            user=user,
+        )
+    else:
+        likes_subq = CommentLike.objects.none()
+
+    replies_qs = (
+        Comment.objects.filter(parent__isnull=False, is_draft=False)
+        .annotate(
+            user_liked=Exists(likes_subq),
+            likes_count=Count('likes', distinct=True),
+            reports_count=Count('reports', distinct=True),
+        )
+        .order_by('-created')
+    )
+
+    return (
+        Comment.objects.filter(pk=pk)
+        .annotate(
+            user_liked=Exists(likes_subq),
+            likes_count=Count('likes', distinct=True),
+            reports_count=Count('reports', distinct=True),
+        )
+        .prefetch_related(
+            Prefetch('replies', queryset=replies_qs),
+            Prefetch('replies__replies', queryset=replies_qs),
+            Prefetch('replies__replies__replies', queryset=replies_qs),
+            Prefetch('replies__replies__replies__replies', queryset=replies_qs),
+        )
+        .get(pk=pk)
+    )
 
 
 @login_required
@@ -137,21 +174,13 @@ def edit_comment(request, pk):
 
     form.save()
 
-    comment = (
-        Comment.objects.filter(pk=comment.pk)
-        .annotate(
-            user_liked=Exists(
-                CommentLike.objects.filter(comment=OuterRef('pk'), user=request.user)
-            ),
-            likes_count=Count('likes', distinct=True),
-            reports_count=Count('reports', distinct=True),
-        )
-        .get(pk=comment.pk)
-    )
+    comment = _comment_with_annotated_replies(comment.pk, request.user)
 
     html = render_to_string("includes/_comments.html", {
-        "comment": comment, "user": request.user,
+        "comment": comment,
+        "user": request.user,
         "report_rate_limited": False,
+        "skip_replies": True,
     })
     total_comments = Comment.objects.filter(item=comment.item, is_draft=False).count()
     return JsonResponse({'success': True, 'comment_html': html, 'comment_id': comment.pk, 'total_comments': total_comments})

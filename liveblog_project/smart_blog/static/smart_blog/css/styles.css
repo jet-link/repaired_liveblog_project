@@ -6061,7 +6061,7 @@ html[data-theme="dark"] .report-reason-btn.is-selected {
 }
 
 .report-exists-header {
-    color: #3498db;
+    color: var(--danger-fg);
     font-weight: 500;
 }
 
@@ -6104,7 +6104,7 @@ html[data-theme="dark"] .report-reason-btn.is-selected {
     padding: 15px;
     background-color: var(--card-bg);
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    color: #a4a2a2;
+    color: var(--text-link);
     border-radius: 8px;
     z-index: 1;
     line-height: 1.25rem;
@@ -6124,7 +6124,7 @@ html[data-theme="dark"] .report-reason-btn.is-selected {
     z-index: 1;
     line-height: 1.25rem;
     word-wrap: break-word;
-    font-size: .825rem;
+    font-size: .875rem;
     font-weight: 600;
     border-left: 2px solid var(--text-link)
 }

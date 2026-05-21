@@ -136,7 +136,7 @@
     empty.className = 'mindset-empty text-muted text-center py-5 mindset-following-wall-empty';
     empty.innerHTML =
       '<p class="m-0">No themes from people you follow yet.</p>' +
-      '<p class="small m-0 mt-2">Follow authors from the main wall to see their themes here.</p>';
+      '<p class="small m-0 mt-2">Follow authors from the <b class="primary_">Main wall</b> to see their themes here.</p>';
     feedList.appendChild(empty);
   }
 

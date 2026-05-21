@@ -42,6 +42,10 @@
         {% endif %}
         <span class="comment-meta-sep comment-meta-sep--inline" aria-hidden="true">·</span>
         <span class="comment-meta-published comment-actions-bar__date text-muted fw-semibold">{{ comment.human_published }}</span>
+        {% if comment.is_edited %}
+          <span class="comment-meta-sep comment-meta-sep--inline" aria-hidden="true">·</span>
+          <small class="text-muted fw-semibold">Edited</small>
+        {% endif %}
       </div>
       <div class="comment-menu comment-menu--actions-bar">
         {% include 'includes/overflow_more_button.html' with aria_label='More actions' %}
@@ -97,9 +101,7 @@
         {% endif %}
       </div>
 
-      {% if not skip_replies %}
-        {% include 'includes/replied_comments.html' with depth=depth|default:0 %}
-      {% endif %}
+      {% include 'includes/replied_comments.html' with depth=depth|default:0 skip_replies_list=skip_replies %}
     </div>
   </div>
 </div>

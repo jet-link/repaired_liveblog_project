@@ -16,7 +16,7 @@
   </div>
 {% endif %}
 
-{% if comment.replies.all %}
+{% if comment.replies.all and not skip_replies_list %}
   {% if thread_view %}
     <div class="replies" data-parent-id="{{ comment.pk }}">
       {% for reply in comment.replies.all %}
