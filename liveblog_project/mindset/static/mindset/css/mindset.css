@@ -592,6 +592,7 @@ html[data-theme="dark"] .mindset-reply {
 /* Hashtag links */
 .mindset-hashtag {
   color: var(--bs-primary, #0d6efd);
+  /* color: var(--bs-code-color); */
   text-decoration: none;
   font-weight: 600;
 }

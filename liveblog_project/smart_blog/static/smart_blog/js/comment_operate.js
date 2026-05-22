@@ -1338,7 +1338,7 @@
     =============================== */
 
     const form = document.createElement('form');
-    form.className = 'comment-edit-form pb-4';
+    form.className = 'comment-edit-form pb-2';
     form.noValidate = true;
 
     const errSlot = document.createElement('div');

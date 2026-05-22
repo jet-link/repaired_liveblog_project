@@ -9,15 +9,15 @@
           <span class="header-brand-divider" aria-hidden="true"></span>
           <div class="header-menu d-flex align-items-center small">
             <a href="{% url 'smart_blog:topics_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'topics_list' or nav_name == 'topic_detail' %} active{% endif %}">
-              <i class="fa fa-compass mobile-bottom-nav__icon" aria-hidden="true"></i>
+              {% comment %} <i class="fa fa-compass mobile-bottom-nav__icon" aria-hidden="true"></i> {% endcomment %}
               <span class="header-menu-item__label">Topics</span>
             </a>
             <a href="{% url 'smart_blog:trending_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_name == 'trending_list' %} active{% endif %}">
-              <i class="fa fa-fire mobile-bottom-nav__icon" aria-hidden="true"></i>
+              {% comment %} <i class="fa fa-fire mobile-bottom-nav__icon" aria-hidden="true"></i> {% endcomment %}
               <span class="header-menu-item__label">In trend</span>
             </a>
              <a href="{% url 'mindset:theme_list' %}" class="header-menu-item text-decoration-none text-muted{% if nav_ns == 'mindset' %} active{% endif %}">
-              <i class="fa fa-at mobile-bottom-nav__icon" aria-hidden="true"></i>
+              {% comment %} <i class="fa fa-at mobile-bottom-nav__icon" aria-hidden="true"></i> {% endcomment %}
               <span class="header-menu-item__label">Mindset</span>
             </a>
             {% comment %} <a href="#" class="header-menu-item text-decoration-none text-muted categories-modal-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="categoriesModalDialog">

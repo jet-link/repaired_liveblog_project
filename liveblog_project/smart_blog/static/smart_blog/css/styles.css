@@ -7762,6 +7762,17 @@ html[data-theme="dark"] .topic-tile--in-trend:hover {
     outline-offset: 2px;
 }
 
+/* .text-muted + dark theme overrides hover color on Back buttons */
+html[data-theme="dark"] .btn-back-link:hover,
+html[data-theme="dark"] .btn-back-link.text-muted:hover {
+    color: var(--text-link) !important;
+}
+
+html[data-theme="dark"] .btn-back-link:hover .fa,
+html[data-theme="dark"] .btn-back-link.text-muted:hover .fa {
+    color: var(--text-link) !important;
+}
+
 .for-you-empty-hint {
     border-radius: 0.375rem;
 }

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% if not thread_view or depth|default:0 > 0 %}
   <div id="reply-form-{{ comment.pk }}" class="reply-form d-none mt-2">
-    <form class="reply-comment-form pb-4" data-parent-id="{{ comment.pk }}"{% if comment.author %} data-username="{{ comment.author.username }}"{% endif %} novalidate>
+    <form class="reply-comment-form pb-2" data-parent-id="{{ comment.pk }}"{% if comment.author %} data-username="{{ comment.author.username }}"{% endif %} novalidate>
       {% csrf_token %}
       <div class="reply-form-errors mb-2"></div>
       <div class="mb-2">
