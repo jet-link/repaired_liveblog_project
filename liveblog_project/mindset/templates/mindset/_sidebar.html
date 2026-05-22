@@ -9,9 +9,7 @@
     <hr class="text-muted" />
     <ul class="mindset-sidebar-list" data-mindset-sidebar-list="last">
       {% for entry in sidebar.last %}
-        <li class="mindset-sidebar-item">
-          <span class="fw-semibold primary_">@</span> <a class="mindset-sidebar-link" href="{{ entry.url }}">{{ entry.preview|default:'(no text)' }}</a>
-        </li>
+        {% include 'mindset/_sidebar_item.html' with entry=entry %}
       {% empty %}
         <li class="text-muted small">No themes yet.</li>
       {% endfor %}
@@ -26,9 +24,7 @@
     <hr class="text-muted" />
     <ul class="mindset-sidebar-list" data-mindset-sidebar-list="top">
       {% for entry in sidebar.top %}
-        <li class="mindset-sidebar-item">
-          <span class="fw-semibold primary_">@</span> <a class="mindset-sidebar-link" href="{{ entry.url }}">{{ entry.preview|default:'(no text)' }}</a>
-        </li>
+        {% include 'mindset/_sidebar_item.html' with entry=entry %}
       {% empty %}
         <li class="text-muted small">Nothing trending yet.</li>
       {% endfor %}

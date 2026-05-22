@@ -9,7 +9,7 @@
 {% block content %}
   <div class="container-main content_block">
     {% if notifications %}
-    <div id="notificationsPageHeader" class="d-flex justify-content-between align-items-center mb-3">
+    <div id="notificationsPageHeader" class="d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center gap-2">
         <h4 class="text-muted m-0">Notifications</h4>
         <button type="button" class="button notification-dropdown-info-btn" aria-expanded="false" aria-controls="notificationsLegend">
@@ -29,6 +29,7 @@
         <button id="notificationsDelete" type="button" class="text-muted btn btn-link text-decoration-none p-0 btn-sm"><i class="fa fa-trash-o fs-5"></i></button>
       </div>
     </div>
+    {% comment %} <hr class="text-muted"> {% endcomment %}
     {% endif %}
     {% comment %} <hr /> {% endcomment %}
     {% if notifications %}

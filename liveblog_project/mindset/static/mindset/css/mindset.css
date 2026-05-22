@@ -30,12 +30,12 @@
 .mindset-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1.5rem;
+  gap: 1.1rem;
 }
 
 @media (min-width: 992px) {
   .mindset-layout {
-    grid-template-columns: minmax(0, 1fr) 22rem;
+    grid-template-columns: minmax(0, 1fr) 24rem;
   }
 }
 
@@ -553,9 +553,21 @@ html[data-theme="dark"] .mindset-reply {
 
 .mindset-sidebar-item {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.mindset-sidebar-item__title {
+  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.mindset-sidebar-item__counters {
+  margin-top: 0.05rem;
 }
 
 .mindset-sidebar-link {
@@ -569,7 +581,7 @@ html[data-theme="dark"] .mindset-reply {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  /* font-weight: 600; */
+  font-weight: 500;
 }
 
 .mindset-sidebar-link:hover {

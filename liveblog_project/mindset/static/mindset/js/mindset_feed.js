@@ -292,6 +292,30 @@
     }
   }
 
+  function themeCounterValue(state, kind) {
+    if (!state) return null;
+    if (kind === 'replies') {
+      return state.replies_count_human != null ? state.replies_count_human : state.replies_count;
+    }
+    if (kind === 'likes') {
+      return state.likes_count_human != null ? state.likes_count_human : state.likes_count;
+    }
+    if (kind === 'reposts') {
+      return state.reposts_count_human != null ? state.reposts_count_human : state.reposts_count;
+    }
+    return null;
+  }
+
+  /** Instant counter sync for sidebar rows (same theme id as feed cards). */
+  function applySidebarThemeCounters(state) {
+    if (!state || state.id == null) return;
+    var item = document.querySelector('[data-mindset-sidebar-theme="' + state.id + '"]');
+    if (!item) return;
+    setCounter(item, 'replies', themeCounterValue(state, 'replies'));
+    setCounter(item, 'likes', themeCounterValue(state, 'likes'));
+    setCounter(item, 'reposts', themeCounterValue(state, 'reposts'));
+  }
+
   /**
    * Apply state to a theme card. ``opts.skip`` is a Set of buttons to skip
    * ("like" or "repost") — used to keep the button the user just clicked
@@ -300,11 +324,13 @@
   function applyThemeState(state, opts) {
     if (!state || !state.id) return;
     opts = opts || {};
+    applySidebarThemeCounters(state);
+
     var card = document.querySelector('[data-mindset-theme="' + state.id + '"]');
     if (!card) return;
-    setCounter(card, 'replies', state.replies_count_human != null ? state.replies_count_human : state.replies_count);
-    setCounter(card, 'likes', state.likes_count_human != null ? state.likes_count_human : state.likes_count);
-    setCounter(card, 'reposts', state.reposts_count_human != null ? state.reposts_count_human : state.reposts_count);
+    setCounter(card, 'replies', themeCounterValue(state, 'replies'));
+    setCounter(card, 'likes', themeCounterValue(state, 'likes'));
+    setCounter(card, 'reposts', themeCounterValue(state, 'reposts'));
 
     if (!opts.skipLike && state.user_liked !== undefined) {
       paintLikeButton(card.querySelector('[data-action="like"]'), state.user_liked);
@@ -799,7 +825,6 @@
       var html = resp.data.reply_html;
       appendReplyHtml(themeIdForm, html);
       if (resp.data.theme) applyThemeState(resp.data.theme);
-      refreshSidebar();
       if (ta) {
         ta.value = '';
         autoResizeTextarea(ta);
@@ -859,6 +884,29 @@
     pollSidebar();
   }
 
+  function sidebarCounterVal(e, humanKey, rawKey) {
+    if (e[humanKey] != null && e[humanKey] !== '') return String(e[humanKey]);
+    return String(e[rawKey] != null ? e[rawKey] : 0);
+  }
+
+  function sidebarCountersHtml(e) {
+    return ''
+      + '<div class="mindset-sidebar-item__counters mindset-theme__counters" aria-label="Theme activity">'
+      +   '<span class="mindset-counter" data-counter="replies">'
+      +     '<i class="fa fa-comment-o" aria-hidden="true"></i>'
+      +     '<span class="mindset-counter__val">' + sidebarCounterVal(e, 'replies_human', 'replies') + '</span>'
+      +   '</span>'
+      +   '<span class="mindset-counter" data-counter="likes">'
+      +     '<i class="fa fa-heart-o" aria-hidden="true"></i>'
+      +     '<span class="mindset-counter__val">' + sidebarCounterVal(e, 'likes_human', 'likes') + '</span>'
+      +   '</span>'
+      +   '<span class="mindset-counter" data-counter="reposts">'
+      +     '<i class="fa fa-retweet" aria-hidden="true"></i>'
+      +     '<span class="mindset-counter__val">' + sidebarCounterVal(e, 'reposts_human', 'reposts') + '</span>'
+      +   '</span>'
+      + '</div>';
+  }
+
   function renderSidebarList(kind, entries) {
     var ul = document.querySelector('[data-mindset-sidebar-list="' + kind + '"]');
     if (!ul) return;
@@ -869,9 +917,12 @@
     var html = entries.map(function (e) {
       var preview = (e.preview || '').replace(/[<>&]/g, function (c) { return ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]; }) || '(no text)';
       return ''
-        + '<li class="mindset-sidebar-item">'
-        +   '<span class="fw-semibold primary_">@</span> '
-        +   '<a class="mindset-sidebar-link" href="' + e.url + '">' + preview + '</a>'
+        + '<li class="mindset-sidebar-item" data-mindset-sidebar-theme="' + e.id + '">'
+        +   '<div class="mindset-sidebar-item__title">'
+        +     '<span class="fw-semibold primary_">@</span> '
+        +     '<a class="mindset-sidebar-link" href="' + e.url + '">' + preview + '</a>'
+        +   '</div>'
+        +   sidebarCountersHtml(e)
         + '</li>';
     }).join('');
     ul.innerHTML = html;

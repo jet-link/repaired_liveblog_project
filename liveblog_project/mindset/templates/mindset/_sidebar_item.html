@@ -1,0 +1,20 @@
+<li class="mindset-sidebar-item" data-mindset-sidebar-theme="{{ entry.id }}">
+  <div class="mindset-sidebar-item__title">
+    <span class="fw-semibold primary_">@</span>
+    <a class="mindset-sidebar-link" href="{{ entry.url }}">{{ entry.preview|default:'(no text)' }}</a>
+  </div>
+  <div class="mindset-sidebar-item__counters mindset-theme__counters" aria-label="Theme activity">
+    <span class="mindset-counter" data-counter="replies">
+      <i class="fa fa-comment-o" aria-hidden="true"></i>
+      <span class="mindset-counter__val">{{ entry.replies_human|default:entry.replies }}</span>
+    </span>
+    <span class="mindset-counter" data-counter="likes">
+      <i class="fa fa-heart-o" aria-hidden="true"></i>
+      <span class="mindset-counter__val">{{ entry.likes_human|default:entry.likes }}</span>
+    </span>
+    <span class="mindset-counter" data-counter="reposts">
+      <i class="fa fa-retweet" aria-hidden="true"></i>
+      <span class="mindset-counter__val">{{ entry.reposts_human|default:entry.reposts }}</span>
+    </span>
+  </div>
+</li>

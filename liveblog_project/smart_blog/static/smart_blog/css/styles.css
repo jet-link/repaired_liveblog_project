@@ -561,10 +561,10 @@ html.scroll-locked body {
     width: 100%;
     max-width: 100%;
     top: var(--scroll-y, 0);
-    height: 100%;
-    min-height: 100vh;
-    min-height: 100dvh;
-    min-height: -webkit-fill-available;
+    /* top + height:100vh leaves a gap below the viewport when scrolled (Safari scrim bug) */
+    bottom: 0;
+    height: auto;
+    min-height: 0;
 }
 
 /* Search overlay open: no extra min-height vs. keyboard / dynamic toolbars (avoids outer scrollbar). */
@@ -6810,7 +6810,7 @@ html[data-theme="dark"] .comment_likes_badge {
 
 .share-buttons {
     display: flex;
-    gap: 8px;
+    gap: 5px;
     /* расстояние между кнопками */
     width: 100%;
 }

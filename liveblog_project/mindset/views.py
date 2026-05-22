@@ -56,7 +56,7 @@ User = get_user_model()
 
 THEME_PAGE_SIZE = 20
 MINDSET_LIST_PAGE_SIZE = 50
-SIDEBAR_LIMIT = 6
+SIDEBAR_LIMIT = 5
 REPLY_COOLDOWN_SECONDS = 30
 
 
@@ -231,6 +231,20 @@ def _reply_state_payload(reply: Reply) -> dict:
     }
 
 
+def _sidebar_theme_entry(theme: Theme) -> dict:
+    return {
+        'id': theme.pk,
+        'preview': theme.preview,
+        'likes': theme.likes_count,
+        'likes_human': count_convert(theme.likes_count),
+        'replies': theme.replies_count,
+        'replies_human': count_convert(theme.replies_count),
+        'reposts': theme.reposts_count,
+        'reposts_human': count_convert(theme.reposts_count),
+        'url': f'/mindset/theme/{theme.pk}/',
+    }
+
+
 def _sidebar_payload() -> dict:
     # Sidebar "Most popular themes": popularity = likes + reposts. We re-evaluate
     # the ordering on every payload build so periodic polling
@@ -251,30 +265,8 @@ def _sidebar_payload() -> dict:
         .order_by('-popularity', '-created_at')[:SIDEBAR_LIMIT]
     )
     return {
-        'last': [
-            {
-                'id': t.pk,
-                'preview': t.preview,
-                'likes': t.likes_count,
-                'likes_human': count_convert(t.likes_count),
-                'replies': t.replies_count,
-                'replies_human': count_convert(t.replies_count),
-                'url': f'/mindset/theme/{t.pk}/',
-            }
-            for t in popular
-        ],
-        'top': [
-            {
-                'id': t.pk,
-                'preview': t.preview,
-                'likes': t.likes_count,
-                'likes_human': count_convert(t.likes_count),
-                'replies': t.replies_count,
-                'replies_human': count_convert(t.replies_count),
-                'url': f'/mindset/theme/{t.pk}/',
-            }
-            for t in top
-        ],
+        'last': [_sidebar_theme_entry(t) for t in popular],
+        'top': [_sidebar_theme_entry(t) for t in top],
     }
 
 
