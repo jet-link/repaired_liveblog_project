@@ -15,6 +15,7 @@
        data-user-id="{% if user.is_authenticated %}{{ user.pk }}{% endif %}"
        data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
        data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
+    {% if mindset_has_themes %}
     <div class="listing-filter-sticky-scope">
       <div class="d-flex align-items-center justify-content-between mb-4 mindset-page__head">
         <h4 class="text-muted m-0">
@@ -74,6 +75,11 @@
         </aside>
       </div>
     </div>
+    {% else %}
+    <section class="mindset-feed" data-mindset-feed-list>
+      {% include 'mindset/_themes_feed.html' %}
+    </section>
+    {% endif %}
   </div>
 {% endblock %}
 

@@ -41,13 +41,22 @@ from .body_html import (
     normalise_hashtags,
 )
 from .forms import ReplyForm, ThemeForm
+from .image_service import (
+    MAX_REPLY_IMAGES,
+    MAX_THEME_IMAGES,
+    MindsetImageError,
+    attach_reply_image,
+    attach_theme_images,
+)
 from .models import (
     Hashtag,
     MindsetFollow,
     Reply,
+    ReplyImage,
     ReplyLike,
     ReplyRepost,
     Theme,
+    ThemeImage,
     ThemeLike,
     ThemeRepost,
 )
@@ -120,8 +129,23 @@ def _annotate_popularity(qs):
     )
 
 
+def _theme_images_prefetch():
+    """Prefetch ThemeImage rows once per Theme queryset so feed cards never
+    issue N+1 queries to render the image grid. We deliberately omit
+    ``to_attr`` so the template can keep using ``theme.images.all`` and
+    still benefit from the prefetched, ordered result set."""
+    return Prefetch(
+        'images',
+        queryset=ThemeImage.objects.order_by('sort_order', 'pk'),
+    )
+
+
 def _theme_base_qs():
-    return Theme.objects.filter(is_deleted=False).select_related('author', 'author__profile')
+    return (
+        Theme.objects.filter(is_deleted=False)
+        .select_related('author', 'author__profile')
+        .prefetch_related(_theme_images_prefetch())
+    )
 
 
 def _annotated_top_level_replies_prefetch(user):
@@ -134,7 +158,7 @@ def _annotated_top_level_replies_prefetch(user):
     """
     qs = (
         Reply.objects.filter(is_deleted=False, parent__isnull=True)
-        .select_related('author', 'author__profile')
+        .select_related('author', 'author__profile', 'image')
         .order_by('-created_at')
     )
     return Prefetch(
@@ -193,7 +217,9 @@ def _render_theme_card(theme: Theme, request) -> str:
 
 def _render_reply(reply: Reply, request) -> str:
     annotated = _annotate_user_state(
-        Reply.objects.filter(pk=reply.pk).select_related('author', 'author__profile'),
+        Reply.objects.filter(pk=reply.pk).select_related(
+            'author', 'author__profile', 'image'
+        ),
         request.user,
     ).first()
     return render_to_string(
@@ -366,6 +392,7 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
         'mindset_wall': wall_mode,
         'mindset_main_wall_url': main_path,
         'mindset_following_wall_url': following_path,
+        'mindset_has_themes': Theme.objects.filter(is_deleted=False).exists(),
     }
 
     is_partial = (
@@ -428,22 +455,37 @@ def theme_detail(request, pk):
 @login_required
 def theme_create(request):
     if request.method == 'POST':
-        form = ThemeForm(request.POST)
+        form = ThemeForm(request.POST, request.FILES)
+        files = request.FILES.getlist('images')
+        if len(files) > MAX_THEME_IMAGES:
+            form.add_error(
+                None,
+                f'You can attach up to {MAX_THEME_IMAGES} images per theme.',
+            )
         if form.is_valid():
-            with transaction.atomic():
-                theme = form.save(commit=False)
-                theme.author = request.user
-                theme.body_text = html_to_plain_text(theme.body)
-                theme.save()
-                _persist_hashtags(theme)
-            return redirect(f"{reverse('mindset:theme_list')}?theme_posted=1")
+            try:
+                with transaction.atomic():
+                    theme = form.save(commit=False)
+                    theme.author = request.user
+                    theme.body_text = html_to_plain_text(theme.body)
+                    theme.save()
+                    _persist_hashtags(theme)
+                    if files:
+                        attach_theme_images(theme, files)
+            except MindsetImageError as exc:
+                form.add_error(None, str(exc))
+            else:
+                return redirect(f"{reverse('mindset:theme_list')}?theme_posted=1")
     else:
         form = ThemeForm()
 
     return render(
         request,
         'mindset/create_theme.html',
-        {'form': form},
+        {
+            'form': form,
+            'max_theme_images': MAX_THEME_IMAGES,
+        },
     )
 
 
@@ -491,7 +533,7 @@ def api_theme_state(request, pk):
         new_qs = (
             _annotate_user_state(
                 Reply.objects.filter(theme_id=pk, pk__gt=int(since_id), is_deleted=False)
-                .select_related('author', 'author__profile')
+                .select_related('author', 'author__profile', 'image')
                 .order_by('created_at'),
                 request.user,
             )[:50]
@@ -534,17 +576,27 @@ def api_theme_reply(request, pk):
         return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
 
     body = form.cleaned_data['body']
-    reply = Reply.objects.create(
-        theme=theme,
-        author=request.user,
-        body=body,
-    )
+    image_files = request.FILES.getlist('image')[:MAX_REPLY_IMAGES]
+    try:
+        with transaction.atomic():
+            reply = Reply.objects.create(
+                theme=theme,
+                author=request.user,
+                body=body,
+            )
+            if image_files:
+                attach_reply_image(reply, image_files)
+    except MindsetImageError as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=400)
+
     _ensure_hashtags_exist(body)
     notify_mindset_theme_reply(theme=theme, reply=reply)
     request.session[cooldown_key] = now_ts
 
     annotated = _annotate_user_state(
-        Reply.objects.filter(pk=reply.pk).select_related('author', 'author__profile'),
+        Reply.objects.filter(pk=reply.pk).select_related(
+            'author', 'author__profile', 'image'
+        ),
         request.user,
     ).first() or reply
 
@@ -587,18 +639,28 @@ def api_reply_reply(request, pk):
     if not form.is_valid():
         return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
 
-    reply = Reply.objects.create(
-        theme=parent.theme,
-        parent=parent,
-        author=request.user,
-        body=form.cleaned_data['body'],
-    )
+    image_files = request.FILES.getlist('image')[:MAX_REPLY_IMAGES]
+    try:
+        with transaction.atomic():
+            reply = Reply.objects.create(
+                theme=parent.theme,
+                parent=parent,
+                author=request.user,
+                body=form.cleaned_data['body'],
+            )
+            if image_files:
+                attach_reply_image(reply, image_files)
+    except MindsetImageError as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=400)
+
     _ensure_hashtags_exist(reply.body)
     notify_mindset_theme_reply(theme=parent.theme, reply=reply)
     request.session[cooldown_key] = now_ts
 
     annotated = _annotate_user_state(
-        Reply.objects.filter(pk=reply.pk).select_related('author', 'author__profile'),
+        Reply.objects.filter(pk=reply.pk).select_related(
+            'author', 'author__profile', 'image'
+        ),
         request.user,
     ).first() or reply
 

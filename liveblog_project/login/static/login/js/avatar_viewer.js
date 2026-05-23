@@ -136,6 +136,56 @@
 
     const NOT_FOUND = '/static/img/image_not_found.webp';
     const ALLOWED_EXT = /\.(jpg|jpeg|png|gif|webp|svg)$/i;
+    const REGISTER_AVATAR_DRAFT_KEY = 'brainstorm:registerAvatarDraft';
+
+    function readRegisterAvatarDraft() {
+        try {
+            const raw = sessionStorage.getItem(REGISTER_AVATAR_DRAFT_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function writeRegisterAvatarDraft(payload) {
+        if (!payload || !payload.type) {
+            try { sessionStorage.removeItem(REGISTER_AVATAR_DRAFT_KEY); } catch (_) { /* ignore */ }
+            return;
+        }
+        try {
+            sessionStorage.setItem(REGISTER_AVATAR_DRAFT_KEY, JSON.stringify(payload));
+        } catch (_) { /* quota / private mode */ }
+    }
+
+    function currentRegisterUsername(formEl) {
+        const input = formEl.querySelector('input[name="username"]');
+        return input ? String(input.value || '').trim().toLowerCase() : '';
+    }
+
+    function registerAvatarDraftPayload(formEl, extra) {
+        return Object.assign({ username: currentRegisterUsername(formEl) }, extra || {});
+    }
+
+    function dataUrlToFile(dataUrl, filename, mime) {
+        const parts = String(dataUrl || '').split(',');
+        if (parts.length < 2) return null;
+        const match = parts[0].match(/:(.*?);/);
+        const type = mime || (match && match[1]) || 'image/png';
+        const bin = atob(parts[1]);
+        const len = bin.length;
+        const u8 = new Uint8Array(len);
+        for (let i = 0; i < len; i++) u8[i] = bin.charCodeAt(i);
+        return new File([u8], filename || 'avatar.png', { type: type });
+    }
+
+    function assignFileToInput(fileInput, file) {
+        if (!fileInput || !file) return;
+        try {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+        } catch (_) { /* ignore */ }
+    }
 
     function initAvatarPicker(form) {
         const saveBtn = form.querySelector('button[type="submit"]');
@@ -194,6 +244,9 @@
             setClearFlag(true);
             if (urlDeleteBtn) urlDeleteBtn.classList.add('d-none');
             if (fileDeleteBtn) fileDeleteBtn.classList.add('d-none');
+            if (form.id === 'registerForm') {
+                writeRegisterAvatarDraft(null);
+            }
             enableSave();
         }
 
@@ -228,7 +281,50 @@
             name: null,
         };
 
-        if (window.CURRENT_AVATAR && window.CURRENT_AVATAR.file) {
+        function restoreRegisterAvatarDraft() {
+            const currentUser = currentRegisterUsername(form);
+            let draft = readRegisterAvatarDraft();
+            if (draft && draft.username && currentUser && draft.username !== currentUser) {
+                writeRegisterAvatarDraft(null);
+                draft = null;
+            }
+            if (draft && draft.type === 'file' && draft.dataUrl) {
+                initialAvatar.type = 'file';
+                initialAvatar.value = draft.dataUrl;
+                initialAvatar.name = draft.name || 'avatar.png';
+                showFile(draft.dataUrl);
+                const file = dataUrlToFile(draft.dataUrl, draft.name, draft.mime);
+                assignFileToInput(fileInput, file);
+                return true;
+            }
+            if (draft && draft.type === 'url' && draft.url) {
+                urlInput.value = draft.url;
+                initialAvatar.type = 'url';
+                initialAvatar.value = draft.url;
+                initialAvatar.name = extractName(draft.url);
+                showUrl(draft.url);
+                return true;
+            }
+            const urlVal = (urlInput.value || '').trim();
+            if (urlVal) {
+                try { new URL(urlVal); } catch (_) { return false; }
+                if (!ALLOWED_EXT.test(urlVal)) return false;
+                initialAvatar.type = 'url';
+                initialAvatar.value = urlVal;
+                initialAvatar.name = extractName(urlVal);
+                showUrl(urlVal);
+                return true;
+            }
+            return false;
+        }
+
+        if (form.id === 'registerForm') {
+            if (form.getAttribute('data-register-redisplay') === '1') {
+                restoreRegisterAvatarDraft();
+            } else {
+                writeRegisterAvatarDraft(null);
+            }
+        } else if (window.CURRENT_AVATAR && window.CURRENT_AVATAR.file) {
             initialAvatar.type = 'file';
             initialAvatar.value = window.CURRENT_AVATAR.file;
             initialAvatar.name = extractName(window.CURRENT_AVATAR.file);
@@ -297,6 +393,13 @@
                 showUrl(val);
                 enableSave();
                 lastUrlValue = val;
+                if (form.id === 'registerForm') {
+                    writeRegisterAvatarDraft(registerAvatarDraftPayload(form, {
+                        type: 'url',
+                        url: val,
+                        name: extractName(val),
+                    }));
+                }
             };
             img.onerror = showInvalidUrl;
             img.src = val;
@@ -323,6 +426,14 @@
                 urlInput.classList.remove('is-invalid');
                 enableSave();
                 lastUrlValue = '';
+                if (form.id === 'registerForm') {
+                    writeRegisterAvatarDraft(registerAvatarDraftPayload(form, {
+                        type: 'file',
+                        dataUrl: e.target.result,
+                        name: file.name,
+                        mime: file.type || 'image/png',
+                    }));
+                }
             };
             reader.readAsDataURL(file);
         });
@@ -337,11 +448,24 @@
             if (urlInput.classList.contains('is-invalid')) {
                 e.preventDefault();
                 disableSave();
+                return;
+            }
+            if (form.id === 'registerForm') {
+                const draft = readRegisterAvatarDraft();
+                if (draft && draft.type) {
+                    writeRegisterAvatarDraft(registerAvatarDraftPayload(form, draft));
+                }
             }
         });
     }
 
     document.querySelectorAll('form[data-avatar-picker]').forEach(initAvatarPicker);
+
+    try {
+        if (new URLSearchParams(window.location.search).get('registered') === '1') {
+            sessionStorage.removeItem(REGISTER_AVATAR_DRAFT_KEY);
+        }
+    } catch (_) { /* ignore */ }
 })();
 
 

@@ -290,6 +290,47 @@
     }
 
     // ---------- client validation ----------
+    function applyServerSideFieldHighlights(form) {
+        if (!form) return;
+        form.querySelectorAll('.form-floating-password').forEach(function (wrap) {
+            const field = wrap.querySelector('input:not([type="hidden"])');
+            if (!field || !field.name) return;
+            const errBlock = wrap.nextElementSibling;
+            if (!errBlock || !errBlock.classList.contains('text-danger')) return;
+            if (!String(errBlock.textContent || '').trim()) return;
+            field.classList.add(CLASS_ERROR);
+            if (field.type === 'password' || /password/i.test(field.name)) {
+                field.value = '';
+                try {
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                } catch (_) { /* ignore */ }
+            }
+        });
+    }
+
+    function validatePasswordPair(form, name1, name2, message) {
+        const pairResult = { valid: true, errors: {} };
+        const p1 = findField(form, name1);
+        const p2 = findField(form, name2);
+        if (p1 && p2 && String(p1.value || '') !== '' && String(p2.value || '') !== ''
+            && p1.value !== p2.value) {
+            pairResult.valid = false;
+            pairResult.errors[name2] = pairResult.errors[name2] || [];
+            pairResult.errors[name2].push(message);
+        }
+        return pairResult;
+    }
+
+    function mergeValidationResults(target, extra) {
+        if (!extra || extra.valid) return target;
+        target.valid = false;
+        Object.keys(extra.errors).forEach(function (key) {
+            target.errors[key] = target.errors[key] || [];
+            target.errors[key] = target.errors[key].concat(extra.errors[key]);
+        });
+        return target;
+    }
+
     function validateForm(form) {
         // returns { valid: bool, errors: { field: [msg] , __all__: [msg] } }
         const res = { valid: true, errors: {} };
@@ -346,14 +387,17 @@
         });
 
         if (form.id === 'passwordForm') {
-            const p1 = findField(form, 'new_password1');
-            const p2 = findField(form, 'new_password2');
-            if (p1 && p2 && String(p1.value || '') !== '' && String(p2.value || '') !== ''
-                && p1.value !== p2.value) {
-                res.valid = false;
-                res.errors.new_password2 = res.errors.new_password2 || [];
-                res.errors.new_password2.push('Passwords do not match.');
-            }
+            mergeValidationResults(
+                res,
+                validatePasswordPair(form, 'new_password1', 'new_password2', 'Passwords do not match.')
+            );
+        }
+
+        if (form.id === 'registerForm') {
+            mergeValidationResults(
+                res,
+                validatePasswordPair(form, 'password1', 'password2', 'Passwords not same')
+            );
         }
 
         const rtf = form.getAttribute('data-require-text-or-file');
@@ -521,6 +565,8 @@
             // avoid attaching listeners twice (pageshow + DOMContentLoaded can both run)
             if (form.dataset.fhInit === '1') return;
             form.dataset.fhInit = '1';
+
+            applyServerSideFieldHighlights(form);
 
             // attach summernote listeners (if present) to keep textarea synced and clear errors on change
             try {

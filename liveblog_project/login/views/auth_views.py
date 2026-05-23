@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
@@ -112,7 +113,7 @@ def register_view(request):
                 profile.save()
 
             messages.success(request, 'Registration successful. You can log in now.')
-            return redirect('login_app:login')
+            return redirect(f"{reverse('login_app:login')}?registered=1")
     else:
         form = CustomUserCreationForm()
 

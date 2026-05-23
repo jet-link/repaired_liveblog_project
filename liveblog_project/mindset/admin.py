@@ -2,12 +2,14 @@ from django.contrib import admin
 
 from .models import (
     Hashtag,
-    Theme,
-    ThemeLike,
-    ThemeRepost,
     Reply,
+    ReplyImage,
     ReplyLike,
     ReplyRepost,
+    Theme,
+    ThemeImage,
+    ThemeLike,
+    ThemeRepost,
 )
 
 
@@ -42,3 +44,5 @@ admin.site.register(ThemeLike)
 admin.site.register(ThemeRepost)
 admin.site.register(ReplyLike)
 admin.site.register(ReplyRepost)
+admin.site.register(ThemeImage)
+admin.site.register(ReplyImage)

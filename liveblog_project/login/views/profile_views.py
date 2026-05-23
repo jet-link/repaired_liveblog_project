@@ -31,6 +31,7 @@ from mindset.models import Reply, ReplyRepost, ThemeRepost
 from mindset.views import (
     THEME_PAGE_SIZE,
     _annotate_user_state,
+    _sidebar_payload,
     _theme_qs_for_listing,
 )
 from smart_blog.models import Item
@@ -173,7 +174,7 @@ def profile_mindset_themes_view(request, username):
                 is_deleted=False,
                 theme__is_deleted=False,
             )
-            .select_related("theme", "author", "author__profile")
+            .select_related("theme", "author", "author__profile", "image")
             .order_by("-created_at", "-id"),
             request.user,
         )
@@ -228,6 +229,7 @@ def profile_mindset_themes_view(request, username):
                 "reply__theme",
                 "reply__author",
                 "reply__author__profile",
+                "reply__image",
             )
             rr_by_id = {o.id: o for o in reply_reposts}
             reply_ids = [o.reply_id for o in rr_by_id.values()]
@@ -238,7 +240,7 @@ def profile_mindset_themes_view(request, username):
                         pk__in=reply_ids,
                         is_deleted=False,
                         theme__is_deleted=False,
-                    ).select_related("theme", "author", "author__profile"),
+                    ).select_related("theme", "author", "author__profile", "image"),
                     request.user,
                 )
             }
@@ -285,6 +287,7 @@ def profile_mindset_themes_view(request, username):
         "breadcrumbs": breadcrumbs,
         "pagination_extra": pagination_extra,
         "repost_rows": repost_rows,
+        "sidebar": _sidebar_payload(),
     }
     return render(request, "accounts/profile_reposts.html", context)
 

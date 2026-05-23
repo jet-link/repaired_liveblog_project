@@ -29,7 +29,12 @@
   {% comment %} <hr class="mindset-theme__sep" /> {% endcomment %}
   <div class="mindset-theme__body" data-mindset-body>{{ theme.body|mindset_body }}</div>
 
-  
+  {% with imgs=theme.images.all %}
+    {% if imgs %}
+      {% include 'mindset/_theme_images.html' with imgs=imgs %}
+    {% endif %}
+  {% endwith %}
+
   <div class="mindset-theme__actions">
     <div class="mindset-theme__counters">
       <span class="mindset-counter" data-counter="replies">
@@ -93,11 +98,17 @@
 
   {% if user.is_authenticated and user.id != theme.author_id %}
     <form class="mindset-theme__reply-form" data-mindset-reply-form data-theme-id="{{ theme.pk }}" hidden
-          action="{% url 'mindset:api_theme_reply' theme.pk %}" method="post">
+          action="{% url 'mindset:api_theme_reply' theme.pk %}" method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <textarea name="body" rows="1" class="form-control auto-grow mindset-reply-input" placeholder="Write a reply…"></textarea>
+      <div class="mindset-form-error text-danger small" data-mindset-reply-error hidden></div>
+      <div class="mindset-reply-image-preview" data-mindset-reply-image-preview hidden></div>
       <div class="mindset-theme__reply-footer">
-        <div class="mindset-form-error text-danger small" data-mindset-reply-error hidden></div>
+        <label class="mindset-reply-image-btn" data-mindset-reply-image-btn title="Attach an image">
+          <i class="fa fa-camera" aria-hidden="true"></i>
+          <span>Add image</span>
+          <input type="file" name="image" accept="image/jpeg,image/png,image/webp" class="mindset-reply-image-input" data-mindset-reply-image-input hidden />
+        </label>
         <div class="mindset-theme__reply-actions">
           <button type="button" class="cstm-btn-sm custom-secondary-btn" data-mindset-reply-cancel>Cancel</button>
           <button type="submit" class="cstm-btn-sm custom-primary-btn">Reply</button>

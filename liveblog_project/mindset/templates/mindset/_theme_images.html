@@ -1,0 +1,33 @@
+{% comment %}
+Adaptive image grid for theme cards.
+
+Layout rules (driven entirely by ``data-count`` on the wrapper, no JS needed):
+    * 1 image   → single image, capped height, full card width.
+    * 2 images  → two equal columns side-by-side.
+    * 3 images  → first image is the tall "hero" on the left,
+                  the other two stack on the right (Twitter-like).
+
+Each <img> ships a ``srcset`` of thumbnail/medium/large WebP variants so the
+browser can pull the cheapest one that fits the rendered slot, and is set to
+``loading="lazy"`` + ``decoding="async"`` so off-screen feed cards never block
+first paint of the page.
+{% endcomment %}
+<div class="mindset-theme__images mindset-images mindset-images--count-{{ imgs|length }}" data-count="{{ imgs|length }}">
+  {% for img in imgs %}
+    <a href="{{ img.get_url }}"
+       target="_blank"
+       rel="noopener"
+       class="mindset-images__cell mindset-images__cell--{{ forloop.counter }}">
+      <img
+        src="{{ img.get_medium_url }}"
+        srcset="{{ img.get_srcset }}"
+        sizes="(min-width: 992px) 640px, (min-width: 576px) 90vw, 100vw"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        {% if img.width %}width="{{ img.width }}"{% endif %}
+        {% if img.height %}height="{{ img.height }}"{% endif %}
+      />
+    </a>
+  {% endfor %}
+</div>

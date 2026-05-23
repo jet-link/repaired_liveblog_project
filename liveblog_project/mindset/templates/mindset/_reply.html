@@ -32,6 +32,23 @@
     </small>
   </div>
   <div class="mindset-reply__body" data-mindset-body>{{ reply.body|mindset_body }}</div>
+  {% if reply.image %}
+    <a href="{{ reply.image.get_url }}"
+       target="_blank"
+       rel="noopener"
+       class="mindset-reply__image">
+      <img
+        src="{{ reply.image.get_medium_url }}"
+        srcset="{{ reply.image.get_srcset }}"
+        sizes="(min-width: 992px) 520px, (min-width: 576px) 86vw, 100vw"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        {% if reply.image.width %}width="{{ reply.image.width }}"{% endif %}
+        {% if reply.image.height %}height="{{ reply.image.height }}"{% endif %}
+      />
+    </a>
+  {% endif %}
   <div class="mindset-reply__actions">
     <div class="mindset-reply__counters">
       <span class="mindset-counter" data-counter="likes">

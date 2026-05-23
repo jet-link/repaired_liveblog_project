@@ -724,6 +724,18 @@
         submitReplyForm(form);
       }
     });
+
+    root.addEventListener('input', function (ev) {
+      var ta = ev.target;
+      if (!ta || !ta.matches('form[data-mindset-reply-form] textarea[name="body"]')) return;
+      var form = ta.closest('form');
+      if (!form) return;
+      var errBox = form.querySelector('[data-mindset-reply-error]');
+      if (errBox && !errBox.hidden && errBox.dataset.kind !== 'image') {
+        errBox.textContent = '';
+        errBox.hidden = true;
+      }
+    });
   }
 
   // ---- Delete confirmation modal ------------------------------------------
@@ -797,11 +809,117 @@
     }
   }
 
+  // ---- reply image attach (single optional file) ---------------------------
+
+  var REPLY_IMAGE_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  var REPLY_IMAGE_MAX_BYTES = 8 * 1024 * 1024; // mirrors smart_blog limit
+
+  function clearReplyImagePreview(form) {
+    var input = form.querySelector('[data-mindset-reply-image-input]');
+    var preview = form.querySelector('[data-mindset-reply-image-preview]');
+    var errBox = form.querySelector('[data-mindset-reply-error]');
+    if (input) { try { input.value = ''; } catch (_) { input.value = null; } }
+    if (preview) { preview.innerHTML = ''; preview.hidden = true; }
+    if (errBox) {
+      errBox.textContent = '';
+      errBox.hidden = true;
+      delete errBox.dataset.kind;
+    }
+  }
+
+  function formatReplyFormError(data) {
+    if (!data) return 'Could not post reply.';
+    if (data.error) return data.error;
+    if (data.errors) {
+      if (data.errors.body && data.errors.body.length) return data.errors.body[0];
+      if (data.errors.__all__ && data.errors.__all__.length) return data.errors.__all__[0];
+      var keys = Object.keys(data.errors);
+      for (var i = 0; i < keys.length; i++) {
+        var msgs = data.errors[keys[i]];
+        if (msgs && msgs.length) return msgs[0];
+      }
+    }
+    return 'Could not post reply.';
+  }
+
+  function renderReplyImagePreview(form, file) {
+    var preview = form.querySelector('[data-mindset-reply-image-preview]');
+    if (!preview) return;
+    preview.innerHTML = '';
+    var img = document.createElement('img');
+    img.alt = '';
+    img.decoding = 'async';
+    var url = URL.createObjectURL(file);
+    img.src = url;
+    img.addEventListener('load', function () {
+      try { URL.revokeObjectURL(url); } catch (_) { /* ignore */ }
+    }, { once: true });
+    var rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'mindset-reply-image-preview__remove';
+    rm.setAttribute('aria-label', 'Remove image');
+    rm.dataset.mindsetReplyImageRemove = '1';
+    rm.innerHTML = '<i class="fa fa-times" aria-hidden="true"></i>';
+    preview.appendChild(img);
+    preview.appendChild(rm);
+    preview.hidden = false;
+  }
+
+  function bindReplyImageInputs(root) {
+    if (root.__mindsetReplyImageBound) return;
+    root.__mindsetReplyImageBound = true;
+    root.addEventListener('change', function (ev) {
+      var input = ev.target;
+      if (!input || !input.matches('[data-mindset-reply-image-input]')) return;
+      var form = input.closest('form');
+      if (!form) return;
+      var file = (input.files && input.files[0]) || null;
+      var errBox = form.querySelector('[data-mindset-reply-error]');
+      if (!file) {
+        clearReplyImagePreview(form);
+        return;
+      }
+      var type = (file.type || '').toLowerCase();
+      if (REPLY_IMAGE_MIME.indexOf(type) === -1) {
+        if (errBox) {
+          errBox.textContent = 'Only JPEG, PNG, or WebP images are allowed.';
+          errBox.hidden = false;
+          errBox.dataset.kind = 'image';
+        }
+        clearReplyImagePreview(form);
+        return;
+      }
+      if (file.size > REPLY_IMAGE_MAX_BYTES) {
+        if (errBox) {
+          errBox.textContent = 'Image is too large (max 8 MB).';
+          errBox.hidden = false;
+          errBox.dataset.kind = 'image';
+        }
+        clearReplyImagePreview(form);
+        return;
+      }
+      renderReplyImagePreview(form, file);
+    });
+    root.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('[data-mindset-reply-image-remove]');
+      if (!btn) return;
+      ev.preventDefault();
+      var form = btn.closest('form');
+      if (form) clearReplyImagePreview(form);
+    });
+  }
+
   function submitReplyForm(form) {
     var errBox = form.querySelector('[data-mindset-reply-error]');
-    if (errBox) { errBox.hidden = true; errBox.textContent = ''; }
+    if (errBox) {
+      errBox.hidden = true;
+      errBox.textContent = '';
+      delete errBox.dataset.kind;
+    }
     var submitBtn = form.querySelector('button[type="submit"]');
     var ta = form.querySelector('textarea[name="body"]');
+    var imageInput = form.querySelector('[data-mindset-reply-image-input]');
+    var hasImage = imageInput && imageInput.files && imageInput.files.length > 0;
     if (!ta || !ta.value.trim()) {
       if (errBox) { errBox.textContent = 'Reply cannot be empty.'; errBox.hidden = false; }
       return;
@@ -809,12 +927,18 @@
     if (submitBtn) submitBtn.disabled = true;
 
     var fd = new FormData(form);
+    // FormData includes empty file inputs as zero-byte uploads on some
+    // browsers; strip them so the server doesn't see an "image" key it has
+    // to validate just to discover the upload was unused.
+    if (!hasImage) {
+      try { fd.delete('image'); } catch (_) { /* ignore */ }
+    }
     var themeIdForm = form.getAttribute('data-theme-id');
     var userIdForm = getUserId();
     postForm(form.action, fd).then(function (resp) {
       if (submitBtn) submitBtn.disabled = false;
       if (!resp.ok || !resp.data || !resp.data.ok) {
-        var msg = (resp.data && (resp.data.error || (resp.data.errors && JSON.stringify(resp.data.errors)))) || 'Could not post reply.';
+        var msg = formatReplyFormError(resp.data);
         if (errBox) { errBox.textContent = msg; errBox.hidden = false; }
         if (resp.status === 429 && themeIdForm && userIdForm) {
           var secs = parseCooldownSeconds(resp.data && resp.data.error) || REPLY_COOLDOWN_SEC;
@@ -829,6 +953,7 @@
         ta.value = '';
         autoResizeTextarea(ta);
       }
+      clearReplyImagePreview(form);
       form.hidden = true;
       if (themeIdForm && userIdForm) {
         startReplyCooldown(themeIdForm, userIdForm, REPLY_COOLDOWN_SEC);
@@ -1143,6 +1268,7 @@
     bindRoot(root);
     bindDeleteModal();
     bindWallTabs(root);
+    bindReplyImageInputs(root);
     initAllReplyCooldowns(root);
     initMindsetNewThemeCooldown(root);
     handleMindsetNotificationHash();

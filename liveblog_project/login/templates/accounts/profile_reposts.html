@@ -59,64 +59,60 @@
         </div>
       </div>
 
-      <div class="profile-mindset-swap" data-profile-mindset-swap>
-    {% if active_tab == 'themes' %}
-      <section class="mindset-feed" data-mindset-feed-list>
-        {% for theme in page_obj %}
-          {% include 'mindset/_theme_card.html' with theme=theme %}
-        {% empty %}
-          <div class="mindset-empty text-muted py-5">
-            <p class="m-0">No themes yet.</p>
-          </div>
-        {% endfor %}
-        <div class="w-100">{% include 'includes/pagination.html' %}</div>
-      </section>
-    {% elif active_tab == 'replies' %}
-      <section class="mindset-feed" data-mindset-feed-list>
-        {% for reply in page_obj %}
-          <div class="profile-reposts-reply-wrap">
-            {% comment %} <div class="small text-muted mb-3 d-flex gap-2">
-              <span>In thread:</span>
-              <a href="{% url 'mindset:theme_detail' reply.theme.pk %}" class="text-decoration-none primary_ fw-semibold">
-                {% firstof reply.theme.preview "View thread" %}
-              </a>
-            </div> {% endcomment %}
-            {% include 'mindset/_reply.html' with reply=reply %}
-          </div>
-        {% empty %}
-          <div class="mindset-empty text-muted py-5">
-            <p class="m-0">No replies yet.</p>
-          </div>
-        {% endfor %}
-        <div class="w-100">{% include 'includes/pagination.html' %}</div>
-      </section>
-    {% else %}
-      <section class="mindset-feed" data-mindset-feed-list>
-        {% for row in repost_rows %}
-          <div class="profile-mindset-repost-block">
-            <div class="small text-muted my-3">
-              Reposted <span class="text-muted fw-semibold">{{ row.reposted_human }}</span>
+      <div class="mindset-layout">
+        <div class="profile-mindset-swap" data-profile-mindset-swap>
+      {% if active_tab == 'themes' %}
+        <section class="mindset-feed" data-mindset-feed-list>
+          {% for theme in page_obj %}
+            {% include 'mindset/_theme_card.html' with theme=theme %}
+          {% empty %}
+            <div class="mindset-empty text-muted py-5">
+              <p class="m-0">No themes yet.</p>
             </div>
-            {% if row.kind == 'theme' %}
-              {% include 'mindset/_theme_card.html' with theme=row.theme %}
-            {% else %}
-              {% comment %} <div class="small text-muted mb-3">
-                In thread:
-                <a href="{% url 'mindset:theme_detail' row.reply.theme.pk %}" class="text-decoration-none">
-                  {% firstof row.reply.theme.preview "View thread" %}
-                </a>
-              </div> {% endcomment %}
-              {% include 'mindset/_reply.html' with reply=row.reply %}
-            {% endif %}
+          {% endfor %}
+          <div class="w-100">{% include 'includes/pagination.html' %}</div>
+        </section>
+      {% elif active_tab == 'replies' %}
+        <section class="mindset-feed" data-mindset-feed-list>
+          {% for reply in page_obj %}
+            <div class="profile-reposts-reply-wrap">
+              {% include 'mindset/_reply.html' with reply=reply %}
+            </div>
+          {% empty %}
+            <div class="mindset-empty text-muted py-5">
+              <p class="m-0">No replies yet.</p>
+            </div>
+          {% endfor %}
+          <div class="w-100">{% include 'includes/pagination.html' %}</div>
+        </section>
+      {% else %}
+        <section class="mindset-feed" data-mindset-feed-list>
+          {% for row in repost_rows %}
+            <div class="profile-mindset-repost-block">
+              <div class="small text-muted my-3">
+                Reposted <span class="text-muted fw-semibold">{{ row.reposted_human }}</span>
+              </div>
+              {% if row.kind == 'theme' %}
+                {% include 'mindset/_theme_card.html' with theme=row.theme %}
+              {% else %}
+                {% include 'mindset/_reply.html' with reply=row.reply %}
+              {% endif %}
+            </div>
+          {% empty %}
+            <div class="mindset-empty text-muted py-5">
+              <p class="m-0">No reposts yet.</p>
+            </div>
+          {% endfor %}
+          <div class="w-100">{% include 'includes/pagination.html' %}</div>
+        </section>
+      {% endif %}
+        </div>
+
+        <aside class="mindset-sidebar d-none d-lg-block">
+          <div class="mindset-sidebar__sticky">
+            {% include 'mindset/_sidebar.html' with sidebar=sidebar %}
           </div>
-        {% empty %}
-          <div class="mindset-empty text-muted py-5">
-            <p class="m-0">No reposts yet.</p>
-          </div>
-        {% endfor %}
-        <div class="w-100">{% include 'includes/pagination.html' %}</div>
-      </section>
-    {% endif %}
+        </aside>
       </div>
     </div>
   </div>

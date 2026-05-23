@@ -16,7 +16,7 @@
         <h5 class="text-muted text-uppercase m-0">New theme</h5>
       </div>
 
-      <form method="post" id="mindsetThemeForm" novalidate>
+      <form method="post" enctype="multipart/form-data" id="mindsetThemeForm" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}
           <div class="custom-alert custom-alert-danger mb-2" data-auto-dismiss="3000">
@@ -36,7 +36,27 @@
           </div>
         </div>
 
-        <div class="mindset-create__actions d-flex gap-1 align-items-center mt-4">
+        <div class="mindset-create__images mt-3">
+          <label for="mindsetThemeImages" class="form-label text-muted mb-2">
+            Pictures <span class="field-label-optional-suffix"> · optional · up to {{ max_theme_images|default:3 }}</span>
+          </label>
+          <div class="item-images-upload item-images-upload--native">
+            <input
+              id="mindsetThemeImages"
+              name="images"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              class="item-images-file-input mindset-images-file-input"
+              data-max-files="{{ max_theme_images|default:3 }}"
+              title="Choose images"
+            />
+          </div>
+          {% comment %} <div class="form-text" id="mindsetImagesHelp">JPEG/PNG/WebP · up to {{ max_theme_images|default:3 }} images.</div> {% endcomment %}
+          <div id="mindsetImagesPreview" class="mt-3 d-flex flex-wrap gap-2" data-mindset-images-preview></div>
+        </div>
+
+        <div class="mindset-create__actions d-flex gap-1 align-items-center mt-2">
           <button class="cstm-btn custom-primary-btn" type="submit">Add theme</button>
           <a href="{% url 'mindset:theme_list' %}" class="cstm-btn custom-secondary-btn">Cancel</a>
         </div>

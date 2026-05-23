@@ -141,6 +141,105 @@ class Reply(models.Model):
         return timezone.now() <= self.editable_until
 
 
+class ThemeImage(models.Model):
+    """One picture attached to a Theme. Max 3 per theme (enforced in the
+    service layer at upload time). We store three pre-rendered WebP variants
+    (thumbnail ~300w, medium ~800w, large ~1600w) so the feed never has to
+    fall back to the heavy original, and the browser can pick the cheapest
+    variant via ``srcset``."""
+
+    ORIENTATION_CHOICES = (
+        ('landscape', 'Landscape'),
+        ('portrait', 'Portrait'),
+        ('wide', 'Ultra-wide'),
+        ('square', 'Square'),
+    )
+
+    theme = models.ForeignKey(Theme, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='mindset/themes/%Y/%m/%d/')
+    image_thumbnail = models.ImageField(upload_to='mindset/themes/', blank=True, null=True)
+    image_medium = models.ImageField(upload_to='mindset/themes/', blank=True, null=True)
+    width = models.PositiveIntegerField(blank=True, null=True)
+    height = models.PositiveIntegerField(blank=True, null=True)
+    sort_order = models.PositiveSmallIntegerField(default=0, db_index=True)
+    orientation_kind = models.CharField(
+        max_length=16, choices=ORIENTATION_CHOICES, default='landscape'
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('sort_order', 'pk')
+
+    def __str__(self) -> str:
+        return f'ThemeImage #{self.pk} for theme {self.theme_id}'
+
+    def get_url(self) -> str:
+        return self.image.url if self.image else ''
+
+    def get_thumbnail_url(self) -> str:
+        if self.image_thumbnail:
+            return self.image_thumbnail.url
+        return self.get_url()
+
+    def get_medium_url(self) -> str:
+        if self.image_medium:
+            return self.image_medium.url
+        return self.get_url()
+
+    def get_srcset(self) -> str:
+        parts: list[str] = []
+        if self.image_thumbnail:
+            parts.append(f'{self.image_thumbnail.url} 300w')
+        if self.image_medium:
+            parts.append(f'{self.image_medium.url} 800w')
+        full = self.get_url()
+        if full:
+            parts.append(f'{full} {self.width or 1600}w')
+        return ', '.join(parts)
+
+
+class ReplyImage(models.Model):
+    """Single optional picture attached to a Reply.
+
+    Reply replies are deliberately limited to one image (UX choice + page
+    weight). Same pre-rendered WebP variants as ``ThemeImage``."""
+
+    reply = models.OneToOneField(Reply, on_delete=models.CASCADE, related_name='image')
+    image = models.ImageField(upload_to='mindset/replies/%Y/%m/%d/')
+    image_thumbnail = models.ImageField(upload_to='mindset/replies/', blank=True, null=True)
+    image_medium = models.ImageField(upload_to='mindset/replies/', blank=True, null=True)
+    width = models.PositiveIntegerField(blank=True, null=True)
+    height = models.PositiveIntegerField(blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f'ReplyImage for reply {self.reply_id}'
+
+    def get_url(self) -> str:
+        return self.image.url if self.image else ''
+
+    def get_thumbnail_url(self) -> str:
+        if self.image_thumbnail:
+            return self.image_thumbnail.url
+        return self.get_url()
+
+    def get_medium_url(self) -> str:
+        if self.image_medium:
+            return self.image_medium.url
+        return self.get_url()
+
+    def get_srcset(self) -> str:
+        parts: list[str] = []
+        if self.image_thumbnail:
+            parts.append(f'{self.image_thumbnail.url} 300w')
+        if self.image_medium:
+            parts.append(f'{self.image_medium.url} 800w')
+        full = self.get_url()
+        if full:
+            parts.append(f'{full} {self.width or 1600}w')
+        return ', '.join(parts)
+
+
 class ThemeLike(models.Model):
     theme = models.ForeignKey(Theme, on_delete=models.CASCADE, related_name='likes')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mindset_theme_likes')

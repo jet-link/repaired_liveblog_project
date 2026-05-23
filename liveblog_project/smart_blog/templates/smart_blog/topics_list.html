@@ -5,11 +5,11 @@
 {% endblock %}
 {% block content %}
   <div class="container-main content_block topics-page">
+    {% if topics_all %}
     <div class="mb-3">
       <h4 class="text-muted m-0">Topics</h4>
     </div>
 
-    {% if topics_all %}
       <div class="listing-filter-sticky-scope">
         <div class="filter-segment-sticky-wrap">
           {% include 'includes/topic_category_chips.html' with categories=topics_all topic_chips_mode='filter' %}
