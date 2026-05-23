@@ -96,9 +96,14 @@ def _annotate_user_state(qs, user):
 
     like_qs = ReplyLike.objects.filter(reply=OuterRef('pk'), user=user)
     repost_qs = ReplyRepost.objects.filter(reply=OuterRef('pk'), user=user)
+    # Reply Follow/Followed — disabled for now (main themes only):
+    # follow_qs = MindsetFollow.objects.filter(
+    #     follower=user, followee=OuterRef('author')
+    # )
     return qs.annotate(
         user_liked=Exists(like_qs),
         user_reposted=Exists(repost_qs),
+        # user_following_author=Exists(follow_qs),
     )
 
 

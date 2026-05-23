@@ -137,6 +137,15 @@ html[data-theme="dark"] .block-quote {
     padding-right: 2.75rem;
 }
 
+/* Keep red border on error, but no Bootstrap validation icon (conflicts with show/hide toggle) */
+.form-floating.form-floating-password > .form-control.is-invalid,
+.form-floating.form-floating-password > .form-control.is-invalid:focus {
+    background-image: none !important;
+    padding-right: 2.75rem !important;
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #dc3545 28%, transparent);
+}
+
 .password-toggle.password-toggle--inside {
     position: absolute;
     z-index: 5;

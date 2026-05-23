@@ -5,6 +5,27 @@
     <a href="{% if user.is_authenticated %}{% url 'login_app:profile-themes' reply.author.username %}{% else %}{% url 'login_app:profile' reply.author.username %}{% endif %}" class="mindset-author-link text-decoration-none">
       {% include 'includes/user_avatar.html' with author=reply.author %}
     </a>
+    {% comment %} Follow/Followed on replies — disabled for now (main themes only).
+    <div class="mindset-theme__author-row">
+      <a href="{% if user.is_authenticated %}{% url 'login_app:profile-themes' reply.author.username %}{% else %}{% url 'login_app:profile' reply.author.username %}{% endif %}" class="mindset-author-link text-decoration-none">
+        {% include 'includes/user_avatar.html' with author=reply.author %}
+      </a>
+      {% if user.is_authenticated and user.id != reply.author_id and reply.author.is_active %}
+        <span class="mindset-follow-sep" aria-hidden="true">|</span>
+        <button
+          type="button"
+          class="mindset-follow-link{% if reply.user_following_author %} is-following{% endif %}"
+          data-action="follow-user"
+          data-username="{{ reply.author.username }}"
+          data-url="{% url 'mindset:api_user_follow_toggle' reply.author.username %}"
+          aria-pressed="{% if reply.user_following_author %}true{% else %}false{% endif %}"
+        >
+          <span class="mindset-follow-link__label">{% if reply.user_following_author %}Followed{% else %}Follow{% endif %}</span>
+          <i class="fa fa-check mindset-follow-link__check" aria-hidden="true"{% if not reply.user_following_author %} hidden{% endif %}></i>
+        </button>
+      {% endif %}
+    </div>
+    {% endcomment %}
     <small class="text-muted mindset-reply__date">
       {% comment %} <i class="fa fa-clock-o" aria-hidden="true"></i> {% endcomment %}
       <span>{{ reply.human_published }}</span>

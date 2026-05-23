@@ -383,6 +383,8 @@ def profile_edit(request, username):
     if request.user != user_obj:
         raise PermissionDenied
 
+    show_password_card = False
+
     if request.method == "POST":
         if 'profile_submit' in request.POST:
             form = UserEditForm(request.POST, request.FILES, instance=user_obj)
@@ -403,6 +405,7 @@ def profile_edit(request, username):
                 user_obj.save()
                 update_session_auth_hash(request, user_obj)
                 return redirect('login_app:profile', username=user_obj.username)
+            show_password_card = True
         else:
             form = UserEditForm(instance=user_obj)
             password_form = PasswordChangeSimpleForm()
@@ -414,6 +417,7 @@ def profile_edit(request, username):
         'form': form,
         'password_form': password_form,
         'user_obj': user_obj,
+        'show_password_card': show_password_card,
     })
 
 

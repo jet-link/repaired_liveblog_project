@@ -94,7 +94,7 @@
       </div>
       {% if item.author %}
         {% if user == item.author %}
-          <small class="primary_ fw-semibold">My post</small>
+          <small class="primary_ fw-semibold">Your post</small>
         {% else %}
           <a href="{% url 'login_app:profile' item.author.username %}" class="d-flex align-items-center gap-2 flex-wrap text-decoration-none" title="{% user_status_title item.author %}">
             <span class="comment-author-name fw-semibold item-detail-author-name">

@@ -50,6 +50,11 @@
             if (next && next.classList && next.classList.contains(CLASS_ERROR_MSG)) {
                 next.remove();
             }
+            const pwWrap = field.closest('.form-floating-password');
+            if (pwWrap && pwWrap.nextElementSibling
+                && pwWrap.nextElementSibling.classList.contains('fh-password-field-error')) {
+                pwWrap.nextElementSibling.remove();
+            }
         } catch (e) { /* ignore */ }
     }
 
@@ -57,6 +62,14 @@
         clearFieldErrors(field);
         try {
             field.classList.add(CLASS_ERROR);
+            const pwWrap = field.closest('.form-floating-password');
+            if (pwWrap) {
+                const node = document.createElement('div');
+                node.className = 'text-danger small mt-1 mb-2 fh-field-error-appear fh-password-field-error';
+                node.textContent = messages.join(' ');
+                pwWrap.insertAdjacentElement('afterend', node);
+                return;
+            }
             const node = createErrorNode(messages.join(' '));
             if (field.nextSibling) field.parentNode.insertBefore(node, field.nextSibling);
             else field.parentNode.appendChild(node);
@@ -331,6 +344,17 @@
                 res.errors[el.name].push(`Minimum length is ${n} characters.`);
             }
         });
+
+        if (form.id === 'passwordForm') {
+            const p1 = findField(form, 'new_password1');
+            const p2 = findField(form, 'new_password2');
+            if (p1 && p2 && String(p1.value || '') !== '' && String(p2.value || '') !== ''
+                && p1.value !== p2.value) {
+                res.valid = false;
+                res.errors.new_password2 = res.errors.new_password2 || [];
+                res.errors.new_password2.push('Passwords do not match.');
+            }
+        }
 
         const rtf = form.getAttribute('data-require-text-or-file');
         if (rtf === '1' || rtf === 'true') {

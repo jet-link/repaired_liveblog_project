@@ -24,9 +24,9 @@
       </div>
       <div id="notificationsActions" class="d-flex align-items-center gap-2">
         {% if unread_count > 0 %}
-          <button id="notificationsReadAll" type="button" class="read-all-btn d-flex align-items-center me-2">Read all</button>
+          <button id="notificationsReadAll" type="button" class="read-all-btn d-flex align-items-center">Read all</button>
         {% endif %}
-        <button id="notificationsDelete" type="button" class="text-muted btn btn-link text-decoration-none p-0 btn-sm"><i class="fa fa-trash-o fs-5"></i></button>
+        <button id="notificationsDelete" type="button" class="notification-delete-btn"><i class="fa fa-trash-o"></i></button>
       </div>
     </div>
     {% comment %} <hr class="text-muted"> {% endcomment %}

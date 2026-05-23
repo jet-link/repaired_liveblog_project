@@ -10,6 +10,9 @@
         if (!profileCard || !passwordCard) return;
         if (showBtn && showBtn.__pwSwitcherBound) return;
 
+        var startOnPassword = passwordCard.classList.contains('is-visible')
+            && !profileCard.classList.contains('is-visible');
+
         function showPasswordCard() {
             profileCard.classList.remove('is-visible');
             profileCard.classList.add('is-hidden');
@@ -40,6 +43,10 @@
         }
         if (closeBtn) {
             closeBtn.addEventListener('click', function (e) { e.preventDefault(); hidePasswordCard(); });
+        }
+
+        if (startOnPassword) {
+            document.addEventListener('keydown', escHandler);
         }
     }
 

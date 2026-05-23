@@ -7,7 +7,7 @@
   <div class="container-main content_block">
     <main class="edit-profile-field mx-auto">
       <div class="card-switcher">
-        <div id="profileCard" class="card-panel is-visible" role="region" aria-labelledby="profileCardTitle">
+        <div id="profileCard" class="card-panel{% if show_password_card %} is-hidden{% else %} is-visible{% endif %}" role="region" aria-labelledby="profileCardTitle">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex gap-3 align-items-center">
               <h5 id="profileCardTitle" class="m-0 text-muted text-uppercase">Edit profile</h5>
@@ -178,7 +178,7 @@
         </div>
 
         {% include 'includes/instruction_modal.html' %}
-        <div id="passwordCard" class="card-panel from-top is-hidden" role="region" aria-labelledby="passwordCardTitle">
+        <div id="passwordCard" class="card-panel from-top{% if show_password_card %} is-visible{% else %} is-hidden{% endif %}" role="region" aria-labelledby="passwordCardTitle">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 id="passwordCardTitle" class="m-0 text-muted text-uppercase">Change password</h5>
             <button id="closePasswordBtn" type="button" class="cstm-btn-sm custom-secondary-btn btn-change">Back</button>
