@@ -13,6 +13,7 @@
        {% if user.is_authenticated %}data-mindset-wall="{{ mindset_wall }}"{% endif %}
        data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
        data-user-id="{% if user.is_authenticated %}{{ user.pk }}{% endif %}"
+       {% if active_tag %}data-mindset-active-tag="{{ active_tag.slug }}"{% endif %}
        data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
        data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
     {% if mindset_has_themes %}
@@ -29,28 +30,33 @@
         {% endif %}
       </div>
       {% if user.is_authenticated %}<hr class="text-muted" />{% endif %}
+
+      <div class="mindset-layout">
+        <div class="mindset-main-col">
       {% if user.is_authenticated and not active_tag %}
-        <div class="filter-segment-outer mb-3 mindset-wall-tabs-outer">
-          <div class="filter-segment-shell">
-            <div class="filter-segment-scroll filter-segment-scroll--even-mobile">
-              <nav
-                class="mindset-wall-tabs filter-segment-bar"
-                role="tablist"
-                aria-label="Mindset feed"
-              >
-                <a
-                  href="{{ mindset_main_wall_url }}"
-                  class="filter-reason-btn{% if mindset_wall == 'main' %} is-selected{% endif %}"
-                  role="tab"
-                  {% if mindset_wall == 'main' %}aria-current="page"{% endif %}
-                >Main wall</a>
-                <a
-                  href="{{ mindset_following_wall_url }}"
-                  class="filter-reason-btn{% if mindset_wall == 'following' %} is-selected{% endif %}"
-                  role="tab"
-                  {% if mindset_wall == 'following' %}aria-current="page"{% endif %}
-                >Following wall</a>
-              </nav>
+        <div class="filter-segment-sticky-wrap mindset-filter-sticky-wrap">
+          <div class="filter-segment-outer mindset-wall-tabs-outer">
+            <div class="filter-segment-shell">
+                <div class="filter-segment-scroll filter-scroll-x filter-segment-scroll--even-mobile">
+                <nav
+                  class="mindset-wall-tabs filter-segment-bar"
+                  role="tablist"
+                  aria-label="Mindset feed"
+                >
+                  <a
+                    href="{{ mindset_main_wall_url }}"
+                    class="filter-reason-btn{% if mindset_wall == 'main' %} is-selected{% endif %}"
+                    role="tab"
+                    {% if mindset_wall == 'main' %}aria-current="page"{% endif %}
+                  >Main wall</a>
+                  <a
+                    href="{{ mindset_following_wall_url }}"
+                    class="filter-reason-btn{% if mindset_wall == 'following' %} is-selected{% endif %}"
+                    role="tab"
+                    {% if mindset_wall == 'following' %}aria-current="page"{% endif %}
+                  >Following wall</a>
+                </nav>
+              </div>
             </div>
           </div>
         </div>
@@ -62,11 +68,11 @@
           <a class="mindset-hashtag" href="{% url 'mindset:theme_list' %}">#{{ active_tag.name }} ×</a>
         </div>
       {% endif %}
- 
-      <div class="mindset-layout">
+
         <section class="mindset-feed" data-mindset-feed-list>
           {% include 'mindset/_themes_feed.html' %}
         </section>
+        </div>
 
         <aside class="mindset-sidebar d-none d-lg-block">
           <div class="mindset-sidebar__sticky">

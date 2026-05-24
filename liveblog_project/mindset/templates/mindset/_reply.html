@@ -1,6 +1,6 @@
 {% load mindset_extras %}
 {% load counters %}
-<div class="mindset-reply" data-mindset-reply="{{ reply.pk }}" id="mindset-reply-{{ reply.pk }}">
+<div class="mindset-reply{% if standalone %} mindset-reply--standalone{% endif %}" data-mindset-reply="{{ reply.pk }}" id="mindset-reply-{{ reply.pk }}">
   <div class="mindset-reply__head mb-4">
     <a href="{% if user.is_authenticated %}{% url 'login_app:profile-themes' reply.author.username %}{% else %}{% url 'login_app:profile' reply.author.username %}{% endif %}" class="mindset-author-link text-decoration-none">
       {% include 'includes/user_avatar.html' with author=reply.author %}
@@ -36,17 +36,9 @@
     <a href="{{ reply.image.get_url }}"
        target="_blank"
        rel="noopener"
-       class="mindset-reply__image">
-      <img
-        src="{{ reply.image.get_medium_url }}"
-        srcset="{{ reply.image.get_srcset }}"
-        sizes="(min-width: 992px) 520px, (min-width: 576px) 86vw, 100vw"
-        alt=""
-        loading="lazy"
-        decoding="async"
-        {% if reply.image.width %}width="{{ reply.image.width }}"{% endif %}
-        {% if reply.image.height %}height="{{ reply.image.height }}"{% endif %}
-      />
+       class="mindset-reply__pinned-picture">
+      <i class="fa fa-image" aria-hidden="true"></i>
+      <span>Pinned image</span>
     </a>
   {% endif %}
   <div class="mindset-reply__actions">

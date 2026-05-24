@@ -96,7 +96,7 @@
     </div>
   </div>
 
-  {% if user.is_authenticated and user.id != theme.author_id %}
+  {% if user.is_authenticated and user.id != theme.author_id and not hide_reply_form %}
     <form class="mindset-theme__reply-form" data-mindset-reply-form data-theme-id="{{ theme.pk }}" hidden
           action="{% url 'mindset:api_theme_reply' theme.pk %}" method="post" enctype="multipart/form-data">
       {% csrf_token %}
@@ -117,9 +117,11 @@
     </form>
   {% endif %}
 
+  {% if not hide_replies %}
   <div class="mindset-theme__replies" data-mindset-replies="{{ theme.pk }}">
     {% for reply in theme.annotated_replies %}
       {% include 'mindset/_reply.html' with reply=reply %}
     {% endfor %}
   </div>
+  {% endif %}
 </article>

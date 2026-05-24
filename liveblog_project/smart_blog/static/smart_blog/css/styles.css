@@ -3238,11 +3238,11 @@ a.filter-reason-btn.topic-category-link:hover {
     top: 0;
     z-index: 95;
     /* Bootstrap py-4 */
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
+    padding-top: 1.2rem;
     margin-bottom: 0;
     /* background: var(--bg-default); */
     box-sizing: border-box;
+    margin-bottom: 1.2rem;
 }
 
 .filter-segment-sticky-wrap .filter-segment-outer {
@@ -3266,7 +3266,7 @@ a.filter-reason-btn.topic-category-link:hover {
     box-sizing: border-box;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.15);
     -webkit-backdrop-filter: blur(12px) saturate(140%);
     backdrop-filter: blur(12px) saturate(140%);
     box-shadow:
@@ -3293,7 +3293,7 @@ a.filter-reason-btn.topic-category-link:hover {
 html[data-theme="light"] .filter-segment-shell {
     /* Плоская плашка как на Topics / BraiNews: без glass и без box-shadow на белом фоне */
     background: var(--card-bg, #fff);
-    border: 1px solid var(--border-subtle, #e8e8ec);
+    border: 2px solid var(--border-subtle, #e8e8ec);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: none;
@@ -3305,7 +3305,7 @@ html[data-theme="light"] .filter-segment-shell::before {
 
 html[data-theme="dark"] .filter-segment-shell {
     background: rgba(20, 20, 20, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.08);
     /* box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.6),
         inset 0 1px 0 rgba(255, 255, 255, 0.05); */

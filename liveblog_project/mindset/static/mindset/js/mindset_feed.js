@@ -281,7 +281,7 @@
     var empty = document.createElement('div');
     empty.className = 'mindset-empty text-muted py-5';
     var p = document.createElement('p');
-    p.className = 'm-0';
+    p.className = 'm-0 text-center';
     p.textContent = msg;
     empty.appendChild(p);
     var pagination = list.querySelector(':scope > .w-100');
@@ -740,6 +740,21 @@
 
   // ---- Delete confirmation modal ------------------------------------------
 
+  /** Bootstrap Modal always calls ScrollBarHelper.hide() (body overflow:hidden),
+   *  which breaks position:sticky on the mindset sidebar and filter tabs. */
+  function releaseMindsetDeleteModalScrollLock(modalEl) {
+    if (!modalEl) return;
+    try {
+      var inst = window.bootstrap && window.bootstrap.Modal.getInstance(modalEl);
+      if (inst && inst._scrollBar && typeof inst._scrollBar.reset === 'function') {
+        inst._scrollBar.reset();
+      }
+    } catch (e) { /* ignore */ }
+    document.body.style.overflow = '';
+    document.body.style.removeProperty('padding-right');
+    document.body.style.removeProperty('padding-left');
+  }
+
   function bindDeleteModal() {
     var modal = document.getElementById('mindsetConfirmDeleteModal');
     if (!modal || modal.__mindsetBound) return;
@@ -765,6 +780,12 @@
         if (titleEl) titleEl.textContent = 'Remove reply';
         if (bodyEl) bodyEl.textContent = 'Are you sure you want to remove this reply?';
       }
+
+      releaseMindsetDeleteModalScrollLock(modal);
+    });
+
+    modal.addEventListener('shown.bs.modal', function () {
+      releaseMindsetDeleteModalScrollLock(modal);
     });
 
     if (confirmBtn) {
@@ -977,9 +998,11 @@
     }).catch(function () { /* ignore */ });
 
     // Also poll per-theme state for new replies (since_id).
+    var activeTag = (root.getAttribute('data-mindset-active-tag') || '').trim();
+    var tagQuery = activeTag ? '&tag=' + encodeURIComponent(activeTag) : '';
     ids.forEach(function (id) {
       var sinceId = maxReplyIdInTheme(id);
-      var perUrl = '/mindset/api/theme/' + id + '/state/?since_id=' + sinceId;
+      var perUrl = '/mindset/api/theme/' + id + '/state/?since_id=' + sinceId + tagQuery;
       fetchJson(perUrl).then(function (resp) {
         if (!resp.ok || !resp.data || !resp.data.ok) return;
         applyThemeState(resp.data);

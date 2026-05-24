@@ -36,7 +36,94 @@
 @media (min-width: 992px) {
   .mindset-layout {
     grid-template-columns: minmax(0, 1fr) 24rem;
+    grid-template-rows: auto auto;
+    align-items: start;
   }
+
+  /* Flatten the left column so filter and feed can sit on separate grid rows;
+     sidebar then aligns with the feed (theme cards), not the filter rail. */
+  .mindset-layout > .mindset-main-col {
+    display: contents;
+  }
+
+  .mindset-layout > .mindset-main-col > .mindset-filter-sticky-wrap,
+  .mindset-layout > .mindset-main-col > .mindset-active-tag {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mindset-layout > .mindset-main-col > .mindset-feed,
+  .mindset-layout > .mindset-main-col > .profile-mindset-swap,
+  .mindset-layout > .mindset-feed {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .mindset-layout:has(> .mindset-main-col > .mindset-filter-sticky-wrap) > .mindset-main-col > .mindset-feed,
+  .mindset-layout:has(> .mindset-main-col > .mindset-filter-sticky-wrap) > .mindset-main-col > .profile-mindset-swap,
+  .mindset-layout:has(> .mindset-main-col > .mindset-active-tag) > .mindset-main-col > .mindset-feed {
+    grid-row: 2;
+  }
+
+  .mindset-layout > .mindset-sidebar {
+    grid-column: 2;
+    grid-row: 1;
+    /* Stretch to feed row height so inner sticky has room to follow scroll. */
+    align-self: stretch;
+    min-height: 0;
+  }
+
+  .mindset-layout:has(> .mindset-main-col > .mindset-filter-sticky-wrap) > .mindset-sidebar,
+  .mindset-layout:has(> .mindset-main-col > .mindset-active-tag) > .mindset-sidebar {
+    grid-row: 2;
+  }
+}
+
+/* Left column wrapper (mobile only — desktop uses display:contents above). */
+.mindset-main-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Desktop: filter rail only as wide as the pill — not a full-width click trap. */
+@media (min-width: 992px) {
+  .mindset-page .filter-segment-sticky-wrap.mindset-filter-sticky-wrap,
+  .mindset-page .filter-segment-outer,
+  .mindset-page .mindset-wall-tabs-outer {
+    width: fit-content;
+    max-width: 100%;
+  }
+}
+
+/* Mobile / tablet: stretch filter strip to the feed column (pairs with
+   .filter-segment-scroll--even-mobile in styles.css + filter_segment_scroll.js). */
+@media (max-width: 991px) {
+  .mindset-page .filter-segment-sticky-wrap.mindset-filter-sticky-wrap,
+  .mindset-page .filter-segment-outer,
+  .mindset-page .mindset-wall-tabs-outer {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.mindset-page .mindset-active-tag {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.mindset-page .filter-segment-sticky-wrap.mindset-filter-sticky-wrap {
+  margin-bottom: 0.75rem;
+}
+
+/* Bootstrap Modal locks body scroll (overflow:hidden), which breaks sticky sidebar
+   and filter tabs. JS resets ScrollBarHelper; this keeps layout stable if inline
+   styles linger for a frame. Backdrop still dims the page like other modals. */
+body.modal-open:has(#mindsetConfirmDeleteModal.show) {
+  overflow: visible !important;
+  padding-right: 0 !important;
 }
 
 /* Feed column */
@@ -47,10 +134,8 @@
   gap: 1rem;
 }
 
-/* When the profile-mindset-swap wrapper sits as a direct grid child of
-   ``.mindset-layout`` (profile themes/replies/reposts page with sidebar),
-   it needs the same ``min-width: 0`` escape hatch so long words or wide
-   images inside the feed don't push the sidebar off the row. */
+/* When the profile-mindset-swap wrapper is a grid item (profile themes/replies/reposts),
+   min-width: 0 keeps long content from pushing the sidebar off the row. */
 .mindset-layout > .profile-mindset-swap {
   min-width: 0;
 }
@@ -59,6 +144,7 @@
   border: 1px dashed var(--border-default, #ddd);
   border-radius: 12px;
   padding: 2rem 1rem;
+  text-align: center;
 }
 
 /* Generic collapse-and-remove animation applied to any feed entry while it is
@@ -299,30 +385,37 @@
   }
 }
 
-/* Reply image — single picture, capped to keep the reply box compact. */
-.mindset-reply__image {
-  display: block;
-  margin-top: 0.5rem;
-  max-width: 100%;
-  border-radius: 10px;
-  overflow: hidden;
-  line-height: 0;
-  background: var(--bg-muted, #f1f3f5);
+/* Reply pinned picture — link to the dedicated image page (feed/detail). */
+.mindset-reply__pinned-picture {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  /* padding: 0.45rem 0.85rem; */
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-link, #273c75);
+  text-decoration: none;
+  /* border-bottom: 1px dashed currentColor; */
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.mindset-reply__image img {
-  display: block;
-  width: auto;
-  max-width: 100%;
-  max-height: 360px;
-  height: auto;
-  object-fit: cover;
+/* .mindset-reply__pinned-picture:hover {
+  color: var(--text-link-hover, #1e3060);
+  border-bottom-style: solid;
+} */
+
+.mindset-reply__pinned-picture .fa {
+  font-size: 1rem;
+  opacity: 0.8;
 }
 
-@media (max-width: 575px) {
-  .mindset-reply__image img {
-    max-height: 240px;
-  }
+html[data-theme="dark"] .mindset-reply__pinned-picture {
+  color: var(--text-link, #8cb4ff);
+}
+
+html[data-theme="dark"] .mindset-reply__pinned-picture:hover {
+  color: #a8c8ff;
 }
 
 /* Reply form attach-image control. Mirrors the small inline button style of
@@ -741,6 +834,26 @@
   border-radius: 10px;
 }
 
+.mindset-reply--standalone {
+  margin-left: 0;
+  padding: 0;
+  border-left: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.mindset-theme--reply-card .mindset-feed-reply-label {
+  margin: 0;
+}
+
+.mindset-theme--reply-card .mindset-feed-reply-label a {
+  text-decoration: none;
+}
+
+.mindset-theme--reply-card .mindset-feed-reply-label a:hover {
+  text-decoration: underline;
+}
+
 html[data-theme="dark"] .mindset-reply {
   background: rgba(255, 255, 255, 0.025);
 }
@@ -842,15 +955,25 @@ html[data-theme="dark"] .mindset-reply {
   text-decoration: underline;
 }
 
-/* Hashtag links */
-.mindset-hashtag {
+/* Hashtag links — one colour everywhere (theme body, replies, filter bar). */
+.mindset-hashtag,
+.mindset-theme__body a.mindset-hashtag,
+.mindset-reply__body a.mindset-hashtag,
+.mindset-active-tag a.mindset-hashtag {
   color: var(--bs-primary, #0d6efd);
-  /* color: var(--bs-code-color); */
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.mindset-hashtag:hover {
+.mindset-theme__body a.mindset-hashtag.primary_,
+.mindset-reply__body a.mindset-hashtag.primary_ {
+  color: var(--bs-primary, #0d6efd);
+}
+
+.mindset-hashtag:hover,
+.mindset-theme__body a.mindset-hashtag:hover,
+.mindset-reply__body a.mindset-hashtag:hover,
+.mindset-active-tag a.mindset-hashtag:hover {
   text-decoration: underline;
 }
 
@@ -991,6 +1114,17 @@ html[data-theme="dark"] .mindset-back-link__target {
 .mindset-create__editor .mindset-ckeditor,
 .mindset-create__editor textarea.mindset-ckeditor {
   width: 100%;
+}
+
+.mindset-create__actions {
+  width: 100%;
+}
+
+.mindset-create__actions .cstm-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  text-align: center;
 }
 
 /* Dark theme tweaks (most of the layout already adapts via CSS tokens) */

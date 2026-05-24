@@ -3,7 +3,9 @@
   {% include 'mindset/_theme_card.html' with theme=theme %}
 {% empty %}
   <div class="mindset-empty text-muted text-center py-5">
-    {% if user.is_authenticated and mindset_wall == 'following' %}
+    {% if active_tag %}
+      <p class="m-0">No themes or replies with this hashtag yet.</p>
+    {% elif user.is_authenticated and mindset_wall == 'following' %}
       <p class="m-0">No themes from people you follow yet.</p>
       <p class="small m-0">Follow authors from the <b class="primary_">Main Wall</b> to see their themes here.</p>
     {% else %}

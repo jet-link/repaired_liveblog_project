@@ -20,6 +20,7 @@ from django.db.models import (
     FloatField,
     OuterRef,
     Prefetch,
+    Q,
     Value,
 )
 from django.http import JsonResponse
@@ -144,8 +145,54 @@ def _theme_base_qs():
     return (
         Theme.objects.filter(is_deleted=False)
         .select_related('author', 'author__profile')
-        .prefetch_related(_theme_images_prefetch())
+        .prefetch_related('hashtags', _theme_images_prefetch())
     )
+
+
+def _body_has_hashtag(body: str, slug: str) -> bool:
+    """True if ``body`` (HTML or plain) contains ``#tag`` with this canonical slug."""
+    if not body or not slug:
+        return False
+    return any(s == slug for _, s in normalise_hashtags(extract_hashtags(body)))
+
+
+def _replies_with_hashtag_qs(theme_id: int, tag: Hashtag, user):
+    """Top-level replies under ``theme_id`` whose body precisely matches ``tag``.
+
+    Uses ``icontains`` only to narrow the SQL set, then a precise Python pass via
+    ``_body_has_hashtag`` so noise like ``#loveisresquelife2`` doesn't leak.
+    """
+    qs = (
+        Reply.objects.filter(theme_id=theme_id, parent__isnull=True, is_deleted=False)
+        .select_related('author', 'author__profile', 'image')
+    )
+    needles = {tag.slug, tag.name}
+    icontains = Q()
+    for needle in needles:
+        icontains |= Q(body__icontains=f'#{needle}')
+    qs = qs.filter(icontains).order_by('-created_at')
+    qs = _annotate_user_state(qs, user)
+    return [r for r in qs if _body_has_hashtag(r.body, tag.slug)]
+
+
+def _apply_hashtag_reply_filter(themes, tag: Hashtag, user) -> None:
+    """Replace ``annotated_replies`` with the hashtag-matching subset only."""
+    for theme in themes:
+        theme.annotated_replies = _replies_with_hashtag_qs(theme.pk, tag, user)
+
+
+def _theme_ids_with_hashtag_reply(tag: Hashtag) -> list[int]:
+    """Theme ids that have at least one top-level reply matching ``tag`` precisely."""
+    needles = {tag.slug, tag.name}
+    icontains = Q()
+    for needle in needles:
+        icontains |= Q(body__icontains=f'#{needle}')
+    candidate_replies = (
+        Reply.objects.filter(parent__isnull=True, is_deleted=False)
+        .filter(icontains)
+        .values_list('theme_id', 'body')
+    )
+    return [tid for tid, body in candidate_replies if _body_has_hashtag(body, tag.slug)]
 
 
 def _annotated_top_level_replies_prefetch(user):
@@ -345,14 +392,10 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
 
     qs = _theme_qs_for_listing(request.user)
     if tag is not None:
-        # Filter by slug rather than the instance: an in-memory Hashtag with
-        # no PK (auto-rendered for tags only used inside replies) would make
-        # ``hashtags=tag`` an "= NULL" condition and silently match nothing
-        # only if the slug happens to be unsaved; using the slug guarantees
-        # correct, predictable filtering for both saved and unsaved tags.
-        qs = qs.filter(hashtags__slug=tag.slug)
+        reply_theme_ids = _theme_ids_with_hashtag_reply(tag)
+        qs = qs.filter(Q(hashtags__slug=tag.slug) | Q(pk__in=reply_theme_ids)).distinct()
 
-    if request.user.is_authenticated and wall_mode == 'following':
+    if request.user.is_authenticated and wall_mode == 'following' and tag is None:
         followee_ids = list(
             MindsetFollow.objects.filter(follower=request.user).values_list(
                 'followee_id', flat=True
@@ -370,6 +413,9 @@ def theme_list(request, *, active_tag: Hashtag | None = None):
     paginator = Paginator(qs, MINDSET_LIST_PAGE_SIZE)
     page_number = request.GET.get('page') or 1
     page_obj = paginator.get_page(page_number)
+
+    if tag is not None:
+        _apply_hashtag_reply_filter(page_obj.object_list, tag, request.user)
 
     page_range = paginator.get_elided_page_range(
         number=page_obj.number,
@@ -527,8 +573,14 @@ def api_theme_state(request, pk):
     annotated = _annotate_user_state(_theme_base_qs().filter(pk=pk), request.user).first() or theme
     payload = _theme_state_payload(annotated, request)
 
+    tag_slug = (request.GET.get('tag') or '').strip().lower() or None
+    tag = Hashtag.objects.filter(slug=tag_slug).first() if tag_slug else None
+    if tag is None and tag_slug:
+        tag = Hashtag(name=tag_slug, slug=tag_slug)
+
     since_id = request.GET.get('since_id')
     new_replies_html: list[str] = []
+    new_ids: list[int] = []
     if since_id and since_id.isdigit():
         new_qs = (
             _annotate_user_state(
@@ -538,8 +590,9 @@ def api_theme_state(request, pk):
                 request.user,
             )[:50]
         )
-        new_ids: list[int] = []
         for reply in new_qs:
+            if tag is not None and not _body_has_hashtag(reply.body, tag.slug):
+                continue
             new_replies_html.append(
                 render_to_string(
                     'mindset/_reply.html',

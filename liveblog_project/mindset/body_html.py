@@ -49,6 +49,29 @@ def _linkify_hashtags(html: str) -> str:
     return ''.join(parts)
 
 
+# Links to mindset tag pages that were saved from CKEditor (or got ``primary_`` from
+# the comment linkify pass) must use ``mindset-hashtag`` so feed colours stay uniform.
+_MINDSET_TAG_ANCHOR_RE = re.compile(
+    r'<a\b[^>]*?\shref\s*=\s*(["\'])(?P<url>[^"\']*?/mindset/tag/[^"\']*)\1[^>]*>(?P<text>.*?)</a>',
+    re.I | re.DOTALL,
+)
+
+
+def _normalize_mindset_hashtag_anchors(html: str) -> str:
+    if not html or '/mindset/tag/' not in html:
+        return html
+
+    def fix(m: re.Match[str]) -> str:
+        text = m.group('text')
+        plain = re.sub(r'<[^>]+>', '', text).strip()
+        if not plain.startswith('#'):
+            return m.group(0)
+        url = html_module.unescape(m.group('url'))
+        return f'<a class="mindset-hashtag" href="{escape(url)}">{text}</a>'
+
+    return _MINDSET_TAG_ANCHOR_RE.sub(fix, html)
+
+
 _YT_ID_RE = re.compile(r'^[A-Za-z0-9_-]{11}$')
 
 # Matches a single anchor <a ... href="URL" ...>...</a>. URL is a quoted attr value.
@@ -137,6 +160,7 @@ def render_mindset_body(raw: str) -> str:
     """Sanitise + linkify URLs + linkify hashtags + embed YouTube. Safe HTML."""
     html = sanitize_and_linkify_comment_html(raw or '')
     html = _linkify_hashtags(html)
+    html = _normalize_mindset_hashtag_anchors(html)
     html = _embed_youtube_anchors(html)
     return html
 
