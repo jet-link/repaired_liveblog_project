@@ -1,0 +1,28 @@
+<li class="brainews-sidebar-item" data-brainews-sidebar-author="{{ author.id }}">
+  <a href="{{ author.profile_url }}" class="brainews-sidebar-author-link text-decoration-none" title="{{ author.username_title|default:author.username }}">
+    <div class="brainews-sidebar-author-row">
+      <div class="little-avatar">
+        <img src="{{ author.avatar_url }}" alt="{{ author.username_title|default:author.username }}" class="user-avatar{% if author.is_active %} clickable-avatar{% endif %}" width="35" height="35" loading="lazy" decoding="async"{% if author.is_active %} data-username="{{ author.username }}" onerror="this.onerror=null;this.classList.add('avatar-load-failed');"{% endif %} />
+      </div>
+      <span class="brainews-sidebar-author-name fw-semibold">{{ author.username_display }}</span>
+    </div>
+  </a>
+  <div class="brainews-sidebar-item__counters brainews-sidebar-counters" aria-label="Author stats">
+    <span class="brainews-sidebar-counter" data-counter="posts">
+      <i class="fa fa-file-text-o" aria-hidden="true"></i>
+      <span class="brainews-sidebar-counter__val">{{ author.post_count_human|default:author.post_count }}</span>
+    </span>
+    <span class="brainews-sidebar-counter" data-counter="avg_likes">
+      <i class="fa fa-heart-o" aria-hidden="true"></i>
+      <span class="brainews-sidebar-counter__val">{{ author.avg_likes_human|default:author.avg_likes }}</span>
+    </span>
+    <span class="brainews-sidebar-counter" data-counter="avg_views">
+      <i class="fa fa-eye" aria-hidden="true"></i>
+      <span class="brainews-sidebar-counter__val">{{ author.avg_views_human|default:author.avg_views }}</span>
+    </span>
+    <span class="brainews-sidebar-counter" data-counter="avg_comments">
+      <i class="fa fa-comment" aria-hidden="true"></i>
+      <span class="brainews-sidebar-counter__val">{{ author.avg_comments_human|default:author.avg_comments }}</span>
+    </span>
+  </div>
+</li>

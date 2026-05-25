@@ -1,0 +1,166 @@
+/* BraiNews home: two-column layout + sticky popular-authors sidebar */
+
+.brainews-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.1rem;
+}
+
+@media (min-width: 992px) {
+  .brainews-layout {
+    grid-template-columns: minmax(0, 1fr) 24rem;
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+
+  .brainews-layout > .brainews-main-col {
+    display: contents;
+  }
+
+  .brainews-layout > .brainews-main-col > .filter-segment-sticky-wrap {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .brainews-layout > .brainews-main-col > .brainews-feed {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .brainews-layout:has(> .brainews-main-col > .filter-segment-sticky-wrap) > .brainews-main-col > .brainews-feed {
+    grid-row: 2;
+  }
+
+  .brainews-layout > .brainews-sidebar {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+    min-height: 0;
+  }
+
+  .brainews-layout:has(> .brainews-main-col > .filter-segment-sticky-wrap) > .brainews-sidebar {
+    grid-row: 2;
+  }
+}
+
+.brainews-main-col {
+  min-width: 0;
+}
+
+.brainews-sidebar {
+  min-width: 0;
+}
+
+.brainews-sidebar__sticky {
+  position: sticky;
+  top: 1rem;
+  z-index: 20;
+}
+
+.brainews-sidebar-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.brainews-sidebar-card {
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 14px;
+  padding: 1rem 1rem 0.75rem;
+  background: var(--card-bg, #fff);
+}
+
+.brainews-sidebar-card__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-default, #212529);
+}
+
+.brainews-sidebar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.brainews-sidebar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-default, #e5e7eb);
+}
+
+.brainews-sidebar-item:first-child {
+  padding-top: 0.15rem;
+}
+
+.brainews-sidebar-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0.15rem;
+}
+
+.brainews-sidebar-author-link {
+  color: inherit;
+  width: 100%;
+  min-width: 0;
+}
+
+.brainews-sidebar-author-link:hover .brainews-sidebar-author-name {
+  text-decoration: underline;
+}
+
+.brainews-sidebar-author-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.brainews-sidebar-author-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  color: var(--text-default, #212529);
+}
+
+.brainews-sidebar-item__counters,
+.brainews-sidebar-counters {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--text-muted, #6c757d);
+  font-size: 0.82rem;
+  margin-top: 0.05rem;
+}
+
+.brainews-sidebar-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.brainews-sidebar-counter i {
+  font-size: 0.95em;
+  opacity: 0.85;
+}
+
+html[data-theme="dark"] .brainews-sidebar-card__title {
+  color: #58a6ff;
+}
+
+html[data-theme="dark"] .brainews-sidebar-author-name {
+  color: var(--text-default, #e6edf3);
+}
+
+html[data-theme="dark"] .brainews-sidebar-item {
+  border-bottom-color: var(--border-default, #30363d);
+}

@@ -99,8 +99,13 @@
             </div>
           {% endif %}
         </div>
+        {% if card_width == 'half' %}
+        <p class="card-text flex-grow-0 text-muted excerpt-html excerpt-html--feed-sm d-md-none mb-3">{{ item.list_excerpt|truncatechars:280 }}</p>
+        <p class="card-text flex-grow-0 text-muted excerpt-html excerpt-html--feed-lg excerpt-html--feed-half d-none d-md-block mb-3">{{ item.list_excerpt|truncatechars:200 }}</p>
+        {% else %}
         <p class="card-text flex-grow-1 text-muted excerpt-html excerpt-html--feed-sm d-md-none mb-3">{{ item.list_excerpt|truncatechars:450 }}</p>
         <p class="card-text flex-grow-1 text-muted excerpt-html excerpt-html--feed-lg d-none d-md-block mb-3">{{ item.list_excerpt|truncatechars:750 }}</p>
+        {% endif %}
         <div class="d-flex pt-2 feed-card-bottom-row">
           <div class="d-flex align-items-center VLB">
             <div class="item-stats item-stats--feed d-inline-flex align-items-center flex-wrap">

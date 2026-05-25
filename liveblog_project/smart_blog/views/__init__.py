@@ -7,6 +7,7 @@ from smart_blog.views._helpers import (  # noqa: F401
 )
 
 from smart_blog.views.listing_views import (  # noqa: F401
+    api_popular_authors,
     items_list,
     items_filtered,
     tag_list,

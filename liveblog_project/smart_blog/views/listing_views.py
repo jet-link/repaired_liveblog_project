@@ -2,8 +2,9 @@
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef, Subquery
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponsePermanentRedirect
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.views.decorators.http import require_GET
 from django.template.loader import render_to_string
 from django.urls import reverse
 from urllib.parse import urlencode
@@ -13,6 +14,7 @@ from smart_blog.public_listing_cache import get_anon_brainews_cache_version
 from smart_blog.search_utils import build_search_filter
 from smart_blog.utils import breadcrumb, build_breadcrumbs
 from smart_blog.feed_queryset import feed_list_optimizations
+from smart_blog.services.popular_authors import get_popular_authors_payload
 from smart_blog.views._helpers import (
     annotate_feed_page_items,
     annotate_user_bookmarked,
@@ -61,6 +63,7 @@ def items_list(request):
         "page_obj": page_obj,
         "page_range": page_range,
         "items": page_obj.object_list,
+        "popular_authors": get_popular_authors_payload(),
         "breadcrumbs": [],
     })
 
@@ -72,6 +75,11 @@ def items_list(request):
         )
 
     return response
+
+
+@require_GET
+def api_popular_authors(request):
+    return JsonResponse({"ok": True, "authors": get_popular_authors_payload()})
 
 
 def items_filtered(request):

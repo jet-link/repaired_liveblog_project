@@ -1,0 +1,16 @@
+<div class="brainews-sidebar-stack" data-brainews-sidebar>
+  <div class="brainews-sidebar-card">
+    <h5 class="brainews-sidebar-card__title m-0">
+      <i class="fa fa-user me-2" aria-hidden="true"></i>
+      Most popular authors
+    </h5>
+    <hr class="text-muted" />
+    <ul class="brainews-sidebar-list" data-brainews-sidebar-list="authors">
+      {% for author in popular_authors %}
+        {% include 'includes/_popular_author_sidebar_item.html' with author=author %}
+      {% empty %}
+        <li class="text-muted small">No authors yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
