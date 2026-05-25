@@ -112,6 +112,8 @@
 
 /* Edit profile: visibility toggles */
 .profile-info-edit-table {
+    --profile-edit-input-h: calc(3.5rem + 2px);
+    --profile-edit-toggle-h: 2.25rem;
     border-collapse: separate;
     border-spacing: 0 0.5rem;
     margin-bottom: 0.25rem;
@@ -119,17 +121,19 @@
 
 .profile-info-edit-table .profile-toggle-cell {
     width: 2.75rem;
-    vertical-align: middle;
+    vertical-align: top;
+    /* Keep the eye aligned with the input, not the whole row (errors grow the row). */
+    padding-top: calc((var(--profile-edit-input-h) - var(--profile-edit-toggle-h)) / 2);
     padding-right: 0.35rem;
     white-space: nowrap;
 }
 
 .profile-info-edit-table .profile-toggle-cell .profile-field-visibility-btn {
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .profile-info-edit-table td:not(.profile-toggle-cell) {
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .profile-info-edit-table .profile-edit-field-errors {
