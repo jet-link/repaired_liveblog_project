@@ -2,7 +2,8 @@
 {% load counters %}
 {% load user_status %}
 {% for item in items %}
-  <div class="item-card search-item">
-    {% include 'includes/item_feed_card.html' %}
+  {% cycle 'wide' 'half' 'half' as card_width silent %}
+  <div class="item-card search-item item-card--{{ card_width }}">
+    {% include 'includes/item_feed_card.html' with card_width=card_width %}
   </div>
 {% endfor %}

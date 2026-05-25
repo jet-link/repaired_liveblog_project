@@ -3,23 +3,38 @@
 {% block title %}
   brainstorm.news
 {% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'smart_blog/css/brainews_sidebar.css' %}" />
+{% endblock %}
 {% block content %}
-  <div class="container-main content_block" data-brainews-listing data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}" data-search-history-url="{% url 'smart_blog:api_search_history_list' %}" data-search-history-clicked-pattern="{% url 'smart_blog:api_search_history_clicked' pk=999999 %}" data-search-history-clear-url="{% url 'smart_blog:api_search_history_clear' %}" data-search-history-delete-pattern="{% url 'smart_blog:api_search_history_delete' pk=999999 %}">
+  <div class="container-main content_block" data-brainews-listing data-brainews-sidebar-url="{% url 'smart_blog:api_popular_authors' %}" data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}" data-search-history-url="{% url 'smart_blog:api_search_history_list' %}" data-search-history-clicked-pattern="{% url 'smart_blog:api_search_history_clicked' pk=999999 %}" data-search-history-clear-url="{% url 'smart_blog:api_search_history_clear' %}" data-search-history-delete-pattern="{% url 'smart_blog:api_search_history_delete' pk=999999 %}">
     {% if page_obj.paginator.count %}
     <div class="listing-filter-sticky-scope">
       <div class="d-flex align-items-center justify-content-between mb-4">
         <h4 id="brainewsListingTitle" class="text-muted m-0">brainstorm.news</h4>
       </div>
-      {% if user.is_authenticated %}
-      <div class="filter-segment-sticky-wrap">
-        {% include 'includes/filter_block.html' %}
-      </div>
-      {% endif %}
-      <div id="filterCardsWrapper" class="brainews-cards-wrapper">
-        {% include 'includes/all_cards.html' with listing_source='items_list' listing_source_url=request.get_full_path %}
-      </div>
-      <div id="itemsListPagination" class="brainews-pagination filter-pagination-extra">
-        {% include 'includes/pagination.html' %}
+      <div class="brainews-layout">
+        <div class="brainews-main-col">
+          {% if user.is_authenticated %}
+          <div class="filter-segment-sticky-wrap">
+            {% include 'includes/filter_block.html' %}
+          </div>
+          {% endif %}
+          <div class="brainews-feed">
+            <div id="filterCardsWrapper" class="brainews-cards-wrapper">
+              {% include 'includes/all_cards.html' with listing_source='items_list' listing_source_url=request.get_full_path %}
+            </div>
+            <div id="itemsListPagination" class="brainews-pagination filter-pagination-extra">
+              {% include 'includes/pagination.html' %}
+            </div>
+          </div>
+        </div>
+
+        <aside class="brainews-sidebar d-none d-lg-block">
+          <div class="brainews-sidebar__sticky">
+            {% include 'includes/_popular_authors_sidebar.html' with popular_authors=popular_authors %}
+          </div>
+        </aside>
       </div>
     </div>
     {% else %}
@@ -30,5 +45,6 @@
 {% block extra_js %}
   {% if page_obj.paginator.count %}
   <script defer src="{% static 'smart_blog/js/brainews_filter.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/brainews_sidebar.js' %}"></script>
   {% endif %}
 {% endblock %}

@@ -116,6 +116,7 @@ blog_urlpatterns = [
 urlpatterns = [
     path("", views.items_list, name="items_list"),
     path("filter/", views.items_filtered, name="items_filtered"),
+    path("api/popular-authors/", views.api_popular_authors, name="api_popular_authors"),
     # Legacy brainews paths kept as 301 redirects (old links / external traffic).
     path(
         "brainews/",

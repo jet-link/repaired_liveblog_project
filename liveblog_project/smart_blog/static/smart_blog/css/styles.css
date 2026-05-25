@@ -2031,12 +2031,25 @@ html[data-theme="dark"] .feed-cards-masonry .item_block.trending-card {
     }
 
     .feed-cards-masonry > .item-card:nth-child(3n+2) .excerpt-html--feed-lg,
-    .feed-cards-masonry > .item-card:nth-child(3n+3) .excerpt-html--feed-lg {
-        -webkit-line-clamp: 16;
+    .feed-cards-masonry > .item-card:nth-child(3n+3) .excerpt-html--feed-lg,
+    .feed-cards-masonry .item-card--half .excerpt-html--feed-lg {
+        -webkit-line-clamp: 5;
+        line-clamp: 5;
+        flex-grow: 0 !important;
+    }
+
+    .feed-cards-masonry > .item-card:nth-child(3n+2) .excerpt-html--feed-sm,
+    .feed-cards-masonry > .item-card:nth-child(3n+3) .excerpt-html--feed-sm,
+    .feed-cards-masonry .item-card--half .excerpt-html--feed-sm {
+        -webkit-line-clamp: 8;
+        line-clamp: 8;
+        flex-grow: 0 !important;
     }
 
     .feed-cards-masonry > .item-card:last-child:nth-child(3n+2) .excerpt-html--feed-lg {
         -webkit-line-clamp: 24;
+        line-clamp: 24;
+        flex-grow: 1 !important;
     }
 }
 
