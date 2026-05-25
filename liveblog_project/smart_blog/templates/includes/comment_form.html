@@ -7,9 +7,9 @@
       </div>
     </div>
   {% else %}
-    <div class="{% if comments_page %}pt-2{% elif comment_form_expand %}pt-0{% else %}pt-4{% endif %}">
+    <div class="comment-form-header {% if comments_page %}pt-2{% elif comment_form_expand %}pt-0{% else %}pt-4{% endif %}">
       {% if comment_form_expand %}
-        <h5 class="text-muted m-0 mb-3">Leave comment</h5>
+        {% comment %} <h5 class="text-muted m-0 mb-3">Leave comment</h5> {% endcomment %}
         <!-- <small class="text-muted d-block mb-2" title="Max 1500 characters.">Max 1500 characters (line breaks not counted).</small> -->
       {% else %}
         <div class="d-inline-flex gap-2 align-items-center">

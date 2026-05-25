@@ -244,11 +244,7 @@
       <div id="likedUsersCurrent"
         data-username="{{ user.username }}"
         data-profile-url="{% url 'login_app:profile' user.username %}"
-        data-avatar="{% if user.profile.avatar_url or user.profile.avatar_file %}
-          {{ user.profile.get_avatar }}
-        {% else %}
-          {% static 'img/no_avatar.svg' %}
-        {% endif %}"
+        data-avatar="{% if user.profile.avatar_url or user.profile.avatar_file %}{{ user.profile.get_avatar }}{% else %}{% static 'img/no_avatar.svg' %}{% endif %}"
         class="hidden"></div>
     {% endif %}
 
@@ -297,6 +293,7 @@
   {% include 'includes/share_modal.html' %}
   {% include 'includes/report_modal.html' %}
   {% include 'includes/liked_users_modal.html' %}
+  {% include 'includes/mobile_comment_dock.html' %}
   {% if item.body_pin_original %}
     <div class="modal fade item-pinned-file-modal" id="itemPinnedFileModal" tabindex="-1" aria-hidden="true" aria-label="{% trans 'Document preview' %}" data-bs-keyboard="true">
       <div class="modal-dialog modal-fullscreen">
@@ -359,6 +356,7 @@
   {% endif %}
   <script defer src="{% static 'smart_blog/js/comment_restore_ui.js' %}"></script>
   <script defer src="{% static 'smart_blog/js/comment_operate.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/mobile_comment_dock.js' %}"></script>
   <script defer src="{% static 'smart_blog/js/liked_users_overlay.js' %}"></script>
   <script defer src="{% static 'smart_blog/js/report_modal.js' %}"></script>
   <script>

@@ -1,0 +1,754 @@
+// static/js/mobile_comment_dock.js
+//
+// Mobile-only YouTube-style fixed-bottom comment composer.
+// Renders only for authenticated users (template gating). Handles three modes:
+//   - "comment": top-level comment (default)
+//   - "reply":   reply to a specific comment (X button cancels back to comment)
+//   - "edit":    edit one of the current user's own comments
+//
+// Send button (paper-plane) is enabled ONLY when the textarea has non-blank text.
+// When the per-user/per-item add-comment cooldown is active, the textarea itself
+// shows "Please wait Ns" instead of disabling the dedicated cooldown button.
+(function () {
+  'use strict';
+
+  const dock = document.getElementById('mobileCommentDock');
+  if (!dock) return;
+
+  document.body.classList.add('has-mobile-comment-dock');
+  dock.removeAttribute('hidden');
+
+  const form = dock.querySelector('.mobile-comment-dock__form');
+  const textarea = dock.querySelector('.mobile-comment-dock__textarea');
+  const sendBtn = dock.querySelector('.mobile-comment-dock__send');
+  const closeBtn = dock.querySelector('.mobile-comment-dock__close');
+
+  const itemId = dock.dataset.itemId;
+  const userId = dock.dataset.userId;
+  const addUrl = dock.dataset.addUrl;
+  const trustStatusUrl = dock.dataset.trustStatusUrl;
+
+  const CSRF =
+    form.querySelector('input[name="csrfmiddlewaretoken"]')?.value ||
+    document.cookie.split('; ').find(c => c.startsWith('csrftoken='))?.split('=')[1] ||
+    '';
+
+  /* ===============================================
+     State
+  =============================================== */
+  // mode: 'comment' | 'reply' | 'edit'
+  let mode = 'comment';
+  let replyContext = null; // { parentId, mentionId, replyUrl, threadUrl }
+  let editContext = null;  // { commentNode, commentId, editUrl, mention, mentionId }
+  let cooldownTimer = null;
+
+  /* ===============================================
+     Helpers
+  =============================================== */
+  function isMobile() {
+    return window.matchMedia('(max-width: 767.98px)').matches;
+  }
+
+  function getCommentCooldown() {
+    if (typeof window.getCommentCooldownRemaining === 'function') {
+      return window.getCommentCooldownRemaining(itemId, userId);
+    }
+    return 0;
+  }
+
+  function setSendEnabled() {
+    if (!sendBtn) return;
+    if (textarea.dataset.cooldownActive === '1') {
+      sendBtn.disabled = true;
+      return;
+    }
+    const hasText = textarea.value.trim().length > 0;
+    sendBtn.disabled = !hasText;
+  }
+
+  /* Auto-grow up to 10 rows; after that CSS max-height kicks in and the
+     textarea scrolls internally. We set height to `auto` first so we read
+     the natural scrollHeight, then let CSS max-height clamp the visible
+     box if needed. No-op while hidden (desktop layout) — scrollHeight is
+     0 there and we don't want to collapse the box. */
+  function autoGrow() {
+    if (!textarea) return;
+    if (textarea.offsetParent === null) return;
+    textarea.style.height = 'auto';
+    const h = textarea.scrollHeight;
+    if (h > 0) textarea.style.height = h + 'px';
+  }
+
+  /* --- Bi-directional sync with the desktop main comment textarea ---
+     When the viewport flips between mobile and desktop, the user expects
+     to see the same draft text in both composers. Only sync in `comment`
+     mode and not during cooldown (we don't want to leak "Please wait Ns"
+     into the desktop form). */
+  function getDesktopTextarea() {
+    return document.querySelector('#commentForm textarea[name="text"]');
+  }
+
+  let syncingFromDesktop = false;
+  let syncingFromDock = false;
+
+  function syncDockToDesktop() {
+    if (mode !== 'comment') return;
+    if (textarea.dataset.cooldownActive === '1') return;
+    const main = getDesktopTextarea();
+    if (!main) return;
+    if (main.value === textarea.value) return;
+    syncingFromDock = true;
+    main.value = textarea.value;
+    try {
+      main.dispatchEvent(new Event('input', { bubbles: true }));
+    } catch (e) { /* ignore */ }
+    syncingFromDock = false;
+  }
+
+  function syncDesktopToDock() {
+    if (mode !== 'comment') return;
+    if (textarea.dataset.cooldownActive === '1') return;
+    const main = getDesktopTextarea();
+    if (!main) return;
+    if (main.value === textarea.value) return;
+    syncingFromDesktop = true;
+    textarea.value = main.value;
+    autoGrow();
+    setSendEnabled();
+    syncingFromDesktop = false;
+  }
+
+  function attachDesktopSync() {
+    const main = getDesktopTextarea();
+    if (!main || main.__mobileDockSyncBound) return;
+    main.__mobileDockSyncBound = true;
+    main.addEventListener('input', () => {
+      if (syncingFromDock) return;
+      syncDesktopToDock();
+    });
+  }
+
+  function showError(message) {
+    if (!message) {
+      const existing = dock.querySelector('.mobile-comment-dock__error');
+      if (existing) existing.remove();
+      return;
+    }
+    let bucket = dock.querySelector('.mobile-comment-dock__error');
+    if (!bucket) {
+      bucket = document.createElement('div');
+      bucket.className = 'mobile-comment-dock__error';
+      dock.appendChild(bucket);
+    }
+    bucket.textContent = message;
+    bucket.removeAttribute('hidden');
+    clearTimeout(showError.__timer);
+    showError.__timer = setTimeout(() => {
+      bucket?.remove();
+    }, 4500);
+  }
+
+  /* ===============================================
+     Cooldown UI inside textarea
+  =============================================== */
+  function applyCooldownToTextarea() {
+    if (mode !== 'comment') return;
+    const remaining = getCommentCooldown();
+    if (remaining > 0) {
+      if (textarea.dataset.cooldownActive !== '1') {
+        textarea.dataset.cooldownActive = '1';
+        textarea.dataset.cooldownPrevValue = textarea.value || '';
+        textarea.classList.add('is-cooldown');
+        textarea.readOnly = true;
+      }
+      textarea.value = `Please wait ${remaining} seconds`;
+      autoGrow();
+      setSendEnabled();
+      if (!cooldownTimer) {
+        cooldownTimer = setInterval(applyCooldownToTextarea, 1000);
+      }
+      return;
+    }
+    // Cooldown expired
+    if (cooldownTimer) {
+      clearInterval(cooldownTimer);
+      cooldownTimer = null;
+    }
+    if (textarea.dataset.cooldownActive === '1') {
+      delete textarea.dataset.cooldownActive;
+      textarea.classList.remove('is-cooldown');
+      textarea.readOnly = false;
+      textarea.value = textarea.dataset.cooldownPrevValue || '';
+      delete textarea.dataset.cooldownPrevValue;
+      autoGrow();
+      // When cooldown ends we may have a stale draft — push to desktop too
+      syncDockToDesktop();
+    }
+    setSendEnabled();
+  }
+
+  function ensureCooldownPolling() {
+    if (mode !== 'comment') {
+      if (cooldownTimer) {
+        clearInterval(cooldownTimer);
+        cooldownTimer = null;
+      }
+      return;
+    }
+    applyCooldownToTextarea();
+  }
+
+  /* ===============================================
+     Mode switching
+  =============================================== */
+  function resetTextarea() {
+    if (textarea.dataset.cooldownActive === '1') {
+      // Don't clobber cooldown content
+      return;
+    }
+    textarea.value = '';
+    textarea.scrollTop = 0;
+    autoGrow();
+  }
+
+  function setMode(nextMode, opts) {
+    opts = opts || {};
+    mode = nextMode;
+    dock.dataset.mode = nextMode;
+    showError('');
+
+    if (nextMode === 'comment') {
+      replyContext = null;
+      editContext = null;
+      closeBtn.setAttribute('hidden', '');
+      textarea.placeholder = 'Comment…';
+      document
+        .querySelectorAll('.comment-active')
+        .forEach(el => el.classList.remove('comment-active'));
+      if (!opts.keepText) resetTextarea();
+      // Pull the current desktop draft so user sees the same text when
+      // returning to comment mode from reply/edit or from desktop view.
+      syncDesktopToDock();
+      ensureCooldownPolling();
+      setSendEnabled();
+      autoGrow();
+      return;
+    }
+
+    closeBtn.removeAttribute('hidden');
+
+    if (nextMode === 'reply') {
+      // Suspend cooldown UI; replies have a different (per-comment) cooldown
+      if (textarea.dataset.cooldownActive === '1') {
+        delete textarea.dataset.cooldownActive;
+        textarea.classList.remove('is-cooldown');
+        textarea.readOnly = false;
+        textarea.value = '';
+        delete textarea.dataset.cooldownPrevValue;
+      }
+      textarea.placeholder = 'Write a reply…';
+      if (!opts.keepText) {
+        textarea.value = '';
+      }
+    } else if (nextMode === 'edit') {
+      if (textarea.dataset.cooldownActive === '1') {
+        delete textarea.dataset.cooldownActive;
+        textarea.classList.remove('is-cooldown');
+        textarea.readOnly = false;
+        delete textarea.dataset.cooldownPrevValue;
+      }
+      textarea.placeholder = 'Edit your comment…';
+    }
+
+    setSendEnabled();
+  }
+
+  /* ===============================================
+     Public openers (called from comment_operate.js)
+   =============================================== */
+  window.openMobileDockReply = function (commentId, mentionId) {
+    if (!isMobile()) return;
+    const parentComment = document.getElementById('comment-' + commentId);
+    if (!parentComment) return;
+
+    if (window.getReplyCooldownRemaining?.(commentId) > 0) return;
+
+    const replyContainer = parentComment.closest?.('[data-reply-url]') || parentComment;
+    const replyUrl = replyContainer?.dataset?.replyUrl;
+    const threadUrl = parentComment?.dataset?.threadUrl;
+
+    replyContext = {
+      parentId: String(commentId),
+      mentionId: mentionId ? String(mentionId) : '',
+      replyUrl,
+      threadUrl,
+    };
+
+    setMode('reply');
+
+    document
+      .querySelectorAll('.comment-active')
+      .forEach(el => el.classList.remove('comment-active'));
+    parentComment.classList.add('comment-active');
+
+    requestAnimationFrame(() => {
+      try {
+        textarea.focus({ preventScroll: false });
+      } catch (e) {
+        textarea.focus();
+      }
+    });
+  };
+
+  window.openMobileDockEdit = function (commentNode, commentId, editUrl) {
+    if (!isMobile()) return;
+    if (!commentNode || !editUrl) return;
+
+    const payload = window.extractCommentEditPayload
+      ? window.extractCommentEditPayload(commentNode)
+      : { text: '', mention: '', mentionId: '' };
+
+    editContext = {
+      commentNode,
+      commentId: String(commentId),
+      editUrl,
+      mention: payload.mention || '',
+      mentionId: payload.mentionId || '',
+    };
+
+    setMode('edit', { keepText: true });
+    textarea.value = payload.text || '';
+    autoGrow();
+    setSendEnabled();
+
+    requestAnimationFrame(() => {
+      try {
+        textarea.focus({ preventScroll: false });
+        const len = textarea.value.length;
+        textarea.setSelectionRange(len, len);
+      } catch (e) { /* ignore */ }
+    });
+  };
+
+  /* ===============================================
+     Event wiring
+  =============================================== */
+  const COMMENT_MAX_CHARS = 1500;
+  function exceedsLimit() {
+    return String(textarea.value || '').replace(/\r?\n/g, '').length > COMMENT_MAX_CHARS;
+  }
+
+  textarea.addEventListener('input', () => {
+    if (textarea.dataset.cooldownActive === '1') return;
+    autoGrow();
+    setSendEnabled();
+    if (exceedsLimit()) {
+      showError(`Maximum ${COMMENT_MAX_CHARS} characters (line breaks are not counted).`);
+      sendBtn.disabled = true;
+    }
+    if (!syncingFromDesktop) syncDockToDesktop();
+  });
+
+  closeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    setMode('comment');
+    try {
+      textarea.blur();
+    } catch (err) { /* ignore */ }
+  });
+
+  /* ===============================================
+     Submit
+  =============================================== */
+  async function checkShadowBan() {
+    if (!trustStatusUrl) return false;
+    try {
+      const resp = await fetch(trustStatusUrl, {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+      });
+      if (!resp.ok) return false;
+      const data = await resp.json().catch(() => null);
+      return !!(data && data.shadow_banned);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function safeJson(resp) {
+    return resp.json().catch(() => null);
+  }
+
+  async function submitComment() {
+    if (textarea.dataset.cooldownActive === '1') return;
+    if (getCommentCooldown() > 0) {
+      applyCooldownToTextarea();
+      return;
+    }
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    sendBtn.disabled = true;
+
+    const fd = new FormData();
+    fd.append('csrfmiddlewaretoken', CSRF);
+    fd.append('text', text);
+
+    try {
+      const resp = await fetch(addUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'X-CSRFToken': CSRF,
+          'X-Requested-With': 'XMLHttpRequest',
+          Accept: 'application/json',
+        },
+        body: fd,
+      });
+
+      const data = await safeJson(resp);
+      if (resp.ok && data?.success) {
+        const list =
+          document.getElementById('commentsListPreview') ||
+          document.getElementById('commentsList');
+        if (list && data.comment_html) {
+          list.insertAdjacentHTML('afterbegin', data.comment_html);
+          // detail preview trimming: replicate desktop behaviour
+          const preview = document.getElementById('commentsListPreview');
+          if (preview && list === preview) {
+            const max = parseInt(preview.dataset.previewLimit || '10', 10) || 10;
+            const roots = preview.querySelectorAll(':scope > .comment-block');
+            for (let i = max; i < roots.length; i++) roots[i].remove();
+          }
+          const first = list.firstElementChild;
+          if (first) {
+            window.initCommentToggles?.(first);
+            window.initCommentLikes?.();
+          }
+        }
+        const count = data.comments_count;
+        applyCounterUpdates(count);
+
+        if (typeof window.startCommentCooldown === 'function') {
+          window.startCommentCooldown(
+            itemId,
+            null,
+            window.COMMENT_COOLDOWN_SEC || 30,
+            userId
+          );
+        }
+        textarea.value = '';
+        textarea.scrollTop = 0;
+        autoGrow();
+        // Clear desktop textarea too (and trigger its own input handlers so
+        // any clear-button / char-counter UI updates).
+        const main = getDesktopTextarea();
+        if (main && main.value) {
+          syncingFromDock = true;
+          main.value = '';
+          try {
+            main.dispatchEvent(new Event('input', { bubbles: true }));
+          } catch (e) { /* ignore */ }
+          main.style.removeProperty('height');
+          syncingFromDock = false;
+        }
+        applyCooldownToTextarea();
+        setSendEnabled();
+        return;
+      }
+
+      if (resp.status === 429) {
+        const seconds = window.parseCommentCooldownSeconds
+          ? window.parseCommentCooldownSeconds(data?.error)
+          : null;
+        if (seconds && typeof window.startCommentCooldown === 'function') {
+          window.startCommentCooldown(itemId, null, seconds, userId);
+          applyCooldownToTextarea();
+          return;
+        }
+      }
+
+      showError(data?.error || 'Unable to submit. Please try again.');
+    } catch (err) {
+      showError('Unable to submit. Please try again.');
+    } finally {
+      setSendEnabled();
+    }
+  }
+
+  function applyCounterUpdates(count) {
+    if (count == null) return;
+    const human = (n) => {
+      n = Number(n);
+      if (n < 1000) return String(n);
+      if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+      if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+      if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+      return String(n);
+    };
+    const txt = human(count);
+    const el = document.getElementById('commentsCount');
+    if (el) el.textContent = txt;
+    document.querySelectorAll('.js-item-detail-comments-count').forEach(node => {
+      node.textContent = txt;
+    });
+    const cardLikes = document.getElementById('comments-count-' + itemId);
+    if (cardLikes) cardLikes.textContent = txt;
+
+    const section = document.getElementById('detailCommentsSection');
+    const emptyEl = document.getElementById('detailCommentsEmpty');
+    if (section) {
+      if (count > 0) section.removeAttribute('hidden');
+      else section.setAttribute('hidden', '');
+    }
+    if (emptyEl) {
+      if (count > 0) emptyEl.setAttribute('hidden', '');
+      else emptyEl.removeAttribute('hidden');
+    }
+    const readWrap = document.getElementById('detailCommentsReadMoreWrap');
+    const preview = document.getElementById('commentsListPreview');
+    if (readWrap && preview) {
+      const th = parseInt(preview.dataset.previewLimit || '10', 10) || 10;
+      if (count > th) readWrap.removeAttribute('hidden');
+      else readWrap.setAttribute('hidden', '');
+    }
+
+    try {
+      const key = 'listing_changes';
+      const changes = JSON.parse(sessionStorage.getItem(key) || '{}');
+      if (itemId) {
+        changes[itemId] = changes[itemId] || {};
+        changes[itemId].comments_count = count;
+        sessionStorage.setItem(key, JSON.stringify(changes));
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  async function submitReply() {
+    if (!replyContext) return;
+    let text = textarea.value.trim();
+    if (!text) return;
+
+    if (await checkShadowBan()) {
+      showError('You have been shadow banned. Improve your trust score to restore access.');
+      return;
+    }
+
+    if (replyContext.mentionId) {
+      text = `@[user:${replyContext.mentionId}], ${text}`;
+    }
+
+    sendBtn.disabled = true;
+
+    const fd = new FormData();
+    fd.append('csrfmiddlewaretoken', CSRF);
+    fd.append('text', text);
+    fd.append('parent_id', replyContext.parentId);
+
+    try {
+      const resp = await fetch(replyContext.replyUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'X-CSRFToken': CSRF,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: fd,
+      });
+      const data = await safeJson(resp);
+      if (!resp.ok || !data?.success) {
+        showError(data?.error || 'Server error.');
+        return;
+      }
+
+      const parentId = replyContext.parentId;
+      const parentComment = document.getElementById('comment-' + parentId);
+      if (!parentComment) {
+        showError('Render error.');
+        return;
+      }
+
+      const threadCtx = window.getThreadContext?.();
+      const isThreadView = !!threadCtx;
+      const parentDepth = parseInt(parentComment.dataset.depth || '0', 10);
+
+      if (!isThreadView && parentDepth >= 2) {
+        let link = document.getElementById('replies-thread-link-' + parentId);
+        if (!link) {
+          if (window.insertThreadLinkIntoParentMain && window.buildThreadLink) {
+            window.insertThreadLinkIntoParentMain(
+              parentComment,
+              parentId,
+              window.buildThreadLink(parentId, replyContext.threadUrl || '#', 1)
+            );
+          }
+        } else {
+          window.adjustThreadLinkCount?.(parentId, 1);
+        }
+        window.startReplyCooldown?.(parentId);
+        setMode('comment');
+        return;
+      }
+
+      const main = parentComment.querySelector('.comment-main');
+      let replies = main?.querySelector(`.replies[data-parent-id="${parentId}"]`);
+      const hadBucket = !!replies;
+      if (!replies && typeof window.ensureRepliesBucketForAjax === 'function') {
+        replies = window.ensureRepliesBucketForAjax(parentComment, parentId, { initialCount: 1 });
+      }
+      if (!replies) {
+        showError('Render error.');
+        return;
+      }
+
+      replies.insertAdjacentHTML('afterbegin', data.comment_html);
+      if (hadBucket) window.bumpRepliesToggleCount?.(parentComment, parentId, 1);
+      window.expandRepliesBucketForParent?.(parentComment, parentId);
+      const insertedRoot = replies.firstElementChild?.classList?.contains('comment-block')
+        ? replies.firstElementChild
+        : replies.querySelector('.comment-block');
+      if (insertedRoot) window.expandCommentThreadAncestors?.(insertedRoot);
+      window.initCommentToggles?.(replies);
+      window.initCommentLikes?.();
+      window.initAllReplyButtonsCooldown?.();
+
+      if (isThreadView && threadCtx?.parentId) {
+        const tpid = threadCtx.parentId;
+        const threadEmpty = document.getElementById('threadEmpty');
+        if (threadEmpty) threadEmpty.classList.add('d-none');
+        try {
+          sessionStorage.removeItem('thread_remove_link_' + tpid);
+          const threadRoot = document.getElementById('comment-' + tpid);
+          const threadReplies = threadRoot?.querySelector('.replies');
+          const rc = window.countDirectReplyBlocks
+            ? window.countDirectReplyBlocks(threadReplies)
+            : 0;
+          sessionStorage.setItem('thread_replies_count_' + tpid, String(rc));
+        } catch (e) { /* ignore */ }
+      }
+
+      window.startReplyCooldown?.(parentId);
+      setMode('comment');
+      try { textarea.blur(); } catch (e) { /* ignore */ }
+    } catch (err) {
+      showError('Unable to submit. Please try again.');
+    } finally {
+      setSendEnabled();
+    }
+  }
+
+  async function submitEdit() {
+    if (!editContext) return;
+    let text = textarea.value.trim();
+    if (!text) return;
+
+    if (await checkShadowBan()) {
+      showError('You have been shadow banned. Improve your trust score to restore access.');
+      return;
+    }
+
+    const { commentNode, commentId, editUrl, mention, mentionId } = editContext;
+    if (mentionId) {
+      text = text.replace(/^\s*@\[user:\d+\]\s*,?\s*/i, '').trim();
+      if (mention) {
+        const esc = mention.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        text = text.replace(new RegExp('^\\s*@' + esc + '\\s*,?\\s*'), '').trim();
+      }
+      text = `@[user:${mentionId}], ${text}`;
+    } else if (mention) {
+      text = `@${mention}, ${text}`;
+    }
+
+    sendBtn.disabled = true;
+
+    const fd = new FormData();
+    fd.append('csrfmiddlewaretoken', CSRF);
+    fd.append('text', text);
+
+    try {
+      const resp = await fetch(editUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'X-CSRFToken': CSRF,
+          'X-Requested-With': 'XMLHttpRequest',
+          Accept: 'application/json',
+        },
+        body: fd,
+      });
+      const data = await safeJson(resp);
+      if (!resp.ok || !data?.success) {
+        showError(data?.errors?.text?.[0] || data?.error || 'Server error.');
+        return;
+      }
+      let newNode = null;
+      if (typeof window.swapEditedCommentNode === 'function') {
+        newNode = window.swapEditedCommentNode(commentNode, data.comment_html);
+      }
+      if (newNode) {
+        window.restoreCommentUI?.(newNode);
+        window.initCommentLikes?.();
+        window.initAutoDismiss?.(newNode);
+      }
+      setMode('comment');
+      try { textarea.blur(); } catch (e) { /* ignore */ }
+    } catch (err) {
+      showError('Unable to save. Please try again.');
+    } finally {
+      setSendEnabled();
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (sendBtn.disabled) return;
+    if (exceedsLimit()) {
+      showError(`Maximum ${COMMENT_MAX_CHARS} characters (line breaks are not counted).`);
+      return;
+    }
+    if (mode === 'reply') {
+      submitReply();
+    } else if (mode === 'edit') {
+      submitEdit();
+    } else {
+      submitComment();
+    }
+  });
+
+  /* External signals */
+  window.addEventListener('comment-cooldown-started', () => {
+    if (mode !== 'comment') return;
+    // If the cooldown was triggered by a successful submit from the desktop
+    // form, the desktop textarea is now empty. Pull that so the dock isn't
+    // left holding the just-submitted text, then start the cooldown UI.
+    syncDesktopToDock();
+    applyCooldownToTextarea();
+  });
+
+  // Switching back to desktop while dock is open: reset to neutral state so
+  // when user comes back to mobile width everything is clean. Also pick up
+  // any draft the user typed in the other composer and re-measure height.
+  let _resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => {
+      if (!isMobile() && mode !== 'comment') {
+        setMode('comment');
+      }
+      if (isMobile() && mode === 'comment') {
+        syncDesktopToDock();
+        autoGrow();
+      }
+    }, 150);
+  });
+
+  // Init
+  setMode('comment');
+  applyCooldownToTextarea();
+  attachDesktopSync();
+  // Pull any existing desktop draft on first load so the dock isn't empty
+  // when user typed on desktop, resized to mobile, then opened the page.
+  syncDesktopToDock();
+  setSendEnabled();
+  autoGrow();
+})();

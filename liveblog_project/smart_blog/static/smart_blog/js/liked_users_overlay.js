@@ -389,9 +389,10 @@
 
   window.updateLikedUsersUI = function (data) {
     if (!current || !data) return;
-    const username = current.dataset.username;
-    const avatar = current.dataset.avatar;
-    const profileUrl = current.dataset.profileUrl;
+    const username = (current.dataset.username || '').trim();
+    // dataset may contain template whitespace/newlines around the URL — strip them
+    const avatar = (current.dataset.avatar || '').trim();
+    const profileUrl = (current.dataset.profileUrl || '').trim();
     if (!username) return;
 
     if (data.liked) {

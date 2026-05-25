@@ -8836,3 +8836,199 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         min-height: calc(1.45em + 1.8rem + 2px);
     }
 }
+
+/* =========================================================
+   MOBILE COMMENT DOCK (YouTube-style fixed-bottom composer)
+   Authenticated users only, mobile breakpoint <=767.98px.
+   On desktop the dock is hidden and inline forms keep working.
+   ========================================================= */
+.mobile-comment-dock {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    /* The bottom-fixed dock lives outside normal flow */
+    .mobile-comment-dock {
+        display: block;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1590;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: var(--card-bg);
+        border-top: 1px solid var(--border-default);
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="dark"] .mobile-comment-dock {
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.45);
+    }
+
+    .mobile-comment-dock[hidden] {
+        display: none !important;
+    }
+
+    .mobile-comment-dock__form {
+        display: flex;
+        /* Vertical centering of all controls; textarea grows upward and
+           the send/close buttons stay anchored to the middle of the bar. */
+        align-items: center;
+        gap: 6px;
+        padding: 25px 10px;
+        margin: 0;
+    }
+
+    .mobile-comment-dock__field {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    /* Rectangular fixed-width textarea: starts as 1 line, grows up to
+       10 lines, after that → internal scroll. No JS-driven auto-grow. */
+    .mobile-comment-dock__textarea {
+        --mobile-dock-lh: 1.4;
+        --mobile-dock-py: 9px;
+        --mobile-dock-max-rows: 10;
+        display: block;
+        width: 100%;
+        margin: 0;
+        font-size: 16px !important;
+        line-height: var(--mobile-dock-lh);
+        padding: var(--mobile-dock-py) 12px;
+        border-radius: 0;
+        border: 1px solid var(--border-default);
+        background: var(--bg-muted, var(--bg-default));
+        color: var(--text-default);
+        resize: none;
+        max-height: calc(var(--mobile-dock-max-rows) * 1em * var(--mobile-dock-lh) + var(--mobile-dock-py) * 2 + 2px);
+        overflow-y: auto;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        box-sizing: border-box;
+        vertical-align: middle;
+    }
+
+    .mobile-comment-dock__textarea:focus {
+        border-color: var(--text-link, #273c75);
+        box-shadow: 0 0 0 2px var(--input-focus-ring, rgba(39, 60, 117, 0.22));
+    }
+
+    .mobile-comment-dock__textarea.is-cooldown {
+        color: var(--text-muted, #6c757d);
+        font-style: italic;
+        background: var(--bg-muted, var(--bg-default));
+        cursor: not-allowed;
+    }
+
+    .mobile-comment-dock__close,
+    .mobile-comment-dock__send {
+        flex: 0 0 auto;
+        align-self: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        color: var(--text-muted, #6c757d);
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.15s ease, color 0.15s ease,
+                    border-color 0.15s ease, opacity 0.15s ease;
+    }
+
+    .mobile-comment-dock__close[hidden] {
+        display: none !important;
+    }
+
+    /* Close button: outlined, with a hover/focus state. */
+    .mobile-comment-dock__close {
+        border: 1px solid var(--border-default);
+        color: var(--text-default);
+    }
+
+    .mobile-comment-dock__close:hover,
+    .mobile-comment-dock__close:focus-visible {
+        background: var(--bg-subtle, rgba(0, 0, 0, 0.06));
+        border-color: var(--text-link, #273c75);
+        color: var(--text-link, #273c75);
+        outline: none;
+    }
+
+    .mobile-comment-dock__close:active {
+        transform: scale(0.94);
+    }
+
+    .mobile-comment-dock__send {
+        color: var(--text-muted, #6c757d);
+    }
+
+    .mobile-comment-dock__send:not(:disabled) {
+        color: var(--text-link, #273c75);
+    }
+
+    .mobile-comment-dock__send:not(:disabled):active {
+        transform: scale(0.94);
+    }
+
+    .mobile-comment-dock__send:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+    }
+
+    .mobile-comment-dock__send i {
+        font-size: 1.35rem;
+        line-height: 1;
+    }
+
+    .mobile-comment-dock__error {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 100%;
+        margin-bottom: 6px;
+        padding: 6px 10px;
+        font-size: 0.78rem;
+        background: var(--card-bg);
+        color: #dc3545;
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .mobile-comment-dock__error[hidden] {
+        display: none !important;
+    }
+
+    /* Push page content above the docked composer so the last
+       comment isn't covered by the fixed bar. The dock height is
+       ~54px + safe-area, leave a bit of breathing room. */
+    body.page-item-detail.has-mobile-comment-dock {
+        padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* === Hide inline composer/reply/edit UI on mobile === */
+    /* Original main comment composer in the detail page */
+    body.has-mobile-comment-dock #commentForm,
+    body.has-mobile-comment-dock #commentFormBody,
+    body.has-mobile-comment-dock .comment-form-body,
+    body.has-mobile-comment-dock .comment-form-btn {
+        display: none !important;
+    }
+
+    /* The "Leave a comment" heading wrapper that lives right above
+       #commentFormBody — keep it hidden too so only the dock shows. */
+    body.has-mobile-comment-dock .comment-form-header {
+        display: none !important;
+    }
+
+    /* Inline reply / edit forms — dock takes over */
+    body.has-mobile-comment-dock .reply-form,
+    body.has-mobile-comment-dock .comment-edit-form {
+        display: none !important;
+    }
+}

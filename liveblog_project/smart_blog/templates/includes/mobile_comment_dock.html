@@ -1,0 +1,38 @@
+{% load static %}
+{% load extras %}
+{% if user.is_authenticated and not user|user_shadow_banned %}
+  <div id="mobileCommentDock"
+       class="mobile-comment-dock"
+       data-mode="comment"
+       data-item-id="{{ item.pk }}"
+       data-item-slug="{{ item.slug }}"
+       data-user-id="{{ user.pk }}"
+       data-add-url="{% url 'smart_blog:add_comment' item.slug %}"
+       data-trust-status-url="{% url 'login_app:api_trust_status' %}"
+       aria-label="Comment"
+       hidden>
+    <form class="mobile-comment-dock__form" novalidate autocomplete="off">
+      {% csrf_token %}
+      <div class="mobile-comment-dock__field">
+        <textarea name="text"
+                  class="mobile-comment-dock__textarea"
+                  rows="1"
+                  placeholder="Comment…"
+                  aria-label="Comment text"
+                  spellcheck="true"></textarea>
+      </div>
+      <button type="submit"
+              class="mobile-comment-dock__send"
+              aria-label="Send"
+              disabled>
+        <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+      </button>
+      <button type="button"
+              class="mobile-comment-dock__close"
+              aria-label="Cancel"
+              hidden>
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </form>
+  </div>
+{% endif %}

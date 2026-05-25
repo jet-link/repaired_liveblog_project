@@ -605,7 +605,21 @@
     localStorage.setItem(key, String(until));
     const targetBtn = btn || document.getElementById('submitCommentBtn');
     updateCommentButtonCooldown(targetBtn, itemId, userId);
+    try {
+      window.dispatchEvent(
+        new CustomEvent('comment-cooldown-started', {
+          detail: { itemId: String(itemId), userId: userId == null ? null : String(userId), seconds },
+        })
+      );
+    } catch (e) { /* ignore */ }
   }
+
+  // Exposed for the mobile composer dock (and other components that want to
+  // honour or trigger the per-user/per-item comment cooldown).
+  window.getCommentCooldownRemaining = getCooldownRemaining;
+  window.startCommentCooldown = startCommentCooldown;
+  window.parseCommentCooldownSeconds = parseCooldownSeconds;
+  window.COMMENT_COOLDOWN_SEC = COMMENT_COOLDOWN_SEC;
 
   /* ===============================
      REPLY COOLDOWN (30s per comment ID)
@@ -1252,6 +1266,75 @@
 
     return newNode;
   }
+  window.swapEditedCommentNode = swapEditedCommentNode;
+
+  /**
+   * Extract plain edit text + mention info from a rendered comment node.
+   * Reused by both inline editor (mobile inline form is hidden via CSS) and
+   * the mobile YouTube-style comment dock.
+   */
+  function extractCommentEditPayload(commentNode) {
+    if (!commentNode) return { text: '', mention: '', mentionId: '' };
+    const body = commentNode.querySelector('.comment-body');
+    const textDiv = body ? body.querySelector('.comment-text') : null;
+    const rawHtml = commentNode.getAttribute('data-raw-html') || '';
+    const editAttr = commentNode.getAttribute('data-edit-text');
+
+    const decodeHtml = (value) => {
+      if (!value) return '';
+      const temp = document.createElement('textarea');
+      temp.innerHTML = value;
+      return temp.value;
+    };
+
+    const displayHtml = (textDiv && (textDiv.dataset.fullHtml || textDiv.innerHTML)) || '';
+    const rawDecoded = decodeHtml(rawHtml);
+
+    let mentionId = (commentNode.dataset.mentionId || '').trim();
+    if (!mentionId) {
+      mentionId = extractMentionUserIdFromRaw(rawDecoded);
+    }
+
+    let primaryPlain = '';
+    if (editAttr != null && String(editAttr).trim() !== '') {
+      primaryPlain = decodeHtml(editAttr).replace(/\r\n/g, '\n').trim();
+    }
+    if (!primaryPlain) {
+      primaryPlain = htmlToPlainText(rawDecoded) || htmlToPlainText(displayHtml) || '';
+    }
+
+    let originalText = '';
+    let mention = '';
+    const bodyPlain = primaryPlain;
+
+    if (bodyPlain.startsWith('@')) {
+      const comma = bodyPlain.indexOf(', ');
+      if (comma === -1) {
+        mention = bodyPlain.slice(1).trim();
+        originalText = '';
+      } else {
+        mention = bodyPlain.slice(1, comma).trim();
+        originalText = bodyPlain.slice(comma + 2).trim();
+      }
+    } else {
+      originalText = bodyPlain.replace(/^\s*@\[user:\d+\]\s*,?\s*/i, '').trim();
+      const legacy = originalText.match(/^@([\w.-]+)\s*,?\s*/);
+      if (legacy) {
+        mention = legacy[1];
+        originalText = originalText.replace(/^@[\w.-]+\s*,?\s*/, '');
+      }
+    }
+
+    if (!originalText && rawDecoded) {
+      const fallback = htmlToPlainText(rawDecoded)
+        .replace(/^\s*@\[user:\d+\]\s*,?\s*/i, '')
+        .trim();
+      if (fallback) originalText = fallback;
+    }
+
+    return { text: originalText, mention, mentionId };
+  }
+  window.extractCommentEditPayload = extractCommentEditPayload;
 
   function openEditor(commentNode, commentId, editUrl) {
     if (window.closeAllReplyForms) {
@@ -1536,6 +1619,14 @@
     if (!commentNode) return;
 
     window.closeAllCommentMenus?.();
+
+    const dock = document.getElementById('mobileCommentDock');
+    if (dock && window.matchMedia('(max-width: 767.98px)').matches &&
+        typeof window.openMobileDockEdit === 'function') {
+      window.openMobileDockEdit(commentNode, commentId, editUrl);
+      return;
+    }
+
     openEditor(commentNode, commentId, editUrl);
   }
 
@@ -1844,11 +1935,22 @@
     });
   }
 
+  function isMobileComposerActive() {
+    const dock = document.getElementById('mobileCommentDock');
+    if (!dock) return false;
+    return window.matchMedia('(max-width: 767.98px)').matches;
+  }
+
   function openReplyForm(commentId, mentionId) {
+    if (window.getReplyCooldownRemaining?.(commentId) > 0) return;
+
+    if (isMobileComposerActive() && typeof window.openMobileDockReply === 'function') {
+      window.openMobileDockReply(commentId, mentionId);
+      return;
+    }
+
     const container = document.getElementById(`reply-form-${commentId}`);
     if (!container) return;
-
-    if (window.getReplyCooldownRemaining?.(commentId) > 0) return;
 
     if (window.closeAllCommentEditForms) {
       window.closeAllCommentEditForms();
