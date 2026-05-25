@@ -1,0 +1,9 @@
+{% if user.is_authenticated %}
+  <a href="{% url 'login_app:profile-themes' author.username %}" class="mindset-author-link text-decoration-none">
+    {% include 'includes/user_avatar.html' with author=author %}
+  </a>
+{% else %}
+  <div class="mindset-author-link mindset-author-link--static text-decoration-none">
+    {% include 'includes/user_avatar.html' with author=author %}
+  </div>
+{% endif %}

@@ -8875,7 +8875,7 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
            the send/close buttons stay anchored to the middle of the bar. */
         align-items: center;
         gap: 6px;
-        padding: 25px 10px;
+        padding: 30px 10px;
         margin: 0;
     }
 
@@ -8914,13 +8914,6 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         box-shadow: 0 0 0 2px var(--input-focus-ring, rgba(39, 60, 117, 0.22));
     }
 
-    .mobile-comment-dock__textarea.is-cooldown {
-        color: var(--text-muted, #6c757d);
-        font-style: italic;
-        background: var(--bg-muted, var(--bg-default));
-        cursor: not-allowed;
-    }
-
     .mobile-comment-dock__close,
     .mobile-comment-dock__send {
         flex: 0 0 auto;
@@ -8937,8 +8930,8 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         font-size: 1rem;
         cursor: pointer;
         padding: 0;
-        transition: background 0.15s ease, color 0.15s ease,
-                    border-color 0.15s ease, opacity 0.15s ease;
+        transition: background 0.3s ease, color 0.3s ease,
+                    border-color 0.3s ease, opacity 0.3s ease;
     }
 
     .mobile-comment-dock__close[hidden] {
@@ -8947,15 +8940,15 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
 
     /* Close button: outlined, with a hover/focus state. */
     .mobile-comment-dock__close {
-        border: 1px solid var(--border-default);
-        color: var(--text-default);
+        border: 1px solid var(--text-link, #273c75);
+        color: var(--text-link, #273c75);
+        border-radius: 50%;
     }
 
     .mobile-comment-dock__close:hover,
     .mobile-comment-dock__close:focus-visible {
-        background: var(--bg-subtle, rgba(0, 0, 0, 0.06));
-        border-color: var(--text-link, #273c75);
-        color: var(--text-link, #273c75);
+        border-color: #c53030;
+        color: #c53030;
         outline: none;
     }
 
@@ -8967,17 +8960,33 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         color: var(--text-muted, #6c757d);
     }
 
-    .mobile-comment-dock__send:not(:disabled) {
+    .mobile-comment-dock__send:not(:disabled):not(.is-cooldown) {
         color: var(--text-link, #273c75);
     }
 
-    .mobile-comment-dock__send:not(:disabled):active {
+    .mobile-comment-dock__send:not(:disabled):not(.is-cooldown):active {
         transform: scale(0.94);
     }
 
-    .mobile-comment-dock__send:disabled {
+    .mobile-comment-dock__send:disabled:not(.is-cooldown) {
         cursor: not-allowed;
         opacity: 0.45;
+    }
+
+    /* Main-comment cooldown: red button with seconds countdown (textarea stays editable). */
+    .mobile-comment-dock__send.is-cooldown {
+        background: transparent;
+        color: #c0392b;
+        opacity: 1;
+        cursor: not-allowed;
+        font-size: 0.9rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+    }
+
+    .mobile-comment-dock__send.is-cooldown:disabled {
+        opacity: 1;
     }
 
     .mobile-comment-dock__send i {

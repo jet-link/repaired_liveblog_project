@@ -523,6 +523,14 @@ html[data-theme="dark"] .mindset-reply__pinned-picture:hover {
   text-decoration: underline;
 }
 
+.mindset-author-link--static {
+  cursor: default;
+}
+
+.mindset-author-link--static:hover small {
+  text-decoration: none;
+}
+
 /* Author row: avatar+username link + Follow/Followed control separated by a
    thin vertical bar (mirrors the inline-link style used in the sidebar). */
 .mindset-theme__author-row {

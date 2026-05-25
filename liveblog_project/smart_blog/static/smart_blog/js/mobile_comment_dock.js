@@ -7,8 +7,9 @@
 //   - "edit":    edit one of the current user's own comments
 //
 // Send button (paper-plane) is enabled ONLY when the textarea has non-blank text.
-// When the per-user/per-item add-comment cooldown is active, the textarea itself
-// shows "Please wait Ns" instead of disabling the dedicated cooldown button.
+// When the per-user/per-item add-comment cooldown is active, the send button
+// shows a red countdown (30s); the textarea stays editable. Draft syncs 1:1
+// with the desktop #commentForm and must never be overwritten on cooldown end.
 (function () {
   'use strict';
 
@@ -41,6 +42,8 @@
   let replyContext = null; // { parentId, mentionId, replyUrl, threadUrl }
   let editContext = null;  // { commentNode, commentId, editUrl, mention, mentionId }
   let cooldownTimer = null;
+  const SEND_ICON_HTML =
+    '<i class="fa fa-paper-plane-o" aria-hidden="true"></i>';
 
   /* ===============================================
      Helpers
@@ -58,11 +61,15 @@
 
   function setSendEnabled() {
     if (!sendBtn) return;
-    if (textarea.dataset.cooldownActive === '1') {
+    const hasText = textarea.value.trim().length > 0;
+    if (mode !== 'comment') {
+      sendBtn.disabled = !hasText;
+      return;
+    }
+    if (getCommentCooldown() > 0 || sendBtn.classList.contains('is-cooldown')) {
       sendBtn.disabled = true;
       return;
     }
-    const hasText = textarea.value.trim().length > 0;
     sendBtn.disabled = !hasText;
   }
 
@@ -82,8 +89,7 @@
   /* --- Bi-directional sync with the desktop main comment textarea ---
      When the viewport flips between mobile and desktop, the user expects
      to see the same draft text in both composers. Only sync in `comment`
-     mode and not during cooldown (we don't want to leak "Please wait Ns"
-     into the desktop form). */
+     mode at all times (including during send-button cooldown). */
   function getDesktopTextarea() {
     return document.querySelector('#commentForm textarea[name="text"]');
   }
@@ -91,23 +97,50 @@
   let syncingFromDesktop = false;
   let syncingFromDock = false;
 
+  /** Re-measure desktop #commentForm textarea after it becomes visible.
+   *  While the form is display:none (mobile layout), auto-grow reads a wrong
+   *  scrollHeight and can leave a one-line inline height — fix on resize. */
+  function scheduleDesktopTextareaGrow(main) {
+    main = main || getDesktopTextarea();
+    if (!main || isMobile()) return;
+    if (typeof window.bindAutoGrowTextarea === 'function') {
+      window.bindAutoGrowTextarea(main);
+    }
+    const run = () => {
+      if (typeof window.syncAutoGrowTextarea === 'function') {
+        window.syncAutoGrowTextarea(main);
+      }
+    };
+    requestAnimationFrame(() => requestAnimationFrame(run));
+  }
+
   function syncDockToDesktop() {
     if (mode !== 'comment') return;
-    if (textarea.dataset.cooldownActive === '1') return;
     const main = getDesktopTextarea();
     if (!main) return;
-    if (main.value === textarea.value) return;
-    syncingFromDock = true;
-    main.value = textarea.value;
-    try {
-      main.dispatchEvent(new Event('input', { bubbles: true }));
-    } catch (e) { /* ignore */ }
-    syncingFromDock = false;
+
+    const dockVal = textarea.value;
+    const changed = main.value !== dockVal;
+    if (changed) {
+      syncingFromDock = true;
+      main.value = dockVal;
+      /* Do not fire input while the desktop form is hidden — autosize would
+         measure scrollHeight as ~1 line and stick that height until resize. */
+      if (!isMobile()) {
+        try {
+          main.dispatchEvent(new Event('input', { bubbles: true }));
+        } catch (e) { /* ignore */ }
+      }
+      syncingFromDock = false;
+    }
+
+    if (!isMobile()) {
+      scheduleDesktopTextareaGrow(main);
+    }
   }
 
   function syncDesktopToDock() {
     if (mode !== 'comment') return;
-    if (textarea.dataset.cooldownActive === '1') return;
     const main = getDesktopTextarea();
     if (!main) return;
     if (main.value === textarea.value) return;
@@ -116,6 +149,17 @@
     autoGrow();
     setSendEnabled();
     syncingFromDesktop = false;
+  }
+
+  /** Keep draft 1:1 and fix desktop textarea height after viewport change. */
+  function syncComposersForViewport() {
+    if (mode !== 'comment') return;
+    if (isMobile()) {
+      syncDesktopToDock();
+      autoGrow();
+    } else {
+      syncDockToDesktop();
+    }
   }
 
   function attachDesktopSync() {
@@ -149,63 +193,60 @@
   }
 
   /* ===============================================
-     Cooldown UI inside textarea
+     Cooldown UI on send button (textarea stays editable)
   =============================================== */
-  function applyCooldownToTextarea() {
-    if (mode !== 'comment') return;
-    const remaining = getCommentCooldown();
-    if (remaining > 0) {
-      if (textarea.dataset.cooldownActive !== '1') {
-        textarea.dataset.cooldownActive = '1';
-        textarea.dataset.cooldownPrevValue = textarea.value || '';
-        textarea.classList.add('is-cooldown');
-        textarea.readOnly = true;
-      }
-      textarea.value = `Please wait ${remaining} seconds`;
-      autoGrow();
-      setSendEnabled();
-      if (!cooldownTimer) {
-        cooldownTimer = setInterval(applyCooldownToTextarea, 1000);
-      }
-      return;
-    }
-    // Cooldown expired
+  function renderSendCooldown(remaining) {
+    if (!sendBtn) return;
+    sendBtn.classList.add('is-cooldown');
+    sendBtn.disabled = true;
+    sendBtn.setAttribute('aria-label', `Please wait ${remaining} seconds`);
+    sendBtn.textContent = String(remaining);
+  }
+
+  function renderSendNormal() {
+    if (!sendBtn) return;
+    sendBtn.classList.remove('is-cooldown');
+    sendBtn.innerHTML = SEND_ICON_HTML;
+    sendBtn.setAttribute('aria-label', 'Send');
+    setSendEnabled();
+  }
+
+  function stopCooldownTimer() {
     if (cooldownTimer) {
       clearInterval(cooldownTimer);
       cooldownTimer = null;
     }
-    if (textarea.dataset.cooldownActive === '1') {
-      delete textarea.dataset.cooldownActive;
-      textarea.classList.remove('is-cooldown');
-      textarea.readOnly = false;
-      textarea.value = textarea.dataset.cooldownPrevValue || '';
-      delete textarea.dataset.cooldownPrevValue;
-      autoGrow();
-      // When cooldown ends we may have a stale draft — push to desktop too
-      syncDockToDesktop();
+  }
+
+  function applySendCooldownUI() {
+    if (mode !== 'comment') {
+      stopCooldownTimer();
+      return;
     }
-    setSendEnabled();
+    const remaining = getCommentCooldown();
+    if (remaining > 0) {
+      renderSendCooldown(remaining);
+      if (!cooldownTimer) {
+        cooldownTimer = setInterval(applySendCooldownUI, 1000);
+      }
+      return;
+    }
+    stopCooldownTimer();
+    renderSendNormal();
   }
 
   function ensureCooldownPolling() {
     if (mode !== 'comment') {
-      if (cooldownTimer) {
-        clearInterval(cooldownTimer);
-        cooldownTimer = null;
-      }
+      stopCooldownTimer();
       return;
     }
-    applyCooldownToTextarea();
+    applySendCooldownUI();
   }
 
   /* ===============================================
      Mode switching
   =============================================== */
   function resetTextarea() {
-    if (textarea.dataset.cooldownActive === '1') {
-      // Don't clobber cooldown content
-      return;
-    }
     textarea.value = '';
     textarea.scrollTop = 0;
     autoGrow();
@@ -232,31 +273,25 @@
       ensureCooldownPolling();
       setSendEnabled();
       autoGrow();
+      if (!isMobile()) {
+        scheduleDesktopTextareaGrow();
+      }
       return;
     }
 
     closeBtn.removeAttribute('hidden');
+    /* Reply/edit use the same send control — hide main-comment cooldown UI. */
+    stopCooldownTimer();
+    sendBtn.classList.remove('is-cooldown');
+    sendBtn.innerHTML = SEND_ICON_HTML;
+    sendBtn.setAttribute('aria-label', 'Send');
 
     if (nextMode === 'reply') {
-      // Suspend cooldown UI; replies have a different (per-comment) cooldown
-      if (textarea.dataset.cooldownActive === '1') {
-        delete textarea.dataset.cooldownActive;
-        textarea.classList.remove('is-cooldown');
-        textarea.readOnly = false;
-        textarea.value = '';
-        delete textarea.dataset.cooldownPrevValue;
-      }
       textarea.placeholder = 'Write a reply…';
       if (!opts.keepText) {
         textarea.value = '';
       }
     } else if (nextMode === 'edit') {
-      if (textarea.dataset.cooldownActive === '1') {
-        delete textarea.dataset.cooldownActive;
-        textarea.classList.remove('is-cooldown');
-        textarea.readOnly = false;
-        delete textarea.dataset.cooldownPrevValue;
-      }
       textarea.placeholder = 'Edit your comment…';
     }
 
@@ -339,7 +374,6 @@
   }
 
   textarea.addEventListener('input', () => {
-    if (textarea.dataset.cooldownActive === '1') return;
     autoGrow();
     setSendEnabled();
     if (exceedsLimit()) {
@@ -380,9 +414,8 @@
   }
 
   async function submitComment() {
-    if (textarea.dataset.cooldownActive === '1') return;
     if (getCommentCooldown() > 0) {
-      applyCooldownToTextarea();
+      applySendCooldownUI();
       return;
     }
     const text = textarea.value.trim();
@@ -452,8 +485,7 @@
           main.style.removeProperty('height');
           syncingFromDock = false;
         }
-        applyCooldownToTextarea();
-        setSendEnabled();
+        applySendCooldownUI();
         return;
       }
 
@@ -463,7 +495,7 @@
           : null;
         if (seconds && typeof window.startCommentCooldown === 'function') {
           window.startCommentCooldown(itemId, null, seconds, userId);
-          applyCooldownToTextarea();
+          applySendCooldownUI();
           return;
         }
       }
@@ -718,16 +750,17 @@
   /* External signals */
   window.addEventListener('comment-cooldown-started', () => {
     if (mode !== 'comment') return;
-    // If the cooldown was triggered by a successful submit from the desktop
-    // form, the desktop textarea is now empty. Pull that so the dock isn't
-    // left holding the just-submitted text, then start the cooldown UI.
     syncDesktopToDock();
-    applyCooldownToTextarea();
+    applySendCooldownUI();
   });
 
-  // Switching back to desktop while dock is open: reset to neutral state so
-  // when user comes back to mobile width everything is clean. Also pick up
-  // any draft the user typed in the other composer and re-measure height.
+  window.addEventListener('comment-cooldown-ended', () => {
+    if (mode !== 'comment') return;
+    syncDesktopToDock();
+    applySendCooldownUI();
+  });
+
+  // Viewport flip: same draft in both composers + correct textarea height.
   let _resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(_resizeTimer);
@@ -735,16 +768,31 @@
       if (!isMobile() && mode !== 'comment') {
         setMode('comment');
       }
-      if (isMobile() && mode === 'comment') {
-        syncDesktopToDock();
-        autoGrow();
-      }
+      syncComposersForViewport();
     }, 150);
   });
 
+  /* matchMedia is more reliable than resize alone when DevTools toggles layout */
+  const mobileMq = window.matchMedia('(max-width: 767.98px)');
+  if (typeof mobileMq.addEventListener === 'function') {
+    mobileMq.addEventListener('change', () => {
+      if (!isMobile() && mode !== 'comment') {
+        setMode('comment');
+      }
+      syncComposersForViewport();
+    });
+  } else if (typeof mobileMq.addListener === 'function') {
+    mobileMq.addListener(() => {
+      if (!isMobile() && mode !== 'comment') {
+        setMode('comment');
+      }
+      syncComposersForViewport();
+    });
+  }
+
   // Init
   setMode('comment');
-  applyCooldownToTextarea();
+  applySendCooldownUI();
   attachDesktopSync();
   // Pull any existing desktop draft on first load so the dock isn't empty
   // when user typed on desktop, resized to mobile, then opened the page.

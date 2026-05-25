@@ -3,9 +3,7 @@
 <article class="mindset-theme" data-mindset-theme="{{ theme.pk }}" data-mindset-author="{{ theme.author.username }}" id="mindset-theme-{{ theme.pk }}">
   <header class="mindset-theme__head mb-4">
     <div class="mindset-theme__author-row">
-      <a href="{% if user.is_authenticated %}{% url 'login_app:profile-themes' theme.author.username %}{% else %}{% url 'login_app:profile' theme.author.username %}{% endif %}" class="mindset-author-link text-decoration-none">
-        {% include 'includes/user_avatar.html' with author=theme.author %}
-      </a>
+      {% include 'mindset/_author_identity.html' with author=theme.author %}
       {% if user.is_authenticated and user.id != theme.author_id and theme.author.is_active %}
         <span class="mindset-follow-sep" aria-hidden="true">|</span>
         <button

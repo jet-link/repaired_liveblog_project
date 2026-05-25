@@ -577,6 +577,13 @@
             const form = btn.closest('form');
             const textarea = form?.querySelector('textarea[name="text"]');
             clearFieldError(textarea);
+            try {
+              window.dispatchEvent(
+                new CustomEvent('comment-cooldown-ended', {
+                  detail: { itemId: String(itemId), userId: userId == null ? null : String(userId) },
+                })
+              );
+            } catch (e) { /* ignore */ }
             return;
           }
           btn.textContent = `Blocked ${left}s`;

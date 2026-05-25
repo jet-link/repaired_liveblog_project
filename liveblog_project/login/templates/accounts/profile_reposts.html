@@ -17,13 +17,6 @@
        data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"
        data-mindset-sidebar-url="{% url 'mindset:api_sidebar' %}">
     {% include 'includes/breadcrumbs.html' %}
-
-    {% comment %} <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <h5 class="m-0 primary_">{{ user_obj.username }}</h5>
-      <span class="text-muted small">@ Mindset</span>
-    </div> {% endcomment %}
-    {% comment %} <hr class="text-muted"> {% endcomment %}
-
     {% url 'login_app:profile-themes' user_obj.username as profile_mindset_url %}
     <div class="listing-filter-sticky-scope">
       <div class="mindset-layout">

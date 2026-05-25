@@ -2,9 +2,7 @@
 {% load counters %}
 <div class="mindset-reply{% if standalone %} mindset-reply--standalone{% endif %}" data-mindset-reply="{{ reply.pk }}" id="mindset-reply-{{ reply.pk }}">
   <div class="mindset-reply__head mb-4">
-    <a href="{% if user.is_authenticated %}{% url 'login_app:profile-themes' reply.author.username %}{% else %}{% url 'login_app:profile' reply.author.username %}{% endif %}" class="mindset-author-link text-decoration-none">
-      {% include 'includes/user_avatar.html' with author=reply.author %}
-    </a>
+    {% include 'mindset/_author_identity.html' with author=reply.author %}
     {% comment %} Follow/Followed on replies — disabled for now (main themes only).
     <div class="mindset-theme__author-row">
       <a href="{% if user.is_authenticated %}{% url 'login_app:profile-themes' reply.author.username %}{% else %}{% url 'login_app:profile' reply.author.username %}{% endif %}" class="mindset-author-link text-decoration-none">
