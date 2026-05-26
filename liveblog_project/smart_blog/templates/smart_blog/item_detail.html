@@ -249,7 +249,7 @@
     {% endif %}
 
     <!-- ===== Comments: form → heading + count → preview → Read more ===== -->
-    <div id="commentsList" class="detail-comments-stack pt-2">
+    <div id="commentsList" class="detail-comments-stack py-4">
     {% if user.is_authenticated %}
       {% include 'includes/comment_form.html' with comments_page=False comment_form_expand=True %}
     {% endif %}

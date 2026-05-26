@@ -326,9 +326,10 @@
     height: 40px;
     width: 40px;
     border-radius: 50%;
-    background: #e74c3c;
-    color: #ffffff;
+    background: transparent;
+    color: #e74c3c;
     font-size: 1.1rem;
+    border: 2px solid #e74c3c;
 }
 
 /* .bordered{

@@ -20,6 +20,7 @@
   dock.removeAttribute('hidden');
 
   const form = dock.querySelector('.mobile-comment-dock__form');
+  const field = dock.querySelector('.mobile-comment-dock__field');
   const textarea = dock.querySelector('.mobile-comment-dock__textarea');
   const sendBtn = dock.querySelector('.mobile-comment-dock__send');
   const closeBtn = dock.querySelector('.mobile-comment-dock__close');
@@ -73,17 +74,26 @@
     sendBtn.disabled = !hasText;
   }
 
-  /* Auto-grow up to 10 rows; after that CSS max-height kicks in and the
-     textarea scrolls internally. We set height to `auto` first so we read
-     the natural scrollHeight, then let CSS max-height clamp the visible
-     box if needed. No-op while hidden (desktop layout) — scrollHeight is
-     0 there and we don't want to collapse the box. */
+  /* Auto-grow up to 10 rows; the field wrapper scrolls internally so the
+     scrollbar stays inside the textarea column and never overlaps buttons. */
   function autoGrow() {
-    if (!textarea) return;
+    if (!textarea || !field) return;
     if (textarea.offsetParent === null) return;
+
     textarea.style.height = 'auto';
-    const h = textarea.scrollHeight;
-    if (h > 0) textarea.style.height = h + 'px';
+    field.classList.remove('is-scrollable');
+    field.scrollTop = 0;
+
+    const maxH = parseFloat(getComputedStyle(field).maxHeight);
+    const scrollH = textarea.scrollHeight;
+
+    if (scrollH > 0) {
+      textarea.style.height = scrollH + 'px';
+    }
+
+    if (Number.isFinite(maxH) && maxH > 0 && scrollH > maxH + 1) {
+      field.classList.add('is-scrollable');
+    }
   }
 
   /* --- Bi-directional sync with the desktop main comment textarea ---
@@ -151,14 +161,26 @@
     syncingFromDesktop = false;
   }
 
+  /** Refresh desktop-only UI (CLR button, autosize) after dock→desktop sync. */
+  function refreshDesktopCommentFormUI() {
+    const main = getDesktopTextarea();
+    if (!main || isMobile()) return;
+    try {
+      main.dispatchEvent(new Event('input', { bubbles: true }));
+    } catch (e) { /* ignore */ }
+    scheduleDesktopTextareaGrow(main);
+  }
+
   /** Keep draft 1:1 and fix desktop textarea height after viewport change. */
   function syncComposersForViewport() {
     if (mode !== 'comment') return;
     if (isMobile()) {
       syncDesktopToDock();
       autoGrow();
+      setSendEnabled();
     } else {
       syncDockToDesktop();
+      refreshDesktopCommentFormUI();
     }
   }
 
@@ -248,7 +270,7 @@
   =============================================== */
   function resetTextarea() {
     textarea.value = '';
-    textarea.scrollTop = 0;
+    if (field) field.scrollTop = 0;
     autoGrow();
   }
 
@@ -471,7 +493,7 @@
           );
         }
         textarea.value = '';
-        textarea.scrollTop = 0;
+        if (field) field.scrollTop = 0;
         autoGrow();
         // Clear desktop textarea too (and trigger its own input handlers so
         // any clear-button / char-counter UI updates).
@@ -769,7 +791,7 @@
         setMode('comment');
       }
       syncComposersForViewport();
-    }, 150);
+    }, 50);
   });
 
   /* matchMedia is more reliable than resize alone when DevTools toggles layout */

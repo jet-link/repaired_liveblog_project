@@ -1,6 +1,6 @@
 {# Bottom nav: body data-turbo="false"; bar data-turbo="true"; permanent node. Login/sign-out data-turbo="false". Popovers live inside __inner so clicks are not swallowed by nav pointer-events. #}
 {% with ns=request.resolver_match.namespace|default:'' un=request.resolver_match.url_name|default:'' slug_user=request.resolver_match.kwargs.username|default:'' %}
-<nav class="mobile-bottom-nav{% if un == 'post_detail' %} mobile-bottom-nav--hidden-on-detail{% endif %}" aria-label="Mobile primary" id="mobileBottomNav" data-turbo-permanent data-turbo="true"{% if un == 'post_detail' %} aria-hidden="true" inert{% else %} aria-hidden="false"{% endif %}>
+<nav class="mobile-bottom-nav{% if un == 'post_detail' or un == 'comment_thread' %} mobile-bottom-nav--hidden-on-detail{% endif %}" aria-label="Mobile primary" id="mobileBottomNav" data-turbo-permanent data-turbo="true"{% if un == 'post_detail' or un == 'comment_thread' %} aria-hidden="true" inert{% else %} aria-hidden="false"{% endif %}>
   <div class="mobile-bottom-nav__inner">
     <div class="mobile-bottom-nav__scroll">
       <div class="mobile-bottom-nav__track">

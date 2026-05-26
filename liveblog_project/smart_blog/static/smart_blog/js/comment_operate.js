@@ -750,6 +750,9 @@
       textarea.style.removeProperty('height');
       clearFieldError(textarea);
       toggle();
+      try {
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      } catch (e) { /* ignore */ }
       textarea.focus();
     });
 
@@ -844,6 +847,9 @@
 
           // 🔥 ВАЖНО: скрываем кнопку Clear после отправки
           clearBtn?.classList.add('hidden');
+          try {
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          } catch (e) { /* ignore */ }
 
           syncItemDetailCommentsShell(count);
           updateDetailCounter(count);

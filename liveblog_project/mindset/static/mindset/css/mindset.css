@@ -1128,11 +1128,15 @@ html[data-theme="dark"] .mindset-back-link__target {
   width: 100%;
 }
 
-.mindset-create__actions .cstm-btn {
-  flex: 1 1 0;
-  min-width: 0;
-  justify-content: center;
-  text-align: center;
+@media (max-width: 767px) {
+  .mindset-create__actions > .cstm-btn,
+  .mindset-create__actions > a.cstm-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
 }
 
 /* Dark theme tweaks (most of the layout already adapts via CSS tokens) */

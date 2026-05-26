@@ -3587,7 +3587,8 @@ html[data-theme="dark"] .filter-segment-bar a.filter-reason-btn.is-selected {
         padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
     }
 
-    body.page-item-detail {
+    body.page-item-detail,
+    body.thread-comment-page {
         padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
@@ -8874,22 +8875,64 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         /* Vertical centering of all controls; textarea grows upward and
            the send/close buttons stay anchored to the middle of the bar. */
         align-items: center;
-        gap: 6px;
-        padding: 30px 10px;
+        gap: 8px;
+        /* Keep viewport scrollbar off the send/close buttons (desktop narrow). */
+        padding: 25px calc(10px + (100vw - 100%)) 25px 15px;
         margin: 0;
     }
 
     .mobile-comment-dock__field {
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
-    /* Rectangular fixed-width textarea: starts as 1 line, grows up to
-       10 lines, after that → internal scroll. No JS-driven auto-grow. */
-    .mobile-comment-dock__textarea {
         --mobile-dock-lh: 1.4;
         --mobile-dock-py: 9px;
         --mobile-dock-max-rows: 10;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-height: calc(var(--mobile-dock-max-rows) * 1em * var(--mobile-dock-lh) + var(--mobile-dock-py) * 2 + 2px);
+        overflow-y: hidden;
+        overflow-x: hidden;
+        border: 1px solid var(--border-default);
+        background: var(--bg-muted, var(--bg-default));
+        box-sizing: border-box;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .mobile-comment-dock__field:focus-within {
+        border-color: var(--text-link, #273c75);
+        box-shadow: 0 0 0 2px var(--input-focus-ring, rgba(39, 60, 117, 0.22));
+    }
+
+    .mobile-comment-dock__field.is-scrollable {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+    }
+
+    .mobile-comment-dock__field.is-scrollable::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .mobile-comment-dock__field.is-scrollable::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 4px 0;
+    }
+
+    .mobile-comment-dock__field.is-scrollable::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.22);
+        border-radius: 999px;
+    }
+
+    html[data-theme="dark"] .mobile-comment-dock__field.is-scrollable {
+        scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+    }
+
+    html[data-theme="dark"] .mobile-comment-dock__field.is-scrollable::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.28);
+    }
+
+    /* Rectangular fixed-width textarea: starts as 1 line, grows up to
+       10 lines; scrolling is handled by .mobile-comment-dock__field. */
+    .mobile-comment-dock__textarea {
         display: block;
         width: 100%;
         margin: 0;
@@ -8897,21 +8940,20 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         line-height: var(--mobile-dock-lh);
         padding: var(--mobile-dock-py) 12px;
         border-radius: 0;
-        border: 1px solid var(--border-default);
-        background: var(--bg-muted, var(--bg-default));
+        border: none;
+        background: transparent;
         color: var(--text-default);
         resize: none;
-        max-height: calc(var(--mobile-dock-max-rows) * 1em * var(--mobile-dock-lh) + var(--mobile-dock-py) * 2 + 2px);
-        overflow-y: auto;
+        max-height: none;
+        overflow: hidden;
         outline: none;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
         box-sizing: border-box;
         vertical-align: middle;
     }
 
     .mobile-comment-dock__textarea:focus {
-        border-color: var(--text-link, #273c75);
-        box-shadow: 0 0 0 2px var(--input-focus-ring, rgba(39, 60, 117, 0.22));
+        outline: none;
+        box-shadow: none;
     }
 
     .mobile-comment-dock__close,
@@ -8940,8 +8982,8 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
 
     /* Close button: outlined, with a hover/focus state. */
     .mobile-comment-dock__close {
-        border: 1px solid var(--text-link, #273c75);
-        color: var(--text-link, #273c75);
+        border: 2px solid var(--text-muted, #6c757d);
+        color: var(--text-muted, #6c757d);
         border-radius: 50%;
     }
 
@@ -8969,7 +9011,7 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
     }
 
     .mobile-comment-dock__send:disabled:not(.is-cooldown) {
-        cursor: not-allowed;
+        /* cursor: not-allowed; */
         opacity: 0.45;
     }
 
@@ -8978,11 +9020,13 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         background: transparent;
         color: #c0392b;
         opacity: 1;
-        cursor: not-allowed;
+        /* cursor: not-allowed; */
         font-size: 0.9rem;
         font-weight: 700;
         font-variant-numeric: tabular-nums;
         letter-spacing: -0.02em;
+        border: 1px solid #c0392b;
+        border-radius: 50%;
     }
 
     .mobile-comment-dock__send.is-cooldown:disabled {
@@ -9016,7 +9060,8 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
     /* Push page content above the docked composer so the last
        comment isn't covered by the fixed bar. The dock height is
        ~54px + safe-area, leave a bit of breathing room. */
-    body.page-item-detail.has-mobile-comment-dock {
+    body.page-item-detail.has-mobile-comment-dock,
+    body.thread-comment-page.has-mobile-comment-dock {
         padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
     }
 

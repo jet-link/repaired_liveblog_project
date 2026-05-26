@@ -28,10 +28,12 @@
 {% block page_modals %}
   {% include 'includes/comment_modal.html' %}
   {% include 'includes/report_modal.html' %}
+  {% include 'includes/mobile_comment_dock.html' %}
 {% endblock %}
 
 {% block extra_js %}
   <script defer src="{% static 'smart_blog/js/comment_restore_ui.js' %}"></script>
   <script defer src="{% static 'smart_blog/js/comment_operate.js' %}"></script>
+  <script defer src="{% static 'smart_blog/js/mobile_comment_dock.js' %}"></script>
   <script defer src="{% static 'smart_blog/js/report_modal.js' %}"></script>
 {% endblock %}
