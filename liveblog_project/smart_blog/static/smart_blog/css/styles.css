@@ -304,15 +304,42 @@ html[data-theme="dark"] .category-select-panel {
     transition: background-color 0.15s ease;
 }
 
+.category-select-option[aria-selected="true"],
+.category-select-option.is-selected {
+    background: color-mix(in srgb, var(--text-link) 14%, var(--bg-default));
+    color: var(--text-link);
+    font-weight: 600;
+}
+
+html[data-theme="dark"] .category-select-option[aria-selected="true"],
+html[data-theme="dark"] .category-select-option.is-selected {
+    background: color-mix(in srgb, var(--text-link) 20%, var(--bg-muted));
+    color: var(--text-link);
+}
+
 .category-select-option:hover,
 .category-select-option:focus {
     background: color-mix(in srgb, var(--text-link) 12%, var(--bg-default));
     outline: none;
 }
 
+.category-select-option[aria-selected="true"]:hover,
+.category-select-option[aria-selected="true"]:focus,
+.category-select-option.is-selected:hover,
+.category-select-option.is-selected:focus {
+    background: color-mix(in srgb, var(--text-link) 20%, var(--bg-default));
+}
+
 html[data-theme="dark"] .category-select-option:hover,
 html[data-theme="dark"] .category-select-option:focus {
     background: color-mix(in srgb, var(--text-link) 18%, var(--bg-muted));
+}
+
+html[data-theme="dark"] .category-select-option[aria-selected="true"]:hover,
+html[data-theme="dark"] .category-select-option[aria-selected="true"]:focus,
+html[data-theme="dark"] .category-select-option.is-selected:hover,
+html[data-theme="dark"] .category-select-option.is-selected:focus {
+    background: color-mix(in srgb, var(--text-link) 26%, var(--bg-muted));
 }
 
 .category-select-custom.is-open .category-select-trigger {
@@ -4772,7 +4799,7 @@ html[data-theme="dark"] .avatar-file-trigger:hover {
 =============================== */
 .comment-layout {
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-columns: 35px minmax(0, 1fr);
     grid-template-rows: auto auto;
     column-gap: 0.5rem;
     row-gap: 0.35rem;
@@ -5329,7 +5356,7 @@ a.comment-replies-thread-link:focus-visible {
 
 .replies {
     margin-left: 0;
-    margin-top: 4px;
+    /* margin-top: 4px; */
     /* padding-left: 0.75rem; */
     /* border-left: 2px solid color-mix(in srgb, var(--text-link) 32%, var(--border-default, #c4c4c4)); */
 }
@@ -8860,6 +8887,28 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         background: var(--card-bg);
         border-top: 1px solid var(--border-default);
         box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+        transform: translate3d(0, 100%, 0);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+            transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+            opacity 0.28s ease,
+            visibility 0.32s ease;
+        will-change: transform, opacity;
+    }
+
+    .mobile-comment-dock.is-revealed {
+        transform: translate3d(0, 0, 0);
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .mobile-comment-dock {
+            transition: none;
+        }
     }
 
     html[data-theme="dark"] .mobile-comment-dock {
@@ -8875,7 +8924,7 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         /* Vertical centering of all controls; textarea grows upward and
            the send/close buttons stay anchored to the middle of the bar. */
         align-items: center;
-        gap: 8px;
+        gap: 5px;
         /* Keep viewport scrollbar off the send/close buttons (desktop narrow). */
         padding: 25px calc(10px + (100vw - 100%)) 25px 15px;
         margin: 0;
@@ -8980,18 +9029,20 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         display: none !important;
     }
 
-    /* Close button: outlined, with a hover/focus state. */
+    /* Close button: × glyph like share modal .modal-close-btn */
     .mobile-comment-dock__close {
-        border: 2px solid var(--text-muted, #6c757d);
         color: var(--text-muted, #6c757d);
-        border-radius: 50%;
+        font-size: 2rem;
+        line-height: 1;
+        font-weight: 400;
+        opacity: 0.8;
     }
 
     .mobile-comment-dock__close:hover,
     .mobile-comment-dock__close:focus-visible {
-        border-color: #c53030;
         color: #c53030;
         outline: none;
+        opacity: 1;
     }
 
     .mobile-comment-dock__close:active {
@@ -9060,8 +9111,8 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
     /* Push page content above the docked composer so the last
        comment isn't covered by the fixed bar. The dock height is
        ~54px + safe-area, leave a bit of breathing room. */
-    body.page-item-detail.has-mobile-comment-dock,
-    body.thread-comment-page.has-mobile-comment-dock {
+    body.page-item-detail.has-mobile-comment-dock.is-dock-revealed,
+    body.thread-comment-page.has-mobile-comment-dock.is-dock-revealed {
         padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
     }
 

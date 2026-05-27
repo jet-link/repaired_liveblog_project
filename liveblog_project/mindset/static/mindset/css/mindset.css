@@ -711,10 +711,10 @@ html[data-theme="dark"] .mindset-reply__pinned-picture:hover {
   border-color: transparent;
 }
 
-.mindset-action-btn[disabled],
+/* .mindset-action-btn[disabled],
 .mindset-action-btn:disabled {
   cursor: not-allowed;
-}
+} */
 
 .mindset-action-btn--danger {
   color: #dc3545;
@@ -733,7 +733,7 @@ html[data-theme="dark"] .mindset-reply__pinned-picture:hover {
 
 .mindset-action-btn[disabled] {
   opacity: 0.55;
-  cursor: not-allowed;
+  /* cursor: not-allowed; */
 }
 
 /* Mobile L and below — icon-only circular Reply / Like / Repost (active colors unchanged). */
@@ -838,7 +838,7 @@ html[data-theme="dark"] .mindset-reply__pinned-picture:hover {
   /* margin-left: 1.5rem; */
   padding: 0.55rem 0.8rem;
   border-left: 2px solid var(--border-default, #e5e7eb);
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(0, 0, 0, 0.04);
   border-radius: 10px;
 }
 
@@ -863,7 +863,7 @@ html[data-theme="dark"] .mindset-reply__pinned-picture:hover {
 }
 
 html[data-theme="dark"] .mindset-reply {
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .mindset-reply__head {

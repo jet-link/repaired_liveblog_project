@@ -8,7 +8,10 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from smart_blog.models import TrendingItem
-from smart_blog.services.trending_service import TRENDING_API_CACHE_KEY
+from smart_blog.services.trending_service import (
+    TRENDING_API_CACHE_KEY,
+    calculate_trending,
+)
 from smart_blog.utils import count_convert
 
 HOT_LIMIT = 5
@@ -22,6 +25,13 @@ def _preview_from_list_excerpt(item, max_len=220):
     if len(s) <= max_len:
         return s
     return s[:max_len].rsplit(" ", 1)[0] + " …"
+
+
+def _ensure_trending_snapshot():
+    """Populate TrendingItem when empty (e.g. Celery beat / update_trending not running yet)."""
+    if _base_qs().exists():
+        return
+    calculate_trending()
 
 
 def _base_qs():
@@ -133,6 +143,7 @@ def trending_list(request):
         page = 1
     page = max(1, page)
 
+    _ensure_trending_snapshot()
     hot_rows, rising_rows, feed_page = _get_trending_page_data(page)
     has_trending_content = bool(
         hot_rows or rising_rows or feed_page.object_list
@@ -161,6 +172,7 @@ def trending_api(request):
         page = 1
     page = max(1, page)
 
+    _ensure_trending_snapshot()
     cached = cache.get(TRENDING_API_CACHE_KEY)
     if cached is not None and page == 1:
         out = dict(cached)

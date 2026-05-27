@@ -19,6 +19,9 @@
   document.body.classList.add('has-mobile-comment-dock');
   dock.removeAttribute('hidden');
 
+  let dockRevealed = false;
+  let scrollRevealBound = false;
+
   const form = dock.querySelector('.mobile-comment-dock__form');
   const field = dock.querySelector('.mobile-comment-dock__field');
   const textarea = dock.querySelector('.mobile-comment-dock__textarea');
@@ -51,6 +54,84 @@
   =============================================== */
   function isMobile() {
     return window.matchMedia('(max-width: 767.98px)').matches;
+  }
+
+  function isThreadCommentPage() {
+    return document.body.classList.contains('thread-comment-page');
+  }
+
+  /** Item detail: whole comments block (stays “active” while reading the list). */
+  function getCommentsRevealTarget() {
+    const section = document.getElementById('detailCommentsSection');
+    if (section && !section.hasAttribute('hidden')) return section;
+    return document.getElementById('detailCommentsEmpty');
+  }
+
+  function shouldRevealDockFromScroll() {
+    if (!isMobile()) return false;
+    if (isThreadCommentPage()) return true;
+    const target = getCommentsRevealTarget();
+    if (!target) return false;
+    const rect = target.getBoundingClientRect();
+    /* Not reached comments yet (block still below the fold). */
+    if (rect.top > window.innerHeight) return false;
+    /* Scrolled back above the whole comments block. */
+    if (rect.bottom < 0) return false;
+    return true;
+  }
+
+  function setDockRevealed(reveal) {
+    if (reveal === dockRevealed) return;
+    dockRevealed = reveal;
+    dock.classList.toggle('is-revealed', reveal);
+    document.body.classList.toggle('is-dock-revealed', reveal);
+  }
+
+  function updateDockRevealFromScroll() {
+    if (!isMobile()) {
+      setDockRevealed(false);
+      return;
+    }
+    setDockRevealed(shouldRevealDockFromScroll());
+  }
+
+  function bindDockScrollReveal() {
+    if (scrollRevealBound) return;
+    scrollRevealBound = true;
+    let ticking = false;
+    const onScrollOrResize = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        updateDockRevealFromScroll();
+      });
+    };
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize, { passive: true });
+  }
+
+  /** Smooth scroll so the new comment sits above the dock (mobile only). */
+  function scrollToInsertedComment(insertRoot) {
+    if (!isMobile() || !insertRoot) return;
+    const run = () => {
+      const node =
+        insertRoot.classList?.contains('comment-block')
+          ? insertRoot
+          : insertRoot.querySelector?.('.comment-block') || insertRoot;
+      if (!node || !node.getBoundingClientRect) return;
+      const dockH = dock.offsetHeight || 72;
+      const top =
+        node.getBoundingClientRect().top + window.scrollY - 12 - dockH;
+      const reduceMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: reduceMotion ? 'auto' : 'smooth',
+      });
+    };
+    requestAnimationFrame(() => requestAnimationFrame(run));
   }
 
   function getCommentCooldown() {
@@ -279,6 +360,7 @@
     mode = nextMode;
     dock.dataset.mode = nextMode;
     showError('');
+    updateDockRevealFromScroll();
 
     if (nextMode === 'comment') {
       replyContext = null;
@@ -466,23 +548,28 @@
         const list =
           document.getElementById('commentsListPreview') ||
           document.getElementById('commentsList');
+        let insertedRoot = null;
         if (list && data.comment_html) {
           list.insertAdjacentHTML('afterbegin', data.comment_html);
+          insertedRoot = list.firstElementChild;
           // detail preview trimming: replicate desktop behaviour
           const preview = document.getElementById('commentsListPreview');
           if (preview && list === preview) {
             const max = parseInt(preview.dataset.previewLimit || '10', 10) || 10;
             const roots = preview.querySelectorAll(':scope > .comment-block');
             for (let i = max; i < roots.length; i++) roots[i].remove();
+            insertedRoot = preview.firstElementChild;
           }
-          const first = list.firstElementChild;
-          if (first) {
-            window.initCommentToggles?.(first);
+          if (insertedRoot) {
+            window.initCommentToggles?.(insertedRoot);
             window.initCommentLikes?.();
           }
         }
         const count = data.comments_count;
         applyCounterUpdates(count);
+        if (insertedRoot) {
+          scrollToInsertedComment(insertedRoot);
+        }
 
         if (typeof window.startCommentCooldown === 'function') {
           window.startCommentCooldown(
@@ -682,6 +769,9 @@
       }
 
       window.startReplyCooldown?.(parentId);
+      if (insertedRoot) {
+        scrollToInsertedComment(insertedRoot);
+      }
       setMode('comment');
       try { textarea.blur(); } catch (e) { /* ignore */ }
     } catch (err) {
@@ -791,6 +881,7 @@
         setMode('comment');
       }
       syncComposersForViewport();
+      updateDockRevealFromScroll();
     }, 50);
   });
 
@@ -802,6 +893,7 @@
         setMode('comment');
       }
       syncComposersForViewport();
+      updateDockRevealFromScroll();
     });
   } else if (typeof mobileMq.addListener === 'function') {
     mobileMq.addListener(() => {
@@ -809,10 +901,12 @@
         setMode('comment');
       }
       syncComposersForViewport();
+      updateDockRevealFromScroll();
     });
   }
 
   // Init
+  bindDockScrollReveal();
   setMode('comment');
   applySendCooldownUI();
   attachDesktopSync();
@@ -821,4 +915,5 @@
   syncDesktopToDock();
   setSendEnabled();
   autoGrow();
+  updateDockRevealFromScroll();
 })();

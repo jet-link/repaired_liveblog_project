@@ -10,8 +10,10 @@ from __future__ import annotations
 import math
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Count, Q
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from smart_blog.models import (
@@ -22,7 +24,7 @@ from smart_blog.models import (
 TRENDING_API_CACHE_KEY = "trending:api_snapshot"
 
 TRUST_SCORE_MIN = 3.0
-ACTIVE_DAYS = 7
+ACTIVE_DAYS = int(getattr(settings, "TRENDING_ACTIVE_DAYS", 7))
 
 
 def _author_trust_ok(item: Item) -> bool:
@@ -232,7 +234,9 @@ def calculate_trending(now=None) -> int:
     since_days = now - timedelta(days=ACTIVE_DAYS)
 
     items = list(
-        Item.objects.filter(is_published=True, published_date__gte=since_days)
+        Item.objects.filter(is_published=True, deleted_at__isnull=True)
+        .annotate(anchor=Coalesce("published_date", "created"))
+        .filter(anchor__gte=since_days)
         .select_related("author", "author__profile")
         .only("pk", "published_date", "created", "author_id",
               "author__id", "author__profile__trust_score")

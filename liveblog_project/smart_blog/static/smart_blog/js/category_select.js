@@ -64,8 +64,12 @@
           li.setAttribute('role', 'option');
           li.className = 'category-select-option';
           li.dataset.value = opt.value;
-          if (opt.selected) li.setAttribute('aria-selected', 'true');
-          else li.setAttribute('aria-selected', 'false');
+          if (opt.selected) {
+            li.classList.add('is-selected');
+            li.setAttribute('aria-selected', 'true');
+          } else {
+            li.setAttribute('aria-selected', 'false');
+          }
           li.textContent = optionLabel(opt) || '\u2014';
           li.addEventListener('mousedown', function (e) {
             e.preventDefault();
@@ -75,7 +79,9 @@
             select.dispatchEvent(new Event('change', { bubbles: true }));
             syncTriggerLabel(trigger, select);
             ul.querySelectorAll('[role="option"]').forEach(function (el, j) {
-              el.setAttribute('aria-selected', j === idx ? 'true' : 'false');
+              var on = j === idx;
+              el.classList.toggle('is-selected', on);
+              el.setAttribute('aria-selected', on ? 'true' : 'false');
             });
             panel.hidden = true;
             wrap.classList.remove('is-open');
@@ -101,6 +107,7 @@
       var open = panel.hidden;
       closeAllExcept(wrap);
       if (open) {
+        rebuildOptions();
         panel.hidden = false;
         wrap.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');

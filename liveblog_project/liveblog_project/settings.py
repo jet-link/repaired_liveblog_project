@@ -400,6 +400,8 @@ except ImportError:
 
 # Trending JSON cache TTL (seconds); 300–600 matches “5–10 min” refresh window
 TRENDING_API_CACHE_SECONDS = int(os.environ.get("TRENDING_API_CACHE_SECONDS", "420"))
+# Posts with publish anchor older than this many days are excluded from In trend scoring
+TRENDING_ACTIVE_DAYS = int(os.environ.get("TRENDING_ACTIVE_DAYS", "7"))
 
 # Admin panel login redirect
 LOGIN_URL = '/login/'
