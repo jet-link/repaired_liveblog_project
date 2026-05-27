@@ -1,9 +1,9 @@
 /* Mindset (Threads/Twitter-like discussions) */
-
+/* 
 .mindset-page {
   padding-top: 1rem;
   padding-bottom: 4rem;
-}
+} */
 
 .mindset-page__head {
   gap: 0.75rem;
@@ -115,7 +115,7 @@
 }
 
 .mindset-page .filter-segment-sticky-wrap.mindset-filter-sticky-wrap {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 /* Bootstrap Modal locks body scroll (overflow:hidden), which breaks sticky sidebar

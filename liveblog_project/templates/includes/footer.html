@@ -2,16 +2,27 @@
   <div class="footer-blocks d-flex flex-column flex-md-row flex-md-nowrap align-items-stretch align-items-md-end justify-content-between gap-5 pt-5 pb-3">
     <div class="footer-links d-flex flex-column flex-sm-row gap-4 gap-sm-4">
       <div class="footer-block">
-        <a href="{% url 'pages:sitemap_page' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.namespace == 'pages' and request.resolver_match.url_name == 'sitemap_page' %} active{% endif %}">Sitemap</a>
+        <a href="{% url 'pages:sitemap_page' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.namespace == 'pages' and request.resolver_match.url_name == 'sitemap_page' %} active{% endif %}">
+          <i class="fa fa-sitemap me-2"></i>
+          Sitemap
+        </a>
       </div>
       <div class="footer-block">
-        <a href="{% url 'pages:faq' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'faq' %} active{% endif %}">FAQ</a>
+        <a href="{% url 'pages:faq' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'faq' %} active{% endif %}">
+          {% comment %} <i class="fa fa-question me-2"></i> {% endcomment %}
+          FAQ
+        </a>
       </div>
        <div class="footer-block">
-        <a href="{% url 'pages:page' 'about' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'page' and request.resolver_match.kwargs.slug == 'about' %} active{% endif %}">About</a>
+        <a href="{% url 'pages:page' 'about' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'page' and request.resolver_match.kwargs.slug == 'about' %} active{% endif %}">
+          {% comment %} <i class="fa fa-users"></i> {% endcomment %}
+          About
+        </a>
       </div>
        <div class="footer-block">
-        <a href="{% url 'pages:page' 'contacts' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'page' and request.resolver_match.kwargs.slug == 'contacts' %} active{% endif %}">Contacts</a>
+        <a href="{% url 'pages:page' 'contacts' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.url_name == 'page' and request.resolver_match.kwargs.slug == 'contacts' %} active{% endif %}">
+          Contacts
+        </a>
       </div>
     </div>
     <div class="footer-links d-flex flex-column flex-sm-row gap-2 gap-sm-2 align-items-start">
