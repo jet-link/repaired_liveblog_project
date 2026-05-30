@@ -67,15 +67,20 @@
 .admin-category-icon-preview--sport,
 .admin-category-icon-preview--sports { background: #ef4444; }
 .admin-category-icon-preview--aviation { background: #0284c7; }
+.admin-category-icon-preview--programming,
+.admin-category-icon-preview--it { background: #6366f1; }
+.admin-category-icon-preview--lifehacking { background: #0891b2; }
 </style>
 <script>
 (function () {
     var ICONS = {
         technology: 'fa-solid fa-microchip', science: 'fa-solid fa-flask', finance: 'fa-solid fa-chart-line',
-        business: 'fa-solid fa-chart-bar', entertainment: 'fa-regular fa-image', design: 'fa-solid fa-paintbrush',
+        business: 'fa-solid fa-chart-bar', entertainment: 'fa-solid fa-laptop', design: 'fa-solid fa-paintbrush',
         nature: 'fa-solid fa-leaf', qa: 'fa-solid fa-circle-question', medicine: 'fa-solid fa-kit-medical',
         space: 'fa-solid fa-rocket', advertising: 'fa-solid fa-bullhorn', movie: 'fa-solid fa-film',
-        sport: 'fa-solid fa-futbol', sports: 'fa-solid fa-futbol', aviation: 'fa-solid fa-plane'
+        sport: 'fa-solid fa-futbol', sports: 'fa-solid fa-futbol', aviation: 'fa-solid fa-plane', 
+        programming: 'fa-solid fa-code', it: 'fa-solid fa-code',
+        lifehacking: 'fa-solid fa-globe', ai: 'fa-solid fa-android'
     };
     function slugify(name) {
         return (name || '').toLowerCase().trim()

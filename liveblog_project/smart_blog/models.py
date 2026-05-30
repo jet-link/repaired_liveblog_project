@@ -116,8 +116,6 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         self.name = self.name.strip()
-        if self.name:
-            self.name = self.name.capitalize()
 
         regen_slug = False
         if not self.slug:

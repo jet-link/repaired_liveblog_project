@@ -15,7 +15,7 @@
     .feed-cards-grid-v2 {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        gap: .75rem;
+        gap: 1rem;
     }
 
     .feed-cards-grid-v2 > .item-card {
@@ -80,8 +80,8 @@
     }
 
     .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__title {
-        font-size: 1.5rem;
-        line-height: 1.35;
+        font-size: 1.3rem;
+        line-height: 1.5;
         -webkit-line-clamp: 3;
     }
 
@@ -115,7 +115,7 @@
     flex-direction: column;
     background: var(--card-bg);
     border: 1px solid var(--border-default);
-    /* border-radius: 14px; */
+    border-radius: 14px;
     box-shadow: var(--card-shadow);
     overflow: hidden;
     transition: box-shadow 0.25s ease, transform 0.25s ease;
@@ -149,15 +149,9 @@ html[data-theme="dark"] .brain-card {
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.35s ease;
-    /* Promote to its own GPU layer to stop flicker while columns resize */
     transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-}
-
-.brain-card:hover .brain-card__img {
-    transform: translateZ(0) scale(1.04);
 }
 
 .brain-card__rank {
@@ -179,13 +173,14 @@ html[data-theme="dark"] .brain-card {
     line-height: 1;
 }
 
-/* --- Placeholders --- */
+/* --- Placeholders (single color for all categories without media) --- */
 .brain-card__placeholder {
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
 }
 
 .brain-card__placeholder-icon {
@@ -198,67 +193,6 @@ html[data-theme="dark"] .brain-card {
     background: rgba(255, 255, 255, 0.22);
     color: rgba(255, 255, 255, 0.92);
     font-size: 1.2rem;
-}
-
-.brain-card__placeholder--technology {
-    background: linear-gradient(145deg, #2563eb 0%, #1d4ed8 100%);
-}
-
-.brain-card__placeholder--science {
-    background: linear-gradient(145deg, #7c3aed 0%, #6d28d9 100%);
-}
-
-.brain-card__placeholder--finance {
-    background: linear-gradient(145deg, #059669 0%, #047857 100%);
-}
-
-.brain-card__placeholder--business {
-    background: linear-gradient(145deg, #ca8a04 0%, #a16207 100%);
-}
-
-.brain-card__placeholder--entertainment {
-    background: linear-gradient(145deg, #ea580c 0%, #c2410c 100%);
-}
-
-.brain-card__placeholder--design {
-    background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
-}
-
-.brain-card__placeholder--nature {
-    background: linear-gradient(145deg, #16a34a 0%, #15803d 100%);
-}
-
-.brain-card__placeholder--qa {
-    background: linear-gradient(145deg, #38bdf8 0%, #0ea5e9 100%);
-}
-
-.brain-card__placeholder--medicine {
-    background: linear-gradient(145deg, #0d9488 0%, #0f766e 100%);
-}
-
-.brain-card__placeholder--space {
-    background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
-}
-
-.brain-card__placeholder--advertising {
-    background: linear-gradient(145deg, #f59e0b 0%, #d97706 100%);
-}
-
-.brain-card__placeholder--movie {
-    background: linear-gradient(145deg, #6366f1 0%, #4f46e5 100%);
-}
-
-.brain-card__placeholder--sport,
-.brain-card__placeholder--sports {
-    background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
-}
-
-.brain-card__placeholder--aviation {
-    background: linear-gradient(145deg, #0ea5e9 0%, #0284c7 100%);
-}
-
-.brain-card__placeholder--default {
-    background: linear-gradient(145deg, #94a3b8 0%, #64748b 100%);
 }
 
 /* --- Body --- */
@@ -341,7 +275,6 @@ html[data-theme="dark"] .brain-card__divider {
     font-weight: 600;
     line-height: 1.3;
     letter-spacing: 0.02em;
-    text-transform: capitalize;
     white-space: nowrap;
 }
 
@@ -416,6 +349,17 @@ html[data-theme="dark"] .brain-card__divider {
     color: #0284c7;
 }
 
+.brain-card__category--programming,
+.brain-card__category--it {
+    background: color-mix(in srgb, #6366f1 14%, transparent);
+    color: #4f46e5;
+}
+
+.brain-card__category--lifehacking {
+    background: color-mix(in srgb, #0891b2 14%, transparent);
+    color: #0e7490;
+}
+
 .brain-card__category--default {
     background: var(--bg-muted);
     color: var(--text-muted);
@@ -436,6 +380,9 @@ html[data-theme="dark"] .brain-card__category--movie { color: #818cf8; }
 html[data-theme="dark"] .brain-card__category--sport,
 html[data-theme="dark"] .brain-card__category--sports { color: #f87171; }
 html[data-theme="dark"] .brain-card__category--aviation { color: #38bdf8; }
+html[data-theme="dark"] .brain-card__category--programming,
+html[data-theme="dark"] .brain-card__category--it { color: #818cf8; }
+html[data-theme="dark"] .brain-card__category--lifehacking { color: #22d3ee; }
 
 .brain-card__title {
     margin: 0;

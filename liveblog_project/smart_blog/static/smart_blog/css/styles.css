@@ -3277,7 +3277,7 @@ a.filter-reason-btn.topic-category-link:hover {
     margin-bottom: 0;
     /* background: var(--bg-default); */
     box-sizing: border-box;
-    margin-bottom: 1.2rem;
+    margin-bottom: 3rem;
 }
 
 .filter-segment-sticky-wrap .filter-segment-outer {

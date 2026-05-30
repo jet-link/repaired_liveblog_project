@@ -31,7 +31,7 @@
           {% if user.is_authenticated %}
             <div class="mobile-bottom-nav__account mobile-bottom-nav__nav-cell">
               <button type="button"
-                class="mobile-bottom-nav__link mobile-bottom-nav__more-btn{% if slug_user == user.username and un == 'profile' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-section' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-themes' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-reposts' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'notifications' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-edit' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'edit_post' %} mobile-bottom-nav__link--active{% endif %}"
+                class="mobile-bottom-nav__link mobile-bottom-nav__more-btn{% if slug_user == user.username and un == 'profile' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-section' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-themes' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-reposts' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'notifications' %} mobile-bottom-nav__link--active{% elif slug_user == user.username and un == 'profile-edit' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'create_post' %} mobile-bottom-nav__link--active{% elif ns == 'smart_blog' and un == 'edit_post' %} mobile-bottom-nav__link--active{% endif %}"
                 id="mobileNavMoreBtn"
                 aria-label="Account menu"
                 aria-expanded="false"
@@ -70,6 +70,10 @@
     <a href="{% url 'login_app:profile-themes' user.username %}" class="mobile-nav-account-popover__row{% if slug_user == user.username and un == 'profile-themes' %} mobile-nav-account-popover__row--active{% elif slug_user == user.username and un == 'profile-reposts' %} mobile-nav-account-popover__row--active{% endif %}">
       <i class="fa fa-at mobile-nav-account-popover__ico" aria-hidden="true"></i>
       <span class="mobile-nav-account-popover__text">My themes</span>
+    </a>
+    <a href="{% url 'smart_blog:create_post' %}" class="mobile-nav-account-popover__row{% if ns == 'smart_blog' and un == 'create_post' %} mobile-nav-account-popover__row--active{% endif %}">
+      <i class="fa fa-plus mobile-nav-account-popover__ico" aria-hidden="true"></i>
+      <span class="mobile-nav-account-popover__text">Create post</span>
     </a>
     <a href="{% url 'login_app:profile-edit' user.username %}" class="mobile-nav-account-popover__row{% if slug_user == user.username and un == 'profile-edit' %} mobile-nav-account-popover__row--active{% endif %}">
       <i class="fa fa-cog mobile-nav-account-popover__ico" aria-hidden="true"></i>
