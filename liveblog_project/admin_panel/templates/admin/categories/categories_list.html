@@ -1,4 +1,5 @@
 {% extends 'admin/layout/base.html' %}
+{% load category_cards %}
 {% block title %}Categories{% endblock %}
 {% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item">Categories</li></ol></nav>{% endblock %}
 {% block page_title %}Categories{% endblock %}
@@ -13,11 +14,17 @@
 <div class="admin-card">
     <div class="admin-table-wrapper">
         <table class="admin-table" data-bulk-delete-url="{% url 'admin_panel:categories_bulk_delete' %}">
-            <thead><tr><th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th><th>Name</th><th>Slug</th><th>Description</th><th>Actions</th></tr></thead>
+            <thead><tr><th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th><th>Icon</th><th>Name</th><th>Slug</th><th>Description</th><th>Actions</th></tr></thead>
             <tbody>
                 {% for c in categories %}
+                {% category_card_theme c as cat_theme %}
                 <tr>
                     <td><input type="checkbox" class="admin-bulk-row-check" value="{{ c.pk }}" aria-label="Select"></td>
+                    <td class="admin-category-icon-cell" title="{{ cat_theme.icon_admin }}">
+                        <span class="admin-category-icon-preview admin-category-icon-preview--{{ cat_theme.slug }}" aria-hidden="true">
+                            <i class="{{ cat_theme.icon_admin }}"></i>
+                        </span>
+                    </td>
                     <td>{{ c.name }}</td>
                     <td>{{ c.slug }}</td>
                     <td class="admin-category-details-cell" title="{{ c.description }}">{% if c.description %}{{ c.description|truncatewords:10 }}{% else %}…{% endif %}</td>
@@ -32,7 +39,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="admin-empty">No categories.</td></tr>
+                <tr><td colspan="6" class="admin-empty">No categories.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -46,4 +53,32 @@
     </div>
     {% endif %}
 </div>
+<style>
+.admin-category-icon-preview {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #64748b;
+    color: #fff;
+    font-size: 1rem;
+}
+.admin-category-icon-preview--technology { background: #2563eb; }
+.admin-category-icon-preview--science { background: #7c3aed; }
+.admin-category-icon-preview--finance { background: #059669; }
+.admin-category-icon-preview--business { background: #ca8a04; }
+.admin-category-icon-preview--entertainment { background: #ea580c; }
+.admin-category-icon-preview--design { background: #a855f7; }
+.admin-category-icon-preview--nature { background: #16a34a; }
+.admin-category-icon-preview--qa { background: #0ea5e9; }
+.admin-category-icon-preview--medicine { background: #0d9488; }
+.admin-category-icon-preview--space { background: #475569; }
+.admin-category-icon-preview--advertising { background: #f59e0b; }
+.admin-category-icon-preview--movie { background: #6366f1; }
+.admin-category-icon-preview--sport,
+.admin-category-icon-preview--sports { background: #ef4444; }
+.admin-category-icon-preview--aviation { background: #0284c7; }
+</style>
 {% endblock %}

@@ -1350,6 +1350,14 @@ html[data-theme="dark"] .header {
     -webkit-tap-highlight-color: transparent;
 }
 
+.header-utility-segment__bar a.search-btn,
+.header-utility-segment__bar a.search-btn:hover,
+.header-utility-segment__bar a.search-btn:focus,
+.header-utility-segment__bar a.search-btn:focus-visible,
+.header-utility-segment__bar a.search-btn:visited {
+    text-decoration: none;
+}
+
 .search-btn:hover,
 .theme-toggle-btn:hover {
     color: var(--text-primary);
@@ -1784,7 +1792,7 @@ article.item_block.card:hover {
     display: inline-flex;
     align-items: center;
     color: var(--text-muted);
-    gap: 3px;
+    gap: 7px;
 }
 
 .trending-metric i {
@@ -7738,22 +7746,36 @@ html[data-theme="dark"] .topic-tile--in-trend:hover {
     min-width: 0;
 }
 
+.profile-created-post-tile .brain-card__time {
+    display: block;
+}
+
+.profile-created-post-tile .brain-card__stats {
+    margin-top: 0;
+    padding-top: 0;
+}
+
 .profile-created-post-tile__stats {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.2rem;
 }
 
 /* Topic hub AJAX feed — match Liked/Marked card transition */
 .filter-cards-fade-out {
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .filter-cards-fade-in {
-    opacity: 1;
-    transition: opacity 0.2s ease;
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+#filterCardsWrapper {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    will-change: opacity, transform;
 }
 
 .topic-sort-bar .topic-sort-btn.filter-reason-btn {

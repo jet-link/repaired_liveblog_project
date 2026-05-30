@@ -1,6 +1,6 @@
 <div class="filter-cards-wrapper" data-filter-type="{{ filter_type }}">
   {% if items %}
-    <div class="feed-cards-masonry mb-2 filter-cards-row">
+    <div class="feed-cards-grid-v2 feed-cards-grid-v2--pattern mb-2 filter-cards-row">
       {% include 'includes/filtered_cards_columns.html' %}
     </div>
     {% if page_obj.has_next %}

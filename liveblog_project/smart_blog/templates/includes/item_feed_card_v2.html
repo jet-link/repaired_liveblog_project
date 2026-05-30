@@ -1,0 +1,70 @@
+{% load static %}
+{% load counters %}
+{% load user_status %}
+{% load category_cards %}
+{% category_card_theme item.category as cat_theme %}
+<span class="item-anchor" id="item-anchor-{{ item.pk }}"></span>
+<article id="item-{{ item.pk }}"
+  class="brain-card item_block item-feed-card-v2 position-relative"
+  data-item-id="{{ item.pk }}">
+  {% include 'includes/category_card_media.html' %}
+  <div class="brain-card__body">
+    <div class="brain-card__meta">
+      <div class="brain-card__author">
+        {% include 'includes/user_avatar.html' with author=item.author size='28' %}
+      </div>
+      {% if item.category %}
+        <span class="brain-card__category brain-card__category--{{ cat_theme.slug }}">{{ item.category.name }}</span>
+      {% else %}
+        <span class="brain-card__category brain-card__category--default">No category</span>
+      {% endif %}
+    </div>
+    <hr class="brain-card__divider" aria-hidden="true">
+    <div class="brain-card__content">
+      <h3 class="brain-card__title">{{ item.title }}</h3>
+      <time class="brain-card__time" datetime="{{ item.published_date|date:'c' }}">
+        <i class="fa fa-clock-o me-2"></i>
+        {{ item.human_published }}
+      </time>
+      <div class="brain-card__stats">
+      <span class="brain-card__stat" title="Views">
+        <i class="fa fa-eye" aria-hidden="true"></i>
+        <span id="views-count-{{ item.pk }}">{{ item.views_count|human }}</span>
+      </span>
+      <span class="brain-card__stat" title="Likes">
+        <i class="fa fa-heart" aria-hidden="true"></i>
+        <span id="likes-count-{{ item.pk }}">{{ item.likes_count|human }}</span>
+      </span>
+      <span class="brain-card__stat" title="Comments">
+        <i class="fa fa-comment" aria-hidden="true"></i>
+        <span id="comments-count-{{ item.pk }}">{{ item.comments_count|human }}</span>
+      </span>
+      <span class="brain-card__stat" title="Bookmarks">
+        <i class="fa fa-bookmark" aria-hidden="true"></i>
+        <span id="bookmarks-count-{{ item.pk }}">{{ item.bookmarks_count|human }}</span>
+      </span>
+      </div>
+    </div>
+  </div>
+  {% if listing_source == 'profile' and listing_user and listing_section %}
+    <a href="{{ item.get_absolute_url }}?from=profile&amp;user={{ listing_user|urlencode }}&amp;section={{ listing_section }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% elif listing_source == 'profile' and listing_user %}
+    <a href="{{ item.get_absolute_url }}?from=profile&amp;user={{ listing_user|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% elif listing_source == 'items_list' and listing_source_url %}
+    <a href="{{ item.get_absolute_url }}?from=items_list&amp;source_url={{ listing_source_url|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% elif listing_source == 'for_you' and listing_source_url %}
+    <a href="{{ item.get_absolute_url }}?from=for_you&amp;source_url={{ listing_source_url|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% elif listing_source == 'popular' and listing_source_url %}
+    <a href="{{ item.get_absolute_url }}?from=popular&amp;source_url={{ listing_source_url|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% elif listing_source == 'search' and listing_source_url and listing_query %}
+    <a href="{{ item.get_absolute_url }}?from=search&amp;source_url={{ listing_source_url|urlencode }}&amp;query={{ listing_query|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% elif listing_source == 'tag' and listing_source_url and listing_tag %}
+    <a href="{{ item.get_absolute_url }}?from=tag&amp;source_url={{ listing_source_url|urlencode }}&amp;tag={{ listing_tag|urlencode }}&amp;tag_slug={{ listing_tag_slug|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% elif listing_source == 'topic' and listing_source_url and listing_category %}
+    <a href="{{ item.get_absolute_url }}?from=topic&amp;source_url={{ listing_source_url|urlencode }}&amp;category={{ listing_category|urlencode }}&amp;category_slug={{ listing_category_slug|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% elif listing_source == 'category' and listing_source_url and listing_category %}
+    <a href="{{ item.get_absolute_url }}?from=topic&amp;source_url={{ listing_source_url|urlencode }}&amp;category={{ listing_category|urlencode }}&amp;category_slug={{ listing_category_slug|urlencode }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% else %}
+    <a href="{{ item.get_absolute_url }}" class="stretched-link" data-item-id="{{ item.pk }}" aria-label="{{ item.title }}"></a>
+  {% endif %}
+</article>

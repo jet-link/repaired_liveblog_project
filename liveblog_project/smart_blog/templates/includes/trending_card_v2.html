@@ -1,0 +1,45 @@
+{% load counters %}
+{% load category_cards %}
+<article class="trending-card-v2{% if hero %} trending-card-v2--hero{% endif %} brain-card item_block position-relative"
+         data-trending-slug="{{ item.slug }}"
+         data-item-id="{{ item.pk }}">
+  <div class="trending-card-v2__layout">
+    <div class="trending-card-v2__media-col">
+      {% include 'includes/category_card_media.html' with rank=rank media_modifier='trending-card-v2__media' %}
+    </div>
+    <div class="trending-card-v2__content">
+      <div class="trending-card-v2__head">
+        {% if item.category %}
+          <span class="trending-card-v2__category">{{ item.category.name|upper }}</span>
+        {% else %}
+          <span class="trending-card-v2__category">NO CATEGORY</span>
+        {% endif %}
+        <span class="trending-card-v2__badge">In trend</span>
+      </div>
+      <h3 class="trending-card-v2__title">
+        <a href="{{ item.get_absolute_url }}?from=trending&amp;source_url={{ request.get_full_path|urlencode }}" class="text-decoration-none stretched-link">{{ item.title }}</a>
+      </h3>
+      <div class="trending-card-v2__metrics trending-metrics" data-trending-slug="{{ item.slug }}">
+        <span data-metric="total_views_h" class="trending-metric trending-card-v2__metric" title="Total views">
+          <i class="fa fa-eye" aria-hidden="true"></i>
+          <span class="trending-val">{{ item.views_count|human }}</span>
+        </span>
+        <span data-metric="total_likes_h" class="trending-metric trending-card-v2__metric" title="Total likes">
+          <i class="fa fa-heart" aria-hidden="true"></i>
+          <span class="trending-val">{{ item.likes_count|human }}</span>
+        </span>
+        <span data-metric="comments_24h" class="trending-metric trending-card-v2__metric" title="Comments in 24h">
+          <i class="fa fa-comment" aria-hidden="true"></i>
+          <span class="trending-val">{{ t.comments_24h|human }}</span>
+        </span>
+        <span data-metric="total_bookmarks_h" class="trending-metric trending-card-v2__metric" title="Total bookmarks">
+          <i class="fa fa-bookmark" aria-hidden="true"></i>
+          <span class="trending-val">{{ item.bookmarks_count|human }}</span>
+        </span>
+      </div>
+      <p class="trending-card-v2__window trending-metric trending-metric--window" data-trending-slug="{{ item.slug }}">
+        <span data-metric="views_24h">{{ t.views_24h|human }}</span> views in 24h
+      </p>
+    </div>
+  </div>
+</article>

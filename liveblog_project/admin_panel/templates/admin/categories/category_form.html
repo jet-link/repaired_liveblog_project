@@ -1,4 +1,5 @@
 {% extends 'admin/layout/base.html' %}
+{% load category_cards %}
 {% block title %}{% if is_create %}Create{% else %}Edit{% endif %} Category{% endblock %}
 {% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:categories_list' %}">Categories</a></li><li class="admin-breadcrumbs-item">{% if is_create %}Create{% else %}Edit{% endif %}</li></ol></nav>{% endblock %}
 {% block page_title %}{% if is_create %}Create Category{% else %}Edit {{ category.name }}{% endif %}{% endblock %}
@@ -12,6 +13,20 @@
         <div class="admin-form-group">
             <label for="id_category_name">Name</label>
             <input type="text" id="id_category_name" name="name" value="{% if category %}{{ category.name }}{% elif name %}{{ name }}{% endif %}" class="admin-input" placeholder="Category name" required spellcheck="true">
+            <div class="admin-category-icon-live" id="categoryIconPreview" aria-live="polite">
+                {% if category %}
+                {% category_card_theme category as cat_theme %}
+                <span class="admin-category-icon-preview admin-category-icon-preview--{{ cat_theme.slug }}">
+                    <i class="{{ cat_theme.icon_admin }}" id="categoryIconPreviewIcon"></i>
+                </span>
+                <span class="small text-muted" id="categoryIconPreviewLabel">{{ cat_theme.icon_admin }}</span>
+                {% else %}
+                <span class="admin-category-icon-preview admin-category-icon-preview--default">
+                    <i class="fa-solid fa-tag" id="categoryIconPreviewIcon"></i>
+                </span>
+                <span class="small text-muted ms-2" id="categoryIconPreviewLabel">fa-solid fa-tag (default)</span>
+                {% endif %}
+            </div>
         </div>
         <div class="admin-form-group">
             <label for="id_category_description">Description</label>
@@ -23,4 +38,66 @@
         </div>
     </form>
 </div>
+<style>
+.admin-category-icon-preview {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #64748b;
+    color: #fff;
+    font-size: 1.1rem;
+    vertical-align: middle;
+}
+.admin-category-icon-preview--default { background: #64748b; }
+.admin-category-icon-preview--technology { background: #2563eb; }
+.admin-category-icon-preview--science { background: #7c3aed; }
+.admin-category-icon-preview--finance { background: #059669; }
+.admin-category-icon-preview--business { background: #ca8a04; }
+.admin-category-icon-preview--entertainment { background: #ea580c; }
+.admin-category-icon-preview--design { background: #a855f7; }
+.admin-category-icon-preview--nature { background: #16a34a; }
+.admin-category-icon-preview--qa { background: #0ea5e9; }
+.admin-category-icon-preview--medicine { background: #0d9488; }
+.admin-category-icon-preview--space { background: #475569; }
+.admin-category-icon-preview--advertising { background: #f59e0b; }
+.admin-category-icon-preview--movie { background: #6366f1; }
+.admin-category-icon-preview--sport,
+.admin-category-icon-preview--sports { background: #ef4444; }
+.admin-category-icon-preview--aviation { background: #0284c7; }
+</style>
+<script>
+(function () {
+    var ICONS = {
+        technology: 'fa-solid fa-microchip', science: 'fa-solid fa-flask', finance: 'fa-solid fa-chart-line',
+        business: 'fa-solid fa-chart-bar', entertainment: 'fa-regular fa-image', design: 'fa-solid fa-paintbrush',
+        nature: 'fa-solid fa-leaf', qa: 'fa-solid fa-circle-question', medicine: 'fa-solid fa-kit-medical',
+        space: 'fa-solid fa-rocket', advertising: 'fa-solid fa-bullhorn', movie: 'fa-solid fa-film',
+        sport: 'fa-solid fa-futbol', sports: 'fa-solid fa-futbol', aviation: 'fa-solid fa-plane'
+    };
+    function slugify(name) {
+        return (name || '').toLowerCase().trim()
+            .replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/^-+|-+$/g, '') || 'default';
+    }
+    var input = document.getElementById('id_category_name');
+    var wrap = document.getElementById('categoryIconPreview');
+    if (!input || !wrap) return;
+    var iconEl = document.getElementById('categoryIconPreviewIcon');
+    var labelEl = document.getElementById('categoryIconPreviewLabel');
+    var bubble = wrap.querySelector('.admin-category-icon-preview');
+    function update() {
+        var slug = slugify(input.value);
+        var icon = ICONS[slug] || 'fa-solid fa-tag';
+        var themeSlug = ICONS[slug] ? slug : 'default';
+        if (iconEl) iconEl.className = icon;
+        if (labelEl) labelEl.textContent = icon + (ICONS[slug] ? '' : ' (default)');
+        if (bubble) {
+            bubble.className = 'admin-category-icon-preview admin-category-icon-preview--' + themeSlug;
+        }
+    }
+    input.addEventListener('input', update);
+})();
+</script>
 {% endblock %}

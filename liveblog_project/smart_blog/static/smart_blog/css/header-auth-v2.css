@@ -1,0 +1,74 @@
+/* Header auth action buttons (Create post + Notifications) */
+
+.header-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--header-icon-size);
+    height: var(--header-icon-size);
+    min-width: var(--header-icon-size);
+    min-height: var(--header-icon-size);
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border-default);
+    background: var(--card-bg);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1;
+    text-decoration: none;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    flex-shrink: 0;
+}
+
+.header-icon-btn:hover,
+.header-icon-btn:focus-visible {
+    color: var(--text-default);
+    border-color: color-mix(in srgb, var(--text-link) 35%, var(--border-default));
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.header-icon-btn--primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.header-icon-btn--primary:hover,
+.header-icon-btn--primary:focus-visible {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+}
+
+.header-icon-btn--primary.is-active {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+}
+
+/* Notifications: same chrome as search-btn / theme-toggle; red bell when unread */
+.header-utility-segment__bar .search-btn.notification-btn.has-unread .fa-bell {
+    color: #ef4444;
+}
+
+html[data-theme="dark"] .header-icon-btn--primary {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+@media (max-width: 991px) {
+    .header-utility-segment__bar {
+        gap: 4px;
+    }
+}
+
+@media (max-width: 380px) {
+    :root {
+        --header-icon-size: 40px;
+    }
+
+    .header-utility-segment__bar {
+        gap: 3px;
+    }
+}

@@ -1,0 +1,603 @@
+/* ========== Feed Cards v2 (masonry grid + brain-card) ========== */
+
+.feed-cards-grid-v2 {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+.feed-cards-grid-v2 > .item-card {
+    width: 100%;
+    min-width: 0;
+}
+
+@media (min-width: 768px) {
+    .feed-cards-grid-v2 {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: .75rem;
+    }
+
+    .feed-cards-grid-v2 > .item-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .feed-cards-grid-v2 > .item-card > .brain-card {
+        flex: 1 1 auto;
+        width: 100%;
+        min-height: 0;
+    }
+
+    /* Rotating pattern: 1+3+2 → 3+1+2 → 3+2+1 (every 6 cards) */
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero {
+        grid-column: span 6;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--triple {
+        grid-column: span 2;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--double {
+        grid-column: span 3;
+    }
+
+    /* Hero: horizontal layout like In trend #1 */
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card {
+        flex-direction: row;
+        align-items: stretch;
+        min-height: 220px;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__media {
+        width: 42%;
+        max-width: 420px;
+        min-width: 200px;
+        flex-shrink: 0;
+        aspect-ratio: auto;
+        height: auto;
+        min-height: 220px;
+        align-self: stretch;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__img {
+        height: 100%;
+        min-height: 220px;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__body {
+        flex: 1 1 auto;
+        padding: 1.25rem 1.5rem;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__divider {
+        width: calc(100% + 3rem);
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__title {
+        font-size: 1.5rem;
+        line-height: 1.35;
+        -webkit-line-clamp: 3;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__stats {
+        margin-top: auto;
+        padding-top: 0.5rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .feed-cards-grid-v2 {
+        grid-template-columns: repeat(12, 1fr);
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero {
+        grid-column: span 12;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--triple {
+        grid-column: span 4;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--double {
+        grid-column: span 6;
+    }
+}
+
+/* --- Card shell --- */
+.brain-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border: 1px solid var(--border-default);
+    /* border-radius: 14px; */
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+    height: 100%;
+}
+
+.brain-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-lg);
+}
+
+html[data-theme="dark"] .brain-card {
+    background: var(--card-bg);
+    border-color: var(--border-default);
+}
+
+/* --- Media (vertical default) --- */
+.brain-card__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-muted);
+    /* Isolate paints so grid-track resizing doesn't repaint/flicker the image */
+    contain: paint;
+}
+
+.brain-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+    /* Promote to its own GPU layer to stop flicker while columns resize */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.brain-card:hover .brain-card__img {
+    transform: translateZ(0) scale(1.04);
+}
+
+.brain-card__rank {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* --- Placeholders --- */
+.brain-card__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brain-card__placeholder-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 1.2rem;
+}
+
+.brain-card__placeholder--technology {
+    background: linear-gradient(145deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.brain-card__placeholder--science {
+    background: linear-gradient(145deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.brain-card__placeholder--finance {
+    background: linear-gradient(145deg, #059669 0%, #047857 100%);
+}
+
+.brain-card__placeholder--business {
+    background: linear-gradient(145deg, #ca8a04 0%, #a16207 100%);
+}
+
+.brain-card__placeholder--entertainment {
+    background: linear-gradient(145deg, #ea580c 0%, #c2410c 100%);
+}
+
+.brain-card__placeholder--design {
+    background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+}
+
+.brain-card__placeholder--nature {
+    background: linear-gradient(145deg, #16a34a 0%, #15803d 100%);
+}
+
+.brain-card__placeholder--qa {
+    background: linear-gradient(145deg, #38bdf8 0%, #0ea5e9 100%);
+}
+
+.brain-card__placeholder--medicine {
+    background: linear-gradient(145deg, #0d9488 0%, #0f766e 100%);
+}
+
+.brain-card__placeholder--space {
+    background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+}
+
+.brain-card__placeholder--advertising {
+    background: linear-gradient(145deg, #f59e0b 0%, #d97706 100%);
+}
+
+.brain-card__placeholder--movie {
+    background: linear-gradient(145deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.brain-card__placeholder--sport,
+.brain-card__placeholder--sports {
+    background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+}
+
+.brain-card__placeholder--aviation {
+    background: linear-gradient(145deg, #0ea5e9 0%, #0284c7 100%);
+}
+
+.brain-card__placeholder--default {
+    background: linear-gradient(145deg, #94a3b8 0%, #64748b 100%);
+}
+
+/* --- Body --- */
+.brain-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    padding: 1.125rem 1.25rem 1.25rem;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.brain-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.brain-card__meta {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.brain-card__divider {
+    display: block;
+    width: calc(100% + 2.5rem);
+    margin: 0 -1.25rem;
+    border: 0;
+    height: 0;
+    border-top: 1px solid var(--border-default);
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+html[data-theme="dark"] .brain-card__divider {
+    border-top-color: var(--border-strong, var(--border-default));
+    opacity: 1;
+}
+
+.brain-card__author {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.brain-card__author .little-avatar {
+    flex-shrink: 0;
+}
+
+.brain-card__author .little-avatar .user-avatar,
+.brain-card__author .little-avatar img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.brain-card__author small {
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 8rem;
+}
+
+.brain-card__category {
+    flex-shrink: 0;
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.brain-card__category--technology {
+    background: color-mix(in srgb, #2563eb 14%, transparent);
+    color: #2563eb;
+}
+
+.brain-card__category--science {
+    background: color-mix(in srgb, #7c3aed 14%, transparent);
+    color: #7c3aed;
+}
+
+.brain-card__category--finance {
+    background: color-mix(in srgb, #059669 14%, transparent);
+    color: #059669;
+}
+
+.brain-card__category--business {
+    background: color-mix(in srgb, #ca8a04 14%, transparent);
+    color: #a16207;
+}
+
+.brain-card__category--entertainment {
+    background: color-mix(in srgb, #ea580c 14%, transparent);
+    color: #c2410c;
+}
+
+.brain-card__category--design {
+    background: color-mix(in srgb, #a855f7 14%, transparent);
+    color: #9333ea;
+}
+
+.brain-card__category--nature {
+    background: color-mix(in srgb, #16a34a 14%, transparent);
+    color: #15803d;
+}
+
+.brain-card__category--qa {
+    background: color-mix(in srgb, #0ea5e9 14%, transparent);
+    color: #0284c7;
+}
+
+.brain-card__category--medicine {
+    background: color-mix(in srgb, #0d9488 14%, transparent);
+    color: #0f766e;
+}
+
+.brain-card__category--space {
+    background: color-mix(in srgb, #475569 14%, transparent);
+    color: #475569;
+}
+
+.brain-card__category--advertising {
+    background: color-mix(in srgb, #f59e0b 14%, transparent);
+    color: #d97706;
+}
+
+.brain-card__category--movie {
+    background: color-mix(in srgb, #6366f1 14%, transparent);
+    color: #4f46e5;
+}
+
+.brain-card__category--sport,
+.brain-card__category--sports {
+    background: color-mix(in srgb, #ef4444 14%, transparent);
+    color: #dc2626;
+}
+
+.brain-card__category--aviation {
+    background: color-mix(in srgb, #0ea5e9 14%, transparent);
+    color: #0284c7;
+}
+
+.brain-card__category--default {
+    background: var(--bg-muted);
+    color: var(--text-muted);
+}
+
+html[data-theme="dark"] .brain-card__category--technology { color: #60a5fa; }
+html[data-theme="dark"] .brain-card__category--science { color: #a78bfa; }
+html[data-theme="dark"] .brain-card__category--finance { color: #34d399; }
+html[data-theme="dark"] .brain-card__category--business { color: #fbbf24; }
+html[data-theme="dark"] .brain-card__category--entertainment { color: #fb923c; }
+html[data-theme="dark"] .brain-card__category--design { color: #c084fc; }
+html[data-theme="dark"] .brain-card__category--nature { color: #4ade80; }
+html[data-theme="dark"] .brain-card__category--qa { color: #38bdf8; }
+html[data-theme="dark"] .brain-card__category--medicine { color: #2dd4bf; }
+html[data-theme="dark"] .brain-card__category--space { color: #94a3b8; }
+html[data-theme="dark"] .brain-card__category--advertising { color: #fbbf24; }
+html[data-theme="dark"] .brain-card__category--movie { color: #818cf8; }
+html[data-theme="dark"] .brain-card__category--sport,
+html[data-theme="dark"] .brain-card__category--sports { color: #f87171; }
+html[data-theme="dark"] .brain-card__category--aviation { color: #38bdf8; }
+
+.brain-card__title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-default);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.brain-card__time {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.brain-card__stats {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1.3rem;
+    width: 100%;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+.brain-card__stat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 0 0 auto;
+    gap: 0.4rem;
+    font-weight: 600;
+    min-width: 0;
+}
+
+.brain-card__stat .fa {
+    font-size: 0.875rem;
+    opacity: 0.85;
+    flex-shrink: 0;
+}
+
+/* --- Mobile: horizontal card --- */
+@media (max-width: 767.98px) {
+    .feed-cards-grid-v2 {
+        gap: .75rem;
+    }
+
+    .feed-cards-grid-v2--pattern > .item-card:not(.feed-grid-slot--hero) .brain-card {
+        flex-direction: row;
+        align-items: stretch;
+        min-height: 132px;
+    }
+
+    .feed-cards-grid-v2--pattern > .item-card:not(.feed-grid-slot--hero) .brain-card__media {
+        width: 160px;
+        min-width: 160px;
+        aspect-ratio: 1;
+        align-self: stretch;
+        height: auto;
+        min-height: 128px;
+    }
+
+    .feed-cards-grid-v2--pattern > .item-card:not(.feed-grid-slot--hero) .brain-card__body {
+        padding: 0.875rem 1rem 0.875rem 0.75rem;
+        gap: calc(0.7rem * 4);
+        position: relative;
+        justify-content: center;
+    }
+
+    .feed-cards-grid-v2--pattern > .item-card:not(.feed-grid-slot--hero) .brain-card__divider {
+        width: calc(100% + 1.75rem);
+        margin-left: -0.75rem;
+        margin-right: -1rem;
+    }
+
+    .feed-cards-grid-v2 .brain-card__content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    .feed-cards-grid-v2 .brain-card__meta {
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    .feed-cards-grid-v2 .brain-card__author {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .feed-cards-grid-v2 .brain-card__author small {
+        max-width: 6rem;
+    }
+
+    .feed-cards-grid-v2 .brain-card__category {
+        flex-shrink: 0;
+    }
+
+    .feed-cards-grid-v2 .brain-card__title {
+        font-size: 0.9375rem;
+        line-height: 1.35;
+        -webkit-line-clamp: 2;
+    }
+
+    .feed-cards-grid-v2 .brain-card__time {
+        display: none;
+    }
+
+    .feed-cards-grid-v2 .brain-card__stats {
+        justify-content: flex-start;
+        gap: 0.85rem;
+        font-size: 0.75rem;
+        padding-top: 0;
+        margin-top: 0;
+    }
+
+    .feed-cards-grid-v2 .brain-card__stat .fa {
+        font-size: 0.8125rem;
+    }
+
+    /* Hero slot: stacked like In trend hero on mobile */
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card {
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__media {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        aspect-ratio: 16 / 10;
+        min-height: 180px;
+        align-self: auto;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__img {
+        min-height: 0;
+        height: 100%;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__body {
+        padding: 1rem 1.125rem;
+        gap: calc(0.625rem * 1.2);
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__title {
+        font-size: 1.25rem;
+        -webkit-line-clamp: 2;
+    }
+
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__divider {
+        width: calc(100% + 2.25rem);
+        margin-left: -1.125rem;
+        margin-right: -1.125rem;
+    }
+}

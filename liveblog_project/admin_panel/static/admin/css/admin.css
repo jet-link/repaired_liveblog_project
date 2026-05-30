@@ -1077,6 +1077,17 @@ html:not([data-theme="light"]) .admin-body .admin-header-overflow-menu .comment-
   }
 }
 
+.admin-category-icon-live{
+  margin-top: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-category-icon-preview{
+  margin-right: 10px;
+}
+
 .admin-stat-card {
   padding: 20px;
   text-align: center;

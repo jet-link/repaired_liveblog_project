@@ -1,0 +1,9 @@
+{% with nav_name=request.resolver_match.url_name|default:'' nav_ns=request.resolver_match.namespace|default:'' %}
+<a href="{% url 'smart_blog:create_post' %}"
+   class="search-btn{% if nav_ns == 'smart_blog' and nav_name == 'create_post' %} is-active{% endif %}"
+   aria-label="Create post"
+   title="Create post"
+   {% if nav_ns == 'smart_blog' and nav_name == 'create_post' %} aria-current="page"{% endif %}>
+  <i class="fa fa-plus" aria-hidden="true"></i>
+</a>
+{% endwith %}

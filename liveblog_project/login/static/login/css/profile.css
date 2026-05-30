@@ -272,7 +272,7 @@
     opacity: 0;
     transform: translateY(-6px);
     pointer-events: none;
-    transition: opacity .18s ease, transform .18s ease;
+    transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
     z-index: 2000;
     overflow: visible;
     padding: 8px 0;
@@ -283,14 +283,17 @@ html[data-theme="dark"] .user-tooltip {
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.user-menu .user-tooltip {
+.user-menu:not(.open) .user-tooltip {
+    display: none;
+    visibility: hidden;
     opacity: 0;
     transform: translateY(-6px);
     pointer-events: none;
-    transition: opacity .18s ease, transform .18s ease;
 }
 
 .user-menu.open .user-tooltip {
+    display: block;
+    visibility: visible;
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;

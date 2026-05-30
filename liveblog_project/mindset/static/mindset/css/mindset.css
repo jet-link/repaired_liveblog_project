@@ -118,6 +118,7 @@
   margin-bottom: 1rem;
 }
 
+
 /* Bootstrap Modal locks body scroll (overflow:hidden), which breaks sticky sidebar
    and filter tabs. JS resets ScrollBarHelper; this keeps layout stable if inline
    styles linger for a frame. Backdrop still dims the page like other modals. */

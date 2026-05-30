@@ -22,7 +22,7 @@
         function (e) {
             var t = e.target;
             if (!t || !t.closest) return;
-            if (t.closest('.header-actions .search-btn')) {
+            if (t.closest('.header-actions button.search-btn')) {
                 openSearch(e);
             }
         },

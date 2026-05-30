@@ -11,16 +11,27 @@
       {% endif %}
     </div>
     <div class="d-flex flex-column flex-grow-1 min-w-0 profile-created-post-tile__meta">
-      <span class="profile-created-post-tile__line text-muted">{{ item.human_published }}</span>
-      <div class="profile-created-post-tile__line profile-created-post-tile__stats item-stats item-stats--feed d-inline-flex align-items-center flex-wrap">
-        <div class="stat stat--views">
-          <span>{{ item.views_count_human }}</span>
+      <time class="profile-created-post-tile__line brain-card__time" datetime="{{ item.published_date|date:'c' }}">
+        <i class="fa fa-clock-o me-2" aria-hidden="true"></i>
+        {{ item.human_published }}
+      </time>
+      <div class="profile-created-post-tile__line profile-created-post-tile__stats brain-card__stats">
+        <span class="brain-card__stat" title="Views">
           <i class="fa fa-eye" aria-hidden="true"></i>
-        </div>
-        <div class="stat stat--likes">
-          <span>{{ item.likes_count_human }}</span>
+          <span>{{ item.views_count_human }}</span>
+        </span>
+        <span class="brain-card__stat" title="Likes">
           <i class="fa fa-heart" aria-hidden="true"></i>
-        </div>
+          <span>{{ item.likes_count_human }}</span>
+        </span>
+        <span class="brain-card__stat" title="Comments">
+          <i class="fa fa-comment" aria-hidden="true"></i>
+          <span>{{ item.comments_count_human }}</span>
+        </span>
+        <span class="brain-card__stat" title="Bookmarks">
+          <i class="fa fa-bookmark" aria-hidden="true"></i>
+          <span>{{ item.bookmarks_count_human }}</span>
+        </span>
       </div>
       <span class="profile-created-post-tile__line profile-created-post-tile__footer text-truncate topic-tile__latest mt-auto" title="{% if item.category %}{{ item.category.name }}{% else %}No category{% endif %}">
         <span class="text-muted">Topic:</span>

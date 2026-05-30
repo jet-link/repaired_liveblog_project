@@ -8,7 +8,7 @@
     {% if page_obj.paginator.count %}
     <div class="listing-filter-sticky-scope">
       <div class="d-flex align-items-center justify-content-between mb-4">
-        <h4 id="brainewsListingTitle" class="text-muted m-0">brainstorm.news</h4>
+        <h4 id="brainewsListingTitle" class="text-muted m-0 d-none" aria-hidden="true">brainstorm.news</h4>
       </div>
       {% if user.is_authenticated %}
       <div class="filter-segment-sticky-wrap">

@@ -127,18 +127,9 @@
             }
         }
         const titleEl = document.getElementById('brainewsListingTitle');
-        const ctxBlock = document.getElementById('filterPageContextBlock');
         if (titleEl) {
-            titleEl.textContent = value ? (FILTER_TITLES[value] || 'brainstorm.news') : 'brainstorm.news';
-            if (ctxBlock) {
-                if (value) {
-                    titleEl.classList.remove('d-none');
-                    titleEl.removeAttribute('aria-hidden');
-                } else {
-                    titleEl.classList.add('d-none');
-                    titleEl.setAttribute('aria-hidden', 'true');
-                }
-            }
+            titleEl.classList.add('d-none');
+            titleEl.setAttribute('aria-hidden', 'true');
         }
         scheduleScrollSelectedFilterChip();
     }
@@ -192,21 +183,23 @@
     function replaceCardsWith(html) {
         const wrapper = document.getElementById('filterCardsWrapper');
         if (!wrapper) return;
+        const FADE_MS = 200;
         wrapper.classList.add('filter-cards-fade-out');
-        requestAnimationFrame(function () {
+        setTimeout(function () {
+            wrapper.innerHTML = html;
+            // Keep faded-out while DOM swaps, then transition back to visible on next frame.
+            wrapper.classList.add('filter-cards-fade-in');
+            wrapper.offsetHeight; // force reflow so the transition runs
             requestAnimationFrame(function () {
-                wrapper.innerHTML = html;
                 wrapper.classList.remove('filter-cards-fade-out');
-                wrapper.classList.add('filter-cards-fade-in');
-                wrapper.offsetHeight; // reflow
                 wrapper.classList.remove('filter-cards-fade-in');
-                if (window.initFilterCardsPagination) window.initFilterCardsPagination();
-                if (typeof window.__gallery_adjustLastRow === 'function') {
-                    setTimeout(window.__gallery_adjustLastRow, 60);
-                }
-                setTimeout(notifyBrainewsListingCardsReady, 120);
             });
-        });
+            if (window.initFilterCardsPagination) window.initFilterCardsPagination();
+            if (typeof window.__gallery_adjustLastRow === 'function') {
+                setTimeout(window.__gallery_adjustLastRow, 60);
+            }
+            setTimeout(notifyBrainewsListingCardsReady, 120);
+        }, FADE_MS);
     }
 
     function saveOriginalContent() {

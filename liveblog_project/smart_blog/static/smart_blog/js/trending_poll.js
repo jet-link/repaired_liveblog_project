@@ -89,7 +89,7 @@
       });
       if (statusEl) {
         statusEl.textContent =
-          "Live · " +
+          "Live \u2022 " +
           new Date().toLocaleTimeString(undefined, {
             hour: "2-digit",
             minute: "2-digit",
