@@ -6,6 +6,7 @@
     const FILTER_STORAGE_KEY_PREFIX = 'brainews_original_cards_';
     const FILTER_PAGINATION_KEY_PREFIX = 'brainews_original_pagination_';
     let latestFilterRequestId = 0;
+    let filterRestoreDone = false;
 
     function notifyBrainewsListingCardsReady() {
         try {
@@ -183,7 +184,9 @@
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             cache: 'no-store'
         });
-        if (!resp.ok) throw new Error('Filter fetch failed');
+        if (!resp.ok) {
+            throw new Error('Filter fetch failed: ' + resp.status);
+        }
         return resp.text();
     }
 
@@ -200,8 +203,6 @@
         wrapper.classList.add('filter-cards-fade-out');
         setTimeout(function () {
             if (cardsRoot) {
-                const pagInside = cardsRoot.querySelector('[data-filter-pagination]');
-                if (pagInside) pagInside.remove();
                 wrapper.innerHTML = cardsRoot.outerHTML;
             } else {
                 wrapper.innerHTML = html;
@@ -285,7 +286,10 @@
     function applyFilter(filter) {
         if (!filter || filter === 'all') {
             latestFilterRequestId++;
+            filterRestoreDone = false;
             clearRefreshFlag();
+            const wrapperAll = document.getElementById('filterCardsWrapper');
+            if (wrapperAll) wrapperAll.dataset.brainewsOriginalSaved = '';
             const hadStored = getItem(FILTER_KEY);
             let hadSnapshot = false;
             try {
@@ -395,6 +399,8 @@
     function restoreFilterOnReturnForPage() {
         const active = getItem(FILTER_KEY);
         if (!active) return;
+        if (filterRestoreDone) return;
+        filterRestoreDone = true;
         latestFilterRequestId++;
         const myReqId = latestFilterRequestId;
         clearRefreshFlag();
@@ -421,12 +427,16 @@
         if (!block) return;
         if (!isFilterablePage()) {
             block.style.display = 'none';
-            return;
         }
+    }
+
+    function onFilterablePageReady() {
+        if (!isFilterablePage()) return;
         const active = getItem(FILTER_KEY);
         if (active) {
             restoreFilterOnReturnForPage();
         } else {
+            removeInvalidFilterCards();
             requestAnimationFrame(function () {
                 requestAnimationFrame(notifyBrainewsListingCardsReady);
             });
@@ -434,28 +444,17 @@
     }
 
     document.addEventListener('DOMContentLoaded', initFilterBlockFromStorage);
+    document.addEventListener('DOMContentLoaded', onFilterablePageReady);
     (document.documentElement || document).addEventListener('turbo:load', initFilterBlockFromStorage);
+    (document.documentElement || document).addEventListener('turbo:load', onFilterablePageReady);
 
     window.addEventListener('pageshow', function (e) {
-        if (!e.persisted) {
-            if (isFilterablePage()) {
-                const active = getItem(FILTER_KEY);
-                if (active) restoreFilterOnReturnForPage();
-                else removeInvalidFilterCards();
-            }
-            return;
-        }
-        if (isFilterablePage()) {
+        if (!isFilterablePage()) return;
+        if (e.persisted) {
             refreshFilterIfNeeded();
-            removeInvalidFilterCards();
         }
+        removeInvalidFilterCards();
     });
-
-    window.addEventListener('pageshow', function () {
-        if (isFilterablePage()) removeInvalidFilterCards();
-    });
-
-    document.addEventListener('DOMContentLoaded', removeInvalidFilterCards);
 
     function refreshFilterIfNeeded() {
         if (!isFilterablePage()) return;

@@ -1,4 +1,6 @@
 """Listing views: items_list, items_filtered, tag_list, category_list."""
+import logging
+
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef, Subquery
@@ -7,6 +9,8 @@ from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from urllib.parse import urlencode
+
+logger = logging.getLogger(__name__)
 
 from smart_blog.models import Bookmark, Item, Like, Tag
 from smart_blog.public_listing_cache import get_anon_brainews_cache_version
@@ -25,11 +29,34 @@ _ANON_BRAINEWS_CACHE_TTL = 60
 
 
 def _elided_page_range(paginator, page_obj):
-    return paginator.get_elided_page_range(
-        number=page_obj.number,
-        on_each_side=1,
-        on_ends=1,
-    )
+    if paginator.num_pages <= 1:
+        return []
+    try:
+        return paginator.get_elided_page_range(
+            page_obj.number,
+            on_each_side=1,
+            on_ends=1,
+        )
+    except (AttributeError, TypeError, ValueError):
+        return list(range(1, paginator.num_pages + 1))
+
+
+def _absolute_uri_safe(request, path):
+    try:
+        return request.build_absolute_uri(path)
+    except Exception:
+        return path
+
+
+def _normalize_filter_type(raw):
+    value = (raw or "").strip().lower()
+    if ":" in value:
+        value = value.split(":", 1)[0].strip()
+    return value
+
+
+def _render_filtered_cards(request, ctx):
+    return render_to_string("includes/filtered_cards.html", ctx, request=request)
 
 
 def _anon_brainews_cache_key(page_key: str) -> str:
@@ -83,10 +110,30 @@ def items_filtered(request):
     """Returns filtered items HTML for BraiNews filter block (Liked/Bookmarked/Posted/For you)."""
     if not request.user.is_authenticated:
         return HttpResponseForbidden()
-    filter_type = request.GET.get('filter', '').strip().lower()
+    filter_type = _normalize_filter_type(request.GET.get('filter'))
     if filter_type not in ('liked', 'bookmarked', 'posted', 'for_you'):
         return HttpResponse('', content_type='text/html')
 
+    try:
+        return _items_filtered_response(request, filter_type)
+    except Exception:
+        logger.exception("items_filtered failed (filter=%s)", filter_type)
+        html = render_to_string(
+            "includes/filtered_cards.html",
+            {
+                "items": [],
+                "filter_type": filter_type,
+                "empty_msg": "Could not load filter. Please try again.",
+                "page_obj": None,
+                "paginator": None,
+                "page_range": [],
+            },
+            request=request,
+        )
+        return HttpResponse(html, content_type="text/html")
+
+
+def _items_filtered_response(request, filter_type):
     if filter_type == 'for_you':
         from smart_blog.services.for_you_recommendations import (
             for_you_items_for_authenticated_user,
@@ -97,8 +144,9 @@ def items_filtered(request):
         page_obj = paginator.get_page(request.GET.get("page"))
         items = annotate_feed_page_items(request.user, page_obj)
         empty_msg = 'Nothing to recommend yet'
-        listing_source_url = request.build_absolute_uri(
-            reverse("smart_blog:items_list")
+        listing_source_url = _absolute_uri_safe(
+            request,
+            reverse("smart_blog:items_list"),
         )
         ctx = {
             "items": items,
@@ -111,9 +159,7 @@ def items_filtered(request):
             "paginator": paginator,
             "page_range": _elided_page_range(paginator, page_obj),
         }
-        tmpl = "includes/filtered_cards.html"
-        html = render_to_string(tmpl, ctx)
-        return HttpResponse(html, content_type="text/html")
+        return HttpResponse(_render_filtered_cards(request, ctx), content_type="text/html")
     qs = (
         Item.objects
         .with_counters()
@@ -166,17 +212,26 @@ def items_filtered(request):
         if request.GET.get('by_title'): search_params['by_title'] = request.GET.get('by_title')
         if request.GET.get('by_text'): search_params['by_text'] = request.GET.get('by_text')
         if request.GET.get('by_tags'): search_params['by_tags'] = request.GET.get('by_tags')
-        listing_source_url = request.build_absolute_uri('/search/?' + urlencode(search_params))
+        listing_source_url = _absolute_uri_safe(
+            request,
+            '/search/?' + urlencode(search_params),
+        )
     elif tag_slug:
         listing_source = 'tag'
         tag_obj = Tag.objects.filter(slug=tag_slug).first()
         listing_tag = tag_obj.tag_name if tag_obj else ''
         listing_tag_slug = tag_slug
-        listing_source_url = request.build_absolute_uri(reverse('smart_blog:tag_list', kwargs={'slug': tag_slug}))
+        listing_source_url = _absolute_uri_safe(
+            request,
+            reverse('smart_blog:tag_list', kwargs={'slug': tag_slug}),
+        )
     else:
         listing_source = 'items_list'
         listing_query = listing_tag = listing_tag_slug = ''
-        listing_source_url = request.build_absolute_uri(reverse('smart_blog:items_list'))
+        listing_source_url = _absolute_uri_safe(
+            request,
+            reverse('smart_blog:items_list'),
+        )
     ctx = {
         'items': items,
         'user': request.user,
@@ -193,8 +248,7 @@ def items_filtered(request):
     elif listing_source == 'tag':
         ctx['listing_tag'] = listing_tag
         ctx['listing_tag_slug'] = listing_tag_slug
-    html = render_to_string('includes/filtered_cards.html', ctx)
-    return HttpResponse(html, content_type='text/html')
+    return HttpResponse(_render_filtered_cards(request, ctx), content_type='text/html')
 
 
 def tag_list(request, slug):
