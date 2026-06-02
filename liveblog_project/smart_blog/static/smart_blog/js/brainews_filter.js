@@ -4,6 +4,7 @@
 
     const FILTER_KEY = 'brainews_filter_active';
     const FILTER_STORAGE_KEY_PREFIX = 'brainews_original_cards_';
+    const FILTER_PAGINATION_KEY_PREFIX = 'brainews_original_pagination_';
     let latestFilterRequestId = 0;
 
     function notifyBrainewsListingCardsReady() {
@@ -52,16 +53,22 @@
         } catch { /* ignore */ }
     }
 
-    function getFilterUrl(filter) {
+    function getFilterUrl(filter, page) {
         const base = getFilterBaseUrl();
         try {
             const u = new URL(base, location.origin);
             u.searchParams.set('filter', filter);
             mergeFilterContextParams(u);
-            u.searchParams.delete('page');
+            if (page != null && page > 1) {
+                u.searchParams.set('page', String(page));
+            } else {
+                u.searchParams.delete('page');
+            }
             return u.toString();
         } catch {
-            return base + (base.includes('?') ? '&' : '?') + 'filter=' + encodeURIComponent(filter);
+            let qs = 'filter=' + encodeURIComponent(filter);
+            if (page != null && page > 1) qs += '&page=' + encodeURIComponent(String(page));
+            return base + (base.includes('?') ? '&' : '?') + qs;
         }
     }
 
@@ -169,8 +176,8 @@
         }
     }
 
-    async function fetchFiltered(filter) {
-        const url = getFilterUrl(filter);
+    async function fetchFiltered(filter, page) {
+        const url = getFilterUrl(filter, page);
         const resp = await fetch(url, {
             credentials: 'same-origin',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -180,16 +187,32 @@
         return resp.text();
     }
 
-    function replaceCardsWith(html) {
+    function applyFilterResponse(html) {
         const wrapper = document.getElementById('filterCardsWrapper');
         if (!wrapper) return;
+
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const cardsRoot = doc.querySelector('.filter-cards-wrapper');
+        const pagBlock = doc.querySelector('[data-filter-pagination]');
+        const pagHost = document.getElementById('itemsListPagination');
+
         const FADE_MS = 200;
         wrapper.classList.add('filter-cards-fade-out');
         setTimeout(function () {
-            wrapper.innerHTML = html;
-            // Keep faded-out while DOM swaps, then transition back to visible on next frame.
+            if (cardsRoot) {
+                const pagInside = cardsRoot.querySelector('[data-filter-pagination]');
+                if (pagInside) pagInside.remove();
+                wrapper.innerHTML = cardsRoot.outerHTML;
+            } else {
+                wrapper.innerHTML = html;
+            }
+            if (pagHost) {
+                pagHost.innerHTML = pagBlock ? pagBlock.innerHTML : '';
+            }
+            showPagination(!!pagBlock);
+
             wrapper.classList.add('filter-cards-fade-in');
-            wrapper.offsetHeight; // force reflow so the transition runs
+            wrapper.offsetHeight;
             requestAnimationFrame(function () {
                 wrapper.classList.remove('filter-cards-fade-out');
                 wrapper.classList.remove('filter-cards-fade-in');
@@ -206,19 +229,27 @@
         const wrapper = document.getElementById('filterCardsWrapper');
         if (!wrapper || wrapper.dataset.brainewsOriginalSaved === '1') return;
         try {
-            const key = FILTER_STORAGE_KEY_PREFIX + getPageContextKey();
-            sessionStorage.setItem(key, wrapper.innerHTML);
+            const ctxKey = getPageContextKey();
+            sessionStorage.setItem(FILTER_STORAGE_KEY_PREFIX + ctxKey, wrapper.innerHTML);
+            const pagHost = document.getElementById('itemsListPagination');
+            if (pagHost) {
+                sessionStorage.setItem(FILTER_PAGINATION_KEY_PREFIX + ctxKey, pagHost.innerHTML);
+            }
             wrapper.dataset.brainewsOriginalSaved = '1';
         } catch { }
     }
 
     function restoreOriginalContent() {
         const wrapper = document.getElementById('filterCardsWrapper');
-        const key = FILTER_STORAGE_KEY_PREFIX + getPageContextKey();
+        const ctxKey = getPageContextKey();
+        const key = FILTER_STORAGE_KEY_PREFIX + ctxKey;
+        const pagKey = FILTER_PAGINATION_KEY_PREFIX + ctxKey;
         const saved = sessionStorage.getItem(key);
+        const savedPag = sessionStorage.getItem(pagKey);
         if (!wrapper) return;
         if (!saved) {
             removeItem(key);
+            removeItem(pagKey);
             if (wrapper.dataset) wrapper.dataset.brainewsOriginalSaved = '';
             showPagination(true);
             notifyBrainewsListingCardsReady();
@@ -228,14 +259,19 @@
         const transitionMs = 200;
         requestAnimationFrame(function () {
             setTimeout(function () {
-                showPagination(true);
                 wrapper.innerHTML = saved;
+                const pagHost = document.getElementById('itemsListPagination');
+                if (pagHost && savedPag != null) {
+                    pagHost.innerHTML = savedPag;
+                }
                 removeItem(key);
+                removeItem(pagKey);
                 if (wrapper.dataset) wrapper.dataset.brainewsOriginalSaved = '';
                 wrapper.classList.remove('filter-cards-fade-out');
                 wrapper.classList.add('filter-cards-fade-in');
                 wrapper.offsetHeight;
                 wrapper.classList.remove('filter-cards-fade-in');
+                showPagination(true);
                 if (window.applyListingChanges) window.applyListingChanges();
                 if (window.initFilterCardsPagination) window.initFilterCardsPagination();
                 if (typeof window.__gallery_adjustLastRow === 'function') {
@@ -273,12 +309,10 @@
         saveOriginalContent();
         setActiveFilter(filter);
         setItem(FILTER_KEY, filter);
-        showPagination(false);
 
-        fetchFiltered(filter).then(html => {
+        fetchFiltered(filter, 1).then(html => {
             if (myReqId !== latestFilterRequestId) return;
-            replaceCardsWith(html);
-            showPagination(false);
+            applyFilterResponse(html);
             const emptyEl = document.querySelector('.filter-empty-message');
             if (emptyEl) {
                 showEmptyHint(emptyEl.textContent);
@@ -366,11 +400,9 @@
         clearRefreshFlag();
         saveOriginalContent();
         setActiveFilter(active);
-        showPagination(false);
-        fetchFiltered(active).then(html => {
+        fetchFiltered(active, 1).then(html => {
             if (myReqId !== latestFilterRequestId) return;
-            replaceCardsWith(html);
-            showPagination(false);
+            applyFilterResponse(html);
             const emptyEl = document.querySelector('.filter-empty-message');
             if (emptyEl) {
                 showEmptyHint(emptyEl.textContent);
@@ -434,11 +466,9 @@
         latestFilterRequestId++;
         const myReqId = latestFilterRequestId;
         setActiveFilter(active);
-        showPagination(false);
-        fetchFiltered(active).then(html => {
+        fetchFiltered(active, 1).then(html => {
             if (myReqId !== latestFilterRequestId) return;
-            replaceCardsWith(html);
-            showPagination(false);
+            applyFilterResponse(html);
             const emptyEl = document.querySelector('.filter-empty-message');
             if (emptyEl) {
                 showEmptyHint(emptyEl.textContent);
@@ -468,53 +498,37 @@
         refreshFilterIfNeeded();
     });
 
-    /* Server-paginated filter: load next page of Liked/Bookmarked cards */
+    /* Filter tabs: Prev / page numbers / Next (same paginator as All, via AJAX) */
     document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.filter-load-more-btn');
-        if (!btn || !document.body.contains(btn)) return;
-        if (!btn.closest('.filter-cards-wrapper')) return;
-        e.preventDefault();
+        const link = e.target.closest(
+            '#itemsListPagination a.paginator-btn, #itemsListPagination a.paginator-page'
+        );
+        if (!link || !document.body.contains(link)) return;
         const active = getActiveFilter();
         if (!active) return;
-        const row = document.querySelector('.filter-cards-wrapper .filter-cards-row');
-        const footer = btn.closest('.filter-load-more-wrap');
-        if (!row || !footer) return;
-        const nextPage = btn.dataset.nextPage;
-        if (!nextPage) return;
-        const u = new URL(getFilterBaseUrl(), location.origin);
-        u.searchParams.set('filter', active);
-        mergeFilterContextParams(u);
-        u.searchParams.set('page', nextPage);
-        u.searchParams.set('append', '1');
-        btn.disabled = true;
-        fetch(u.toString(), {
-            credentials: 'same-origin',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            cache: 'no-store'
-        })
-            .then(function (resp) {
-                if (!resp.ok) throw new Error('load more failed');
-                return resp.text();
-            })
-            .then(function (html) {
-                footer.remove();
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const chunk = doc.querySelector('.filter-append-chunk');
-                if (!chunk) return;
-                const newFooter = chunk.querySelector('.filter-load-more-wrap');
-                if (newFooter) newFooter.remove();
-                while (chunk.firstChild) {
-                    row.appendChild(chunk.firstChild);
-                }
-                if (newFooter) {
-                    const wrap = row.closest('.filter-cards-wrapper');
-                    if (wrap) wrap.appendChild(newFooter);
-                }
-                if (window.applyListingChanges) window.applyListingChanges();
-            })
-            .catch(function () {
-                btn.disabled = false;
-            });
+
+        e.preventDefault();
+        let page = 1;
+        try {
+            const u = new URL(link.getAttribute('href') || '', location.origin);
+            page = parseInt(u.searchParams.get('page') || '1', 10);
+        } catch { return; }
+        if (Number.isNaN(page) || page < 1) page = 1;
+
+        if (typeof window.scrollPageToTopForListingFilter === 'function') {
+            window.scrollPageToTopForListingFilter();
+        }
+
+        latestFilterRequestId++;
+        const myReqId = latestFilterRequestId;
+        fetchFiltered(active, page).then(function (html) {
+            if (myReqId !== latestFilterRequestId) return;
+            applyFilterResponse(html);
+            if (window.applyListingChanges) window.applyListingChanges();
+        }).catch(function () {
+            if (myReqId !== latestFilterRequestId) return;
+            showEmptyHint('Failed to load page');
+        });
     });
 
 })();

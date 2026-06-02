@@ -19,8 +19,17 @@ from smart_blog.views._helpers import (
     annotate_user_liked,
 )
 
-FILTER_AJAX_PAGE_SIZE = 20
+BRAINEWS_LIST_PAGE_SIZE = 50
+FILTER_AJAX_PAGE_SIZE = BRAINEWS_LIST_PAGE_SIZE
 _ANON_BRAINEWS_CACHE_TTL = 60
+
+
+def _elided_page_range(paginator, page_obj):
+    return paginator.get_elided_page_range(
+        number=page_obj.number,
+        on_each_side=1,
+        on_ends=1,
+    )
 
 
 def _anon_brainews_cache_key(page_key: str) -> str:
@@ -48,14 +57,10 @@ def items_list(request):
     qs = annotate_user_bookmarked(qs, request.user)
     qs = qs.order_by('-published_date', '-pk')
 
-    paginator = Paginator(qs, 40)
+    paginator = Paginator(qs, BRAINEWS_LIST_PAGE_SIZE)
     page_obj = paginator.get_page(page_number)
 
-    page_range = paginator.get_elided_page_range(
-        number=page_obj.number,
-        on_each_side=1,
-        on_ends=1
-    )
+    page_range = _elided_page_range(paginator, page_obj)
 
     response = render(request, "smart_blog/items_list.html", {
         "page_obj": page_obj,
@@ -92,7 +97,6 @@ def items_filtered(request):
         page_obj = paginator.get_page(request.GET.get("page"))
         items = annotate_feed_page_items(request.user, page_obj)
         empty_msg = 'Nothing to recommend yet'
-        append_fragment = request.GET.get("append") == "1"
         listing_source_url = request.build_absolute_uri(
             reverse("smart_blog:items_list")
         )
@@ -105,12 +109,9 @@ def items_filtered(request):
             "filter_type": filter_type,
             "page_obj": page_obj,
             "paginator": paginator,
+            "page_range": _elided_page_range(paginator, page_obj),
         }
-        tmpl = (
-            "includes/filtered_cards_append.html"
-            if append_fragment
-            else "includes/filtered_cards.html"
-        )
+        tmpl = "includes/filtered_cards.html"
         html = render_to_string(tmpl, ctx)
         return HttpResponse(html, content_type="text/html")
     qs = (
@@ -158,8 +159,6 @@ def items_filtered(request):
     paginator = Paginator(qs, FILTER_AJAX_PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get("page"))
     items = list(page_obj.object_list)
-
-    append_fragment = request.GET.get("append") == "1"
     if search_q:
         listing_source = 'search'
         listing_query = search_q
@@ -187,18 +186,14 @@ def items_filtered(request):
         'filter_type': filter_type,
         'page_obj': page_obj,
         'paginator': paginator,
+        'page_range': _elided_page_range(paginator, page_obj),
     }
     if listing_source == 'search':
         ctx['listing_query'] = listing_query
     elif listing_source == 'tag':
         ctx['listing_tag'] = listing_tag
         ctx['listing_tag_slug'] = listing_tag_slug
-    tmpl = (
-        'includes/filtered_cards_append.html'
-        if append_fragment
-        else 'includes/filtered_cards.html'
-    )
-    html = render_to_string(tmpl, ctx)
+    html = render_to_string('includes/filtered_cards.html', ctx)
     return HttpResponse(html, content_type='text/html')
 
 
