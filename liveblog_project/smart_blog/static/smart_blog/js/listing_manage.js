@@ -201,19 +201,6 @@
        Save views_count to listing_changes when on post_detail
        (user just viewed → count increased → cards will show it on return)
     ===================================================== */
-    function saveItemDetailViewsToListingChanges() {
-        const itemId = document.body.dataset?.itemId;
-        const viewsCount = document.body.dataset?.viewsCount;
-        if (!itemId || viewsCount === undefined || viewsCount === '') return;
-        try {
-            const key = 'listing_changes';
-            const changes = JSON.parse(sessionStorage.getItem(key) || '{}');
-            changes[itemId] = changes[itemId] || {};
-            changes[itemId].views_count = viewsCount;
-            sessionStorage.setItem(key, JSON.stringify(changes));
-        } catch { }
-    }
-
     let profileRefreshInProgress = false;
 
     async function refreshProfileListing() {
@@ -351,23 +338,43 @@
     }
 
     /* =====================================================
-       0) SAVE VIEWS_COUNT ON ITEM DETAIL LOAD (for instant card updates on back)
+       0) SAVE COUNTERS ON ITEM DETAIL LOAD (cards stay in sync on back)
     ===================================================== */
-    function saveItemDetailViewsToListingChanges() {
-        const itemId = document.body.dataset?.itemId;
-        const viewsCount = document.body.dataset?.viewsCount;
-        if (!itemId || viewsCount == null || viewsCount === '') return;
+    function saveItemDetailCountersToListingChanges() {
+        const body = document.body;
+        const itemId = body.dataset?.itemId;
+        if (!itemId || !body.classList.contains('page-item-detail')) return;
+
+        const fields = [
+            ['views_count', 'viewsCount'],
+            ['likes_count', 'likesCount'],
+            ['comments_count', 'commentsCount'],
+            ['bookmarks_count', 'bookmarksCount'],
+        ];
+
         try {
             const key = 'listing_changes';
             const changes = JSON.parse(sessionStorage.getItem(key) || '{}');
             changes[itemId] = changes[itemId] || {};
-            changes[itemId].views_count = parseInt(viewsCount, 10);
-            if (!Number.isNaN(changes[itemId].views_count)) {
-                sessionStorage.setItem(key, JSON.stringify(changes));
-            }
+            let updated = false;
+
+            fields.forEach(([key, datasetKey]) => {
+                const raw = body.dataset[datasetKey];
+                if (raw == null || raw === '') return;
+                const n = parseInt(raw, 10);
+                if (!Number.isNaN(n)) {
+                    changes[itemId][key] = n;
+                    updated = true;
+                }
+            });
+
+            if (updated) sessionStorage.setItem(key, JSON.stringify(changes));
         } catch { }
     }
-    document.addEventListener('DOMContentLoaded', saveItemDetailViewsToListingChanges);
+    document.addEventListener('DOMContentLoaded', () => {
+        saveItemDetailCountersToListingChanges();
+        if (window.applyListingChanges) window.applyListingChanges();
+    });
 
     /* =====================================================
        1) SAVE LISTING STATE ON CARD CLICK
@@ -749,10 +756,16 @@
     function humanCount(n) {
         n = Number(n);
         if (isNaN(n) || n < 0) return '0';
+        n = Math.floor(n);
         if (n < 1000) return String(n);
-        if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
-        if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
-        if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+        const _u = [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']];
+        for (let _i = 0; _i < _u.length; _i++) {
+            if (n >= _u[_i][0]) {
+                const r = n / _u[_i][0];
+                if (r >= 10) return String(Math.floor(r)) + _u[_i][1];
+                return (Math.floor(r * 10) / 10).toFixed(1).replace(/\.0$/, '') + _u[_i][1];
+            }
+        }
         return String(n);
     }
 
@@ -768,24 +781,52 @@
         if (!changes || Object.keys(changes).length === 0) return;
 
         const currentUserId = (document.body.dataset.userId || '').toString();
+        const onItemDetail = document.body.classList.contains('page-item-detail');
+        const detailItemId = (document.body.dataset.itemId || '').toString();
 
         Object.entries(changes).forEach(([itemId, data]) => {
+            const skipDetailDom = onItemDetail && detailItemId && String(itemId) === detailItemId;
             const dataUserId = data.user_id != null ? String(data.user_id) : null;
             const isSameUser = dataUserId !== null && dataUserId === currentUserId;
 
             if (data.likes_count != null) {
                 const n = document.getElementById('likes-count-' + itemId);
                 if (n) n.textContent = humanCount(data.likes_count);
+                if (!skipDetailDom) {
+                    const detail = document.getElementById('likesCount');
+                    if (detail) detail.textContent = humanCount(data.likes_count);
+                }
             }
 
             if (data.comments_count != null) {
+                const txt = humanCount(data.comments_count);
                 const n = document.getElementById('comments-count-' + itemId);
-                if (n) n.textContent = humanCount(data.comments_count);
+                if (n) n.textContent = txt;
+                if (!skipDetailDom) {
+                    const detail = document.getElementById('commentsCount');
+                    if (detail) detail.textContent = txt;
+                    document.querySelectorAll('.js-item-detail-comments-count').forEach((node) => {
+                        node.textContent = txt;
+                    });
+                }
             }
 
             if (data.views_count != null) {
                 const n = document.getElementById('views-count-' + itemId);
                 if (n) n.textContent = humanCount(data.views_count);
+                if (!skipDetailDom) {
+                    const detail = document.getElementById('viewsCount');
+                    if (detail) detail.textContent = humanCount(data.views_count);
+                }
+            }
+
+            if (data.bookmarks_count != null) {
+                const n = document.getElementById('bookmarks-count-' + itemId);
+                if (n) n.textContent = humanCount(data.bookmarks_count);
+                if (!skipDetailDom) {
+                    const detail = document.getElementById('bookmarksCount');
+                    if (detail) detail.textContent = humanCount(data.bookmarks_count);
+                }
             }
 
             if (data.reposts_count != null) {
@@ -801,11 +842,13 @@
                 }
                 const cardRb = document.getElementById('reading-badge-' + itemId);
                 if (cardRb) cardRb.hidden = !data.bookmarked;
+                /* item_detail reading badge disabled
                 const bodyId = document.body.dataset.itemId;
                 if (bodyId != null && String(bodyId) === String(itemId)) {
                     const detailRb = document.getElementById('itemReadingBadge');
                     if (detailRb) detailRb.hidden = !data.bookmarked;
                 }
+                */
             }
 
             if (data.liked != null && isSameUser) {
@@ -1051,28 +1094,3 @@
 
 })();
 
-
-// static/js/item_views_sync.js
-(function () {
-    'use strict';
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const body = document.body;
-
-        const itemId = body.dataset.itemId;
-        const views = parseInt(body.dataset.viewsCount, 10);
-
-        if (!itemId || Number.isNaN(views)) return;
-
-        try {
-            const key = 'listing_changes';
-            const changes = JSON.parse(sessionStorage.getItem(key) || '{}');
-
-            // СОХРАНЯЕМ АКТУАЛЬНОЕ ЗНАЧЕНИЕ С СЕРВЕРА
-            changes[itemId] = changes[itemId] || {};
-            changes[itemId].views_count = views;
-
-            sessionStorage.setItem(key, JSON.stringify(changes));
-        } catch { }
-    });
-})();

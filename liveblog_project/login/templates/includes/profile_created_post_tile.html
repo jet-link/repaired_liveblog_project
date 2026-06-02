@@ -1,20 +1,15 @@
-{% comment %}Compact post tile: spans + gap; badge matches Topics / In trend (global .trending-badge).{% endcomment %}
-<article
-  class="topic-tile profile-created-post-tile card border-0 overflow-hidden h-100 trending-card trending-card--topic position-relative"
-  data-item-id="{{ item.pk }}"
->
+{% load category_cards %}
+{% comment %}Compact post tile: spans + gap; In trend badge matches trending-card-v2.{% endcomment %}
+{% category_card_theme item.category as cat_theme %}
+<article class="topic-tile profile-created-post-tile card border-0 overflow-hidden h-100 trending-card trending-card--topic position-relative" data-item-id="{{ item.pk }}">
   <div class="card-body d-flex flex-column py-4 profile-created-post-tile__body">
     <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap profile-created-post-tile__head">
       <h3 class="h6 mb-0 trending-card__title text-truncate flex-grow-1 min-w-0">{{ item.title }}</h3>
       {% if trending_item_ids and item.pk in trending_item_ids %}
-        <span class="badge trending-badge trending-badge--hot flex-shrink-0">In trend</span>
+        <span class="trending-card-v2__badge flex-shrink-0">In trend</span>
       {% endif %}
     </div>
     <div class="d-flex flex-column flex-grow-1 min-w-0 profile-created-post-tile__meta">
-      <time class="profile-created-post-tile__line brain-card__time" datetime="{{ item.published_date|date:'c' }}">
-        <i class="fa fa-clock-o me-2" aria-hidden="true"></i>
-        {{ item.human_published }}
-      </time>
       <div class="profile-created-post-tile__line profile-created-post-tile__stats brain-card__stats">
         <span class="brain-card__stat" title="Views">
           <i class="fa fa-eye" aria-hidden="true"></i>
@@ -24,19 +19,26 @@
           <i class="fa fa-heart" aria-hidden="true"></i>
           <span>{{ item.likes_count_human }}</span>
         </span>
-        <span class="brain-card__stat" title="Comments">
-          <i class="fa fa-comment" aria-hidden="true"></i>
-          <span>{{ item.comments_count_human }}</span>
+        <span class="brain-card__stat" title="Reposts">
+          <i class="fa fa-retweet" aria-hidden="true"></i>
+          <span id="reposts-count-{{ item.pk }}">{{ item.reposts_count_human }}</span>
         </span>
         <span class="brain-card__stat" title="Bookmarks">
           <i class="fa fa-bookmark" aria-hidden="true"></i>
           <span>{{ item.bookmarks_count_human }}</span>
         </span>
       </div>
-      <span class="profile-created-post-tile__line profile-created-post-tile__footer text-truncate topic-tile__latest mt-auto" title="{% if item.category %}{{ item.category.name }}{% else %}No category{% endif %}">
-        <span class="text-muted">Topic:</span>
-        <span class="text-muted fw-semibold">{% if item.category %}{{ item.category.name }}{% else %}No category{% endif %}</span>
-      </span>
+      <div class="d-flex justify-content-between align-items-center">
+        <time class="profile-created-post-tile__line brain-card__time" datetime="{{ item.published_date|date:'c' }}">
+          <i class="fa fa-clock-o me-1" aria-hidden="true"></i>
+          {{ item.human_published }}
+        </time>
+        {% if item.category %}
+          <span class="brain-card__category brain-card__category--{{ cat_theme.slug }} flex-shrink-0">{{ item.category.name }}</span>
+        {% else %}
+          <span class="brain-card__category brain-card__category--default flex-shrink-0">No category</span>
+        {% endif %}
+      </div>
     </div>
   </div>
   {% if listing_source == 'profile' and listing_user and listing_section %}

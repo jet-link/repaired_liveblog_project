@@ -96,6 +96,44 @@ def post_counters(request, post_id):
     })
 
 
+@ratelimit(key='ip', rate=settings.RATELIMIT_ITEM_COUNTERS_RATE, method='GET', block=False)
+def posts_counters_bulk(request):
+    """Live counters for many posts at once (keeps cards and item_detail in sync)."""
+    if getattr(request, 'limited', False):
+        return JsonResponse({'error': 'rate_limited'}, status=429)
+
+    raw_ids = (request.GET.get('ids') or '').strip()
+    ids = []
+    for chunk in raw_ids.split(','):
+        chunk = chunk.strip()
+        if chunk.isdigit():
+            ids.append(int(chunk))
+        if len(ids) >= 100:
+            break
+
+    if not ids:
+        return JsonResponse({"counters": {}})
+
+    items = (
+        Item.objects
+        .with_counters()
+        .filter(pk__in=ids, is_published=True)
+        .values('pk', 'views_count', 'likes_count', 'bookmarks_count', 'reposts_count', 'comments_count')
+    )
+
+    counters = {
+        str(it['pk']): {
+            "views": it['views_count'],
+            "likes": it['likes_count'],
+            "bookmarks": it['bookmarks_count'],
+            "reposts": it['reposts_count'],
+            "comments": it['comments_count'],
+        }
+        for it in items
+    }
+    return JsonResponse({"counters": counters})
+
+
 def _get_client_ip(request):
     xff = request.META.get('HTTP_X_FORWARDED_FOR')
     if xff:

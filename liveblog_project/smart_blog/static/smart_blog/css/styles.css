@@ -6169,35 +6169,21 @@ html[data-theme="dark"] .report-reason-btn.is-selected {
     border-radius: 8px;
 }
 
-/* Item detail: category + “I’m reading” + VLB — align-items center, scroll-x when overflow */
-.item-detail-meta-row {
-    min-width: 0;
-    width: 100%;
-}
-
-.item-detail-meta-row__track {
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    min-width: 0;
-    /* padding-bottom: 6px; */
-    margin-bottom: -4px;
-}
-
-.item-detail-meta-row__cluster {
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 0.75rem;
-    min-width: 100%;
-    box-sizing: border-box;
-    justify-content: space-between;
-}
-
+/* Item detail: category left, stats right (justify-content-between on row) */
 .item-detail-meta-row__badges,
 .item-detail-meta-row .VLB {
     align-self: center;
+}
+
+/* Override feed card rule: width 100% prevents stats from sitting on the right */
+.page-item-detail .item-detail-meta-row .item-detail-meta-stats.brain-card__stats {
+    width: auto;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    margin-top: 0;
+    padding-top: 0;
+    flex-wrap: nowrap;
+    gap: 1rem;
 }
 
 /* Post detail: Tags label fixed; tag chips scroll in sibling (scrollbar below chips) */
@@ -7701,7 +7687,7 @@ html[data-theme="dark"] .topic-tile--in-trend:hover {
 }
 
 .profile-created-post-tile__meta {
-    gap: 10px;
+    gap: 2rem;
     font-size: 0.8rem; /* ~0.7–0.8rem band */
     line-height: 1.35;
 }

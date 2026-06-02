@@ -5,10 +5,16 @@
   function humanCount(n) {
     n = Number(n);
     if (isNaN(n) || n < 0) return '0';
+    n = Math.floor(n);
     if (n < 1000) return String(n);
-    if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
-    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
-    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    const _u = [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']];
+    for (let _i = 0; _i < _u.length; _i++) {
+      if (n >= _u[_i][0]) {
+        const r = n / _u[_i][0];
+        if (r >= 10) return String(Math.floor(r)) + _u[_i][1];
+        return (Math.floor(r * 10) / 10).toFixed(1).replace(/\.0$/, '') + _u[_i][1];
+      }
+    }
     return String(n);
   }
 
@@ -118,6 +124,22 @@
 (function () {
   'use strict';
 
+  function humanCount(n) {
+    n = Number(n);
+    if (isNaN(n) || n < 0) return '0';
+    n = Math.floor(n);
+    if (n < 1000) return String(n);
+    const _u = [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']];
+    for (let _i = 0; _i < _u.length; _i++) {
+      if (n >= _u[_i][0]) {
+        const r = n / _u[_i][0];
+        if (r >= 10) return String(Math.floor(r)) + _u[_i][1];
+        return (Math.floor(r * 10) / 10).toFixed(1).replace(/\.0$/, '') + _u[_i][1];
+      }
+    }
+    return String(n);
+  }
+
   function getCookie(name) {
     return document.cookie
       .split('; ')
@@ -130,11 +152,13 @@
       const cardBadge = document.getElementById('reading-badge-' + itemId);
       if (cardBadge) cardBadge.hidden = !visible;
     }
+    /* item_detail "I'll read it" badge disabled — see item_detail.html
     const bodyId = document.body.dataset.itemId;
     if (bodyId != null && String(bodyId) === String(itemId)) {
       const detailBadge = document.getElementById('itemReadingBadge');
       if (detailBadge) detailBadge.hidden = !visible;
     }
+    */
   }
 
   document.addEventListener('click', async function (e) {
@@ -210,6 +234,15 @@
         try { localStorage.setItem('brainews_filter_refresh_needed', '1'); } catch (e) { }
         try { document.dispatchEvent(new CustomEvent('brainews-filter-refresh')); } catch (e) { }
       } catch { }
+
+      const detailBookmarks = document.getElementById('bookmarksCount');
+      if (detailBookmarks && data.bookmarks_count != null) {
+        detailBookmarks.textContent = humanCount(data.bookmarks_count);
+      }
+      const cardBookmarks = document.getElementById('bookmarks-count-' + itemId);
+      if (cardBookmarks && data.bookmarks_count != null) {
+        cardBookmarks.textContent = humanCount(data.bookmarks_count);
+      }
 
     } catch (err) {
       setReadingBadgeForItem(itemId, wasBookmarked);

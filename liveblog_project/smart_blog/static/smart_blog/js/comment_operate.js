@@ -70,10 +70,17 @@
   =============================== */
   function humanCount(n) {
     n = Number(n);
+    if (isNaN(n) || n < 0) return '0';
+    n = Math.floor(n);
     if (n < 1000) return String(n);
-    if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
-    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
-    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    const _u = [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']];
+    for (let _i = 0; _i < _u.length; _i++) {
+      if (n >= _u[_i][0]) {
+        const r = n / _u[_i][0];
+        if (r >= 10) return String(Math.floor(r)) + _u[_i][1];
+        return (Math.floor(r * 10) / 10).toFixed(1).replace(/\.0$/, '') + _u[_i][1];
+      }
+    }
     return String(n);
   }
 

@@ -9,6 +9,8 @@
   {{ item.title }}
 {% endblock %}
 {% block content %}
+  {% load category_cards %}
+  {% category_card_theme item.category as cat_theme %}
   <div class="container-main content_block">
     <div id="commentsContext" class="d-none" data-item-slug="{{ item.slug }}"></div>
     {% include 'includes/breadcrumbs.html' %}
@@ -38,46 +40,48 @@
         </div>
       </div>
     </div>
-    <div class="item-detail-meta-row mt-3">
-      <div class="item-detail-meta-row__track">
-        <div class="item-detail-meta-row__cluster">
+    <div class="item-detail-meta-row mt-3 d-flex justify-content-between align-items-center flex-nowrap w-100 min-w-0">
           {% if item.category %}
             <div class="item-detail-meta-row__badges d-inline-flex align-items-center gap-1 flex-nowrap flex-shrink-0">
-              <span class="item-category-badge" title="Category">{{ item.category.name }}</span>
+              <span class="brain-card__category brain-card__category--{{ cat_theme.slug }}">{{ item.category.name }}</span>
+              {% comment %}Reading badge disabled — bookmark no longer shows "I'll read it".
               {% if user.is_authenticated %}
                 {% if not item.author_id or user.id != item.author_id %}
                   <span id="itemReadingBadge" class="item-reading-badge"{% if not user_bookmarked %} hidden{% endif %}>I'll read it</span>
                 {% endif %}
               {% endif %}
+              {% endcomment %}
             </div>
           {% else %}
             <div class="item-detail-meta-row__badges d-inline-flex align-items-center gap-1 flex-nowrap flex-shrink-0">
-              <small class="primary_ fw-semibold">No category</small>
+              <span class="brain-card__category brain-card__category--default">No category</span>
+              {% comment %}Reading badge disabled — bookmark no longer shows "I'm reading".
               {% if user.is_authenticated %}
                 {% if not item.author_id or user.id != item.author_id %}
                   <span id="itemReadingBadge" class="item-reading-badge"{% if not user_bookmarked %} hidden{% endif %}>I'm reading</span>
                 {% endif %}
               {% endif %}
+              {% endcomment %}
             </div>
           {% endif %}
-          <div class="d-flex align-items-center VLB flex-shrink-0">
-            <div class="item-stats item-stats--feed d-inline-flex align-items-center flex-nowrap">
-              <div class="stat stat--views">
-                <span id="viewsCount">{{ item.views_count|human }}</span>
-                <i class="fa fa-eye" aria-hidden="true"></i>
-              </div>
-              <div class="stat stat--likes">
-                <span id="likesCount">{{ item.likes_count|human }}</span>
-                <i class="fa fa-heart" aria-hidden="true"></i>
-              </div>
-              <div class="stat stat--reposts">
-                <span id="repostCount">{{ item.reposts_count|human }}</span>
-                <i class="fa fa-retweet" aria-hidden="true"></i>
-              </div>
-            </div>
+          <div class="brain-card__stats item-detail-meta-stats flex-shrink-0" role="group" aria-label="Post statistics">
+            <span class="brain-card__stat" title="Views">
+              <i class="fa fa-eye" aria-hidden="true"></i>
+              <span id="viewsCount">{{ item.views_count|human }}</span>
+            </span>
+            <span class="brain-card__stat" title="Likes">
+              <i class="fa fa-heart" aria-hidden="true"></i>
+              <span id="likesCount">{{ item.likes_count|human }}</span>
+            </span>
+            <span class="brain-card__stat" title="Reposts">
+              <i class="fa fa-retweet" aria-hidden="true"></i>
+              <span id="repostCount">{{ item.reposts_count|human }}</span>
+            </span>
+            <span class="brain-card__stat" title="Bookmarks">
+              <i class="fa fa-bookmark" aria-hidden="true"></i>
+              <span id="bookmarksCount">{{ item.bookmarks_count|human }}</span>
+            </span>
           </div>
-        </div>
-      </div>
     </div>
 
     <hr />

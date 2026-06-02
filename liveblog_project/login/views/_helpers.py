@@ -162,6 +162,7 @@ def apply_human_counts(items):
         item.likes_count_human = count_convert(item.likes_count)
         item.bookmarks_count_human = count_convert(item.bookmarks_count)
         item.comments_count_human = count_convert(item.comments_count)
+        item.reposts_count_human = count_convert(item.reposts_count)
 
 
 def _vanished_items_qs():

@@ -95,6 +95,7 @@ blog_urlpatterns = [
     path("report/comment/<int:pk>/", views_reports.report_comment, name="report_comment"),
     path("report/<int:pk>/delete/", views_reports.cancel_report, name="cancel_report"),
     path("api/post/<int:post_id>/counters/", views.post_counters, name="post_counters"),
+    path("api/posts/counters/", views.posts_counters_bulk, name="posts_counters_bulk"),
     path("api/repost/", views.api_repost, name="api_repost"),
     path("api/search-suggest/", views.api_search_suggest, name="api_search_suggest"),
     path("api/search-history/", views.api_search_history_list, name="api_search_history_list"),

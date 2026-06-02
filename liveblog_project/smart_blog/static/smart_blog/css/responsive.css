@@ -315,18 +315,9 @@
         row-gap: 6px;
     }
 
-    .item-detail-meta-row .VLB .item-stats {
+    .item-detail-meta-row .VLB .item-stats,
+    .item-detail-meta-row .item-detail-meta-stats {
         flex-wrap: nowrap;
-    }
-
-    .item-detail-meta-row__track {
-        scrollbar-width: none;
-    }
-
-    .item-detail-meta-row__track::-webkit-scrollbar {
-        display: none;
-        width: 0;
-        height: 0;
     }
 
     .VLB .item-stats .stat {

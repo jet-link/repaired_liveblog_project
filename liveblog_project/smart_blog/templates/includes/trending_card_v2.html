@@ -28,9 +28,9 @@
           <i class="fa fa-heart" aria-hidden="true"></i>
           <span class="trending-val">{{ item.likes_count|human }}</span>
         </span>
-        <span data-metric="comments_24h" class="trending-metric trending-card-v2__metric" title="Comments in 24h">
-          <i class="fa fa-comment" aria-hidden="true"></i>
-          <span class="trending-val">{{ t.comments_24h|human }}</span>
+        <span data-metric="total_reposts_h" class="trending-metric trending-card-v2__metric" title="Total reposts">
+          <i class="fa fa-retweet" aria-hidden="true"></i>
+          <span class="trending-val">{{ item.reposts_count|human }}</span>
         </span>
         <span data-metric="total_bookmarks_h" class="trending-metric trending-card-v2__metric" title="Total bookmarks">
           <i class="fa fa-bookmark" aria-hidden="true"></i>

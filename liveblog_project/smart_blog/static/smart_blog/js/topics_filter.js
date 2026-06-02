@@ -26,7 +26,18 @@
     return btn.getAttribute('data-category-slug') || null;
   }
 
-  var TOPICS_LIST_FILTER_KEY = 'topics_list_chip_filter';
+  var TOPICS_LIST_FILTER_KEY =
+    (window.TopicsFilterScope && window.TopicsFilterScope.key) || 'topics_list_chip_filter';
+
+  function topicsPathKind(pathname) {
+    if (window.TopicsFilterScope && window.TopicsFilterScope.pathKind) {
+      return window.TopicsFilterScope.pathKind(pathname);
+    }
+    var p = (pathname || '').replace(/\/+$/, '') || '/';
+    if (p === '/topics') return 'list';
+    if (/^\/topics\/[^/]+$/.test(p)) return 'detail';
+    return null;
+  }
 
   function persistTopicsListChip(slug) {
     try {
@@ -41,7 +52,7 @@
     try {
       stored = sessionStorage.getItem(TOPICS_LIST_FILTER_KEY);
     } catch (e) { return; }
-    if (!stored) return;
+    if (!stored || stored === 'all') return;
     applyFilter(stored);
   }
 
@@ -206,6 +217,7 @@
   document.addEventListener('click', onClick, { capture: optsCapture });
 
   function scheduleInitTopicsFilterFromStorage() {
+    if (!topicsPathKind(window.location.pathname)) return;
     requestAnimationFrame(function () {
       requestAnimationFrame(initTopicsListFilterFromStorage);
     });

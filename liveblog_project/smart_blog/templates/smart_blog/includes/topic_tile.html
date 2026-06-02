@@ -9,7 +9,7 @@
     <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
       <span class="trending-card__category text-truncate">{{ topic.name }}</span>
       {% if topic.pk in trending_category_ids %}
-        <span class="badge trending-badge trending-badge--hot flex-shrink-0">In trend</span>
+        <span class="trending-card-v2__badge flex-shrink-0">In trend</span>
       {% endif %}
     </div>
     <hr class="text-muted" />

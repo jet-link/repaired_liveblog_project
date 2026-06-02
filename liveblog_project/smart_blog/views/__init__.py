@@ -42,6 +42,7 @@ from smart_blog.views.interaction_views import (  # noqa: F401
     toggle_like,
     toggle_bookmark,
     post_counters,
+    posts_counters_bulk,
     api_repost,
 )
 
