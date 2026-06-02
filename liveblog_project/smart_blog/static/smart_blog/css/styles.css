@@ -5112,7 +5112,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
 .comment-actions-bar__likes {
     display: inline-flex;
     align-items: center;
-    gap: .3rem;
+    gap: .5rem;
 }
 
 .comment-actions-bar__like-btn {
@@ -5128,7 +5128,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
 }
 
 .comment-actions-bar__like-count {
-    font-size: 0.78rem;
+    font-size: 0.875rem;
     color: var(--text-muted-alt, #747d8c);
     min-width: 0.6em;
     display: inline-flex;
@@ -5140,7 +5140,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
     display: inline-flex;
     align-items: center;
     color: var(--text-muted-alt, #747d8c);
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1;
 }
 
