@@ -1,10 +1,12 @@
 {% load static %}
 <aside class="admin-sidebar" id="adminSidebar" role="navigation" aria-label="Admin navigation" data-turbo-permanent>
     <div class="admin-sidebar-brand">
-        <a href="{% url 'admin_panel:dashboard' %}" class="admin-brand-minimal admin-sidebar-brand-link">
-            <img src="{% static 'admin/favicon-cube.svg' %}?v=7" alt="" class="admin-sidebar-logo" width="24" height="24">
-            <span class="admin-sidebar-brand-text">Admin panel</span>
-        </a>
+        <div class="admin-sidebar-brand-row">
+            <a href="{% url 'admin_panel:dashboard' %}" class="admin-brand-minimal admin-sidebar-brand-link">
+                <img src="{% static 'admin/favicon-cube.svg' %}?v=7" alt="" class="admin-sidebar-logo" width="24" height="24">
+                <span class="admin-sidebar-brand-text">Admin panel</span>
+            </a>
+        </div>
         <button type="button" class="admin-sidebar-close" id="adminSidebarClose"
             aria-label="Close menu">&times;</button>
     </div>

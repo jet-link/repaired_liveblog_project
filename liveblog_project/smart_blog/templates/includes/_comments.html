@@ -80,7 +80,7 @@
                 <i id="comment-like-icon-{{ comment.pk }}" class="fa fa-{{ comment.user_liked|yesno:'thumbs-up,thumbs-o-up' }}"></i>
               </button>
             {% else %}
-              <span class="comment-actions-bar__like-guest-icon" title="Likes"><i class="fa fa-thumbs-up" aria-hidden="true"></i></span>
+              <span class="comment-actions-bar__like-guest-icon" title="Likes"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i></span>
             {% endif %}
             <span id="comment-likes-count-{{ comment.pk }}" class="comment-actions-bar__like-count fw-semibold"{% if not user.is_authenticated or not user.is_active %} aria-hidden="true"{% endif %}>{{ comment.likes_count|default:comment.likes.count }}</span>
           </span>

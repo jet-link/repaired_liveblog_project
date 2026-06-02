@@ -5101,7 +5101,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
     flex-wrap: wrap;
     align-items: center;
     gap: 0.35rem;
-    margin-top: 0.4rem;
+    margin-top: 0.7rem;
     /* padding-top: 0.15rem; */
 }
 
@@ -5112,26 +5112,7 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions .comment-men
 .comment-actions-bar__likes {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-}
-
-/* Guest / inactive users: green stat--reposts badge */
-.comment-actions-bar__likes[role="group"] {
-    gap: 0.35rem;
-    padding: 0.32rem 0.55rem;
-    border-radius: var(--radius-md);
-    border: 1px solid color-mix(in srgb, #14b8a6 45%, var(--border-default));
-    background: color-mix(in srgb, #14b8a6 14%, var(--card-bg));
-    color: #0f766e;
-    font-size: 0.8rem;
-    font-weight: 600;
-    line-height: 1.2;
-}
-
-html[data-theme="dark"] .comment-actions-bar__likes[role="group"] {
-    color: #5eead4;
-    border-color: color-mix(in srgb, #2dd4bf 38%, var(--border-default));
-    background: color-mix(in srgb, #2dd4bf 14%, var(--card-bg));
+    gap: .3rem;
 }
 
 .comment-actions-bar__like-btn {
@@ -5159,29 +5140,13 @@ html[data-theme="dark"] .comment-actions-bar__likes[role="group"] {
     display: inline-flex;
     align-items: center;
     color: var(--text-muted-alt, #747d8c);
-    font-size: 0.82rem;
+    font-size: 0.9rem;
     line-height: 1;
-    margin-right: 0.02rem;
 }
 
 .comment-actions-bar__like-guest-icon i {
-    opacity: 0.88;
     line-height: 1;
     display: block;
-}
-
-.comment-actions-bar__likes[role="group"] .comment-actions-bar__like-guest-icon,
-.comment-actions-bar__likes[role="group"] .comment-actions-bar__like-count {
-    color: inherit;
-    font-size: inherit;
-    opacity: 1;
-    margin: 0;
-}
-
-.comment-actions-bar__likes[role="group"] .comment-actions-bar__like-guest-icon i,
-.comment-actions-bar__likes[role="group"] .comment-actions-bar__like-guest-icon .fa {
-    color: inherit;
-    opacity: 1;
 }
 
 .comment-actions-bar__date {

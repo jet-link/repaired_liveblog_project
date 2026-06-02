@@ -7,7 +7,7 @@
   <div class="container-main content_block" data-brainews-listing data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}" data-search-history-url="{% url 'smart_blog:api_search_history_list' %}" data-search-history-clicked-pattern="{% url 'smart_blog:api_search_history_clicked' pk=999999 %}" data-search-history-clear-url="{% url 'smart_blog:api_search_history_clear' %}" data-search-history-delete-pattern="{% url 'smart_blog:api_search_history_delete' pk=999999 %}">
     {% if page_obj.paginator.count %}
     <div class="listing-filter-sticky-scope">
-      <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center justify-content-between">
         <h4 id="brainewsListingTitle" class="text-muted m-0 d-none" aria-hidden="true">brainstorm.news</h4>
       </div>
       {% if user.is_authenticated %}

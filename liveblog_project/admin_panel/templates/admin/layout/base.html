@@ -1,78 +1,107 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% block title %}Admin{% endblock %} | brainstorm.news</title>
-    <link rel="icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}?v=7">
-    <link rel="shortcut icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}?v=7">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+    <title>
+      {% block title %}
+        Admin
+      {% endblock %}| brainstorm.news
+    </title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}?v=7" />
+    <link rel="shortcut icon" type="image/svg+xml" href="{% static 'admin/favicon-cube.svg' %}?v=7" />
     <!-- Fonts (same as smart_blog) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'admin/css/admin.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="{% static 'admin/css/admin.css' %}" />
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017-umd.js" crossorigin="anonymous"></script>
     <script>
-      (function(){var t=localStorage.getItem('admin_theme');function d(){try{return window.matchMedia('(prefers-color-scheme: dark)').matches;}catch(e){return true;}}if(t==='light')document.documentElement.setAttribute('data-theme','light');else if(t==='auto'){if(d())document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme','light');}else document.documentElement.removeAttribute('data-theme');if(window.innerWidth>=993&&localStorage.getItem('admin_sidebar_collapsed')==='1')document.documentElement.classList.add('admin-sidebar-collapsed');})();
+      ;(function () {
+        var t = localStorage.getItem('admin_theme')
+        function d() {
+          try {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches
+          } catch (e) {
+            return true
+          }
+        }
+        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light')
+        else if (t === 'auto') {
+          if (d()) document.documentElement.removeAttribute('data-theme')
+          else document.documentElement.setAttribute('data-theme', 'light')
+        } else document.documentElement.removeAttribute('data-theme')
+        if (window.innerWidth >= 993 && localStorage.getItem('admin_sidebar_collapsed') === '1') document.documentElement.classList.add('admin-sidebar-collapsed')
+      })()
     </script>
-    {% block extra_css %}{% endblock %}
-    {% block extra_head %}{% endblock %}
-</head>
-<body class="admin-body" data-spellcheck-lang="{{ spellcheck_lang|default:'en' }}">
+    {% block extra_css %}
+
+    {% endblock %}
+    {% block extra_head %}
+
+    {% endblock %}
+  </head>
+  <body class="admin-body" data-spellcheck-lang="{{ spellcheck_lang|default:'en' }}">
     <div class="admin-layout">
-        {% include 'admin/layout/sidebar.html' %}
-        <div class="admin-main">
-            <header class="admin-header">
-                <div class="admin-header-left">
-                    <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
-                    <!--
-                    <h1 class="admin-page-title">{% block page_title %}<span class="admin-header-brand-full">brainstorm.news</span><span class="admin-header-brand-short">bstrm.news</span>{% endblock %}</h1>
-                    -->
-                    <span class="admin-online-badge"><i class="fa-solid fa-user" aria-hidden="true"></i> Now online: {{ admin_online_count|default:0 }}</span>
-                </div>
-                <div class="admin-header-right">
-                    <button type="button" class="admin-theme-toggle" id="adminThemeToggle" aria-label="Theme" title="Theme">
-                      <span class="admin-theme-face admin-theme-face--sun" aria-hidden="true"><i class="fa-regular fa-sun"></i></span>
-                      <span class="admin-theme-face admin-theme-face--moon" aria-hidden="true"><i class="fa-regular fa-moon"></i></span>
-                      <span class="admin-theme-face admin-theme-face--auto" aria-hidden="true">A</span>
-                    </button>
-                    <a href="{% url 'login_app:profile' username=request.user.username %}" class="admin-button admin-button-sm admin-header-go-site">Go to site</a>
-                    <div class="comment-menu comment-menu--actions-bar admin-header-overflow-menu" id="adminHeaderOverflowMenu">
-                        <button type="button" class="comment-menu-btn overflow-more-btn" aria-label="More actions" aria-expanded="false" aria-haspopup="true">
-                            <span class="overflow-more-btn__dots" aria-hidden="true">
-                                <span class="overflow-more-btn__dot"></span>
-                                <span class="overflow-more-btn__dot"></span>
-                                <span class="overflow-more-btn__dot"></span>
-                            </span>
-                        </button>
-                        <div class="comment-actions" role="menu">
-                            <a href="{% url 'login_app:profile' username=request.user.username %}" class="comment-menu-action text-decoration-none" role="menuitem">
-                                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Go to site</span>
-                            </a>
-                            <button type="button" class="comment-menu-action admin-signout-trigger" role="menuitem" id="adminHeaderOverflowLogoutBtn" title="Logout">
-                                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Logout</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-            {% block breadcrumbs %}<nav class="admin-breadcrumbs" aria-label="Breadcrumb"><ol class="admin-breadcrumbs-list"><li class="admin-breadcrumbs-item"><a href="{% url 'admin_panel:dashboard' %}">Dashboard</a></li></ol></nav>{% endblock %}
-            <main class="admin-content">
-                {% if messages %}
-                <div class="admin-messages">
-                    {% for message in messages %}
-                    <div class="admin-alert admin-alert-{{ message.tags }}">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-                {% block content %}{% endblock %}
-            </main>
-        </div>
+      {% include 'admin/layout/sidebar.html' %}
+      <div class="admin-main">
+        <header class="admin-header">
+          <div class="admin-header-left">
+            <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Open menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+
+            <div class="admin-online-status" role="status" aria-label="Online users: {{ admin_online_count|default:0 }}">
+              <span class="admin-online-status__dot" aria-hidden="true"></span>
+              <span class="admin-online-status__label">ONLINE</span>
+              <span class="admin-online-status__count">{{ admin_online_count|default:0 }}</span>
+            </div>
+          </div>
+          <div class="admin-header-right">
+            <button type="button" class="admin-theme-toggle" id="adminThemeToggle" aria-label="Theme" title="Theme">
+              <span class="admin-theme-face admin-theme-face--sun" aria-hidden="true"><i class="fa-regular fa-sun"></i></span>
+              <span class="admin-theme-face admin-theme-face--moon" aria-hidden="true"><i class="fa-regular fa-moon"></i></span>
+              <span class="admin-theme-face admin-theme-face--auto" aria-hidden="true">A</span>
+            </button>
+            <a href="{% url 'login_app:profile' username=request.user.username %}" class="admin-button admin-button-sm admin-header-go-site">Go to site</a>
+            <div class="comment-menu comment-menu--actions-bar admin-header-overflow-menu" id="adminHeaderOverflowMenu">
+              <button type="button" class="comment-menu-btn overflow-more-btn" aria-label="More actions" aria-expanded="false" aria-haspopup="true">
+                <span class="overflow-more-btn__dots" aria-hidden="true">
+                  <span class="overflow-more-btn__dot"></span>
+                  <span class="overflow-more-btn__dot"></span>
+                  <span class="overflow-more-btn__dot"></span>
+                </span>
+              </button>
+              <div class="comment-actions" role="menu">
+                <a href="{% url 'login_app:profile' username=request.user.username %}" class="comment-menu-action text-decoration-none" role="menuitem"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Go to site</span></a>
+                <button type="button" class="comment-menu-action admin-signout-trigger" role="menuitem" id="adminHeaderOverflowLogoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Logout</span></button>
+              </div>
+            </div>
+          </div>
+        </header>
+        {% block breadcrumbs %}
+          <nav class="admin-breadcrumbs" aria-label="Breadcrumb">
+            <ol class="admin-breadcrumbs-list">
+              <li class="admin-breadcrumbs-item">
+                <a href="{% url 'admin_panel:dashboard' %}">Dashboard</a>
+              </li>
+            </ol>
+          </nav>
+        {% endblock %}
+        <main class="admin-content">
+          {% if messages %}
+            <div class="admin-messages">
+              {% for message in messages %}
+                <div class="admin-alert admin-alert-{{ message.tags }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% block content %}
+
+          {% endblock %}
+        </main>
+      </div>
     </div>
     <div class="admin-sidebar-overlay" id="adminSidebarOverlay" aria-hidden="true"></div>
     <!-- Bulk delete confirmation modal -->
@@ -104,14 +133,18 @@
         </div>
       </div>
     </div>
-    {% block admin_modals %}{% endblock %}
+    {% block admin_modals %}
+
+    {% endblock %}
     <script>
-      window.ADMIN_CSRF_TOKEN = "{{ csrf_token }}";
+      window.ADMIN_CSRF_TOKEN = '{{ csrf_token }}'
     </script>
     <script src="{% static 'js/spellcheck.js' %}"></script>
     <script src="{% static 'admin/js/admin.js' %}"></script>
     <script src="{% static 'admin/js/admin_toolbar_filters.js' %}"></script>
     <script src="{% static 'admin/js/admin_table_bulk.js' %}"></script>
-    {% block extra_js %}{% endblock %}
-</body>
+    {% block extra_js %}
+
+    {% endblock %}
+  </body>
 </html>

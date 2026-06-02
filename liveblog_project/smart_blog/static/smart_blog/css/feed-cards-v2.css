@@ -180,7 +180,7 @@ html[data-theme="dark"] .brain-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+    background: linear-gradient(145deg, #d5dbe0 0%, #b2bec3 52%, #9ca8af 100%);
 }
 
 .brain-card__placeholder-icon {
@@ -190,8 +190,8 @@ html[data-theme="dark"] .brain-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.22);
-    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.5);
+    color: #636e72;
     font-size: 1.2rem;
 }
 

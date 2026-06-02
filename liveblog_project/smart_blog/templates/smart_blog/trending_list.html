@@ -7,12 +7,12 @@
 <div class="container-main content_block trending-page trending-page-v2"
      id="trendingPageRoot"
      data-trending-api-url="{{ trending_api_url|escape }}">
-  <header class="trending-page-v2__header">
+  {% comment %} <header class="trending-page-v2__header">
     <h4 id="trending-hot-heading" class="trending-page-v2__title">
       <i class="fa fa-fire me-3" aria-hidden="true"></i> In trend
     </h4>
     <span class="trending-page-v2__live" id="trendingPollStatus" aria-live="polite">Live &bull; {% now "H:i" %}</span>
-  </header>
+  </header> {% endcomment %}
 
   {% if hot_rows %}
   <section class="trending-page-v2__section" id="trendingHotSection" aria-labelledby="trending-hot-heading">
