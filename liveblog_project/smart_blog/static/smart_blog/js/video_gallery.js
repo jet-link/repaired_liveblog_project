@@ -4,12 +4,47 @@
 
     var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+    function canUseGallerySwipe() {
+        return window.matchMedia('(max-width: 767.98px)').matches;
+    }
+
     var overlay = null;
     var plyrInstance = null;
     var currentSlides = [];
     var curIndex = 0;
+    var indicator = null;
+    var slideMs = typeof window.GALLERY_SLIDE_MS === 'number' ? window.GALLERY_SLIDE_MS : 7000;
 
     function qs(sel, ctx) { return (ctx || document).querySelector(sel); }
+
+    function wrapIndex(idx, n) {
+        if (n <= 0) return 0;
+        return ((idx % n) + n) % n;
+    }
+
+    function stopIndicatorProgress() {
+        if (indicator && typeof indicator.cancelProgress === 'function') {
+            indicator.cancelProgress();
+        }
+    }
+
+    function syncIndicator(direction) {
+        if (!indicator || !overlay) return;
+        var progressHost = qs('.gallery-progress-host', overlay);
+        if (!progressHost) return;
+        if (currentSlides.length <= 1) {
+            progressHost.hidden = true;
+            indicator.stop();
+            return;
+        }
+        progressHost.hidden = false;
+        indicator.update({
+            index: curIndex,
+            total: currentSlides.length,
+            direction: direction || 0
+        });
+        indicator.startProgress(slideMs);
+    }
 
     function ensureOverlay() {
         if (overlay) return;
@@ -20,41 +55,37 @@
             '<span class="video-gallery-close-btn__line"></span>' +
             '<span class="video-gallery-close-btn__line"></span>' +
             '</button>' +
-            '<div class="video-gallery-nav" role="group" aria-label="Video navigation">' +
-            '<button type="button" class="video-gallery-nav-btn video-gallery-nav-btn--prev" aria-label="Previous video">' +
-            '<svg class="video-gallery-nav-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">' +
-            '<path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>' +
-            '</svg></button>' +
-            '<button type="button" class="video-gallery-nav-btn video-gallery-nav-btn--next" aria-label="Next video">' +
-            '<svg class="video-gallery-nav-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">' +
-            '<path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>' +
-            '</svg></button>' +
-            '</div>' +
             '<div class="video-gallery-overlay-inner" role="dialog" aria-modal="true" aria-label="Video viewer">' +
             '<div class="video-gallery-player-wrap"></div>' +
-            '</div>';
+            '</div>' +
+            '<div class="gallery-progress-host" aria-live="polite"></div>';
         document.body.appendChild(overlay);
 
         var inner = qs('.video-gallery-overlay-inner', overlay);
         var closeBtn = qs('.video-gallery-close-btn', overlay);
-        var prevNavBtn = qs('.video-gallery-nav-btn--prev', overlay);
-        var nextNavBtn = qs('.video-gallery-nav-btn--next', overlay);
+        var progressHost = qs('.gallery-progress-host', overlay);
+
+        if (typeof window.GalleryProgressIndicator !== 'undefined' && progressHost) {
+            indicator = window.GalleryProgressIndicator.create(progressHost);
+            indicator.onAutoNext(function () {
+                if (currentSlides.length <= 1) return;
+                curIndex = wrapIndex(curIndex + 1, currentSlides.length);
+                showCurrent(1);
+            });
+            indicator.onSeek(function (targetIndex, dir) {
+                if (!currentSlides.length) return;
+                var nextIdx = wrapIndex(targetIndex, currentSlides.length);
+                if (nextIdx === curIndex) return;
+                stopIndicatorProgress();
+                curIndex = nextIdx;
+                showCurrent(dir);
+            });
+        }
 
         closeBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             hideOverlay();
-        });
-
-        prevNavBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            nav(-1);
-        });
-        nextNavBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            nav(1);
         });
 
         document.addEventListener('keydown', function (e) {
@@ -70,59 +101,51 @@
             }
         });
 
-        // Swipe between videos: desktop/tablet only; mobile uses bottom nav arrows
-        if (!isMobile) {
-            var touchStartX = 0;
-            var touchStartY = 0;
-            var isDragging = false;
-            var isVerticalScroll = false;
+        var touchStartX = 0;
+        var touchStartY = 0;
+        var isDragging = false;
+        var isVerticalScroll = false;
 
-            inner.addEventListener('touchstart', function (e) {
-                if (!e.changedTouches || !e.changedTouches.length) return;
-                if (e.target.closest && e.target.closest('.plyr__controls')) return;
-                touchStartX = e.changedTouches[0].clientX;
-                touchStartY = e.changedTouches[0].clientY;
-                isDragging = true;
-                isVerticalScroll = false;
-            }, { passive: true });
+        inner.addEventListener('wheel', function (e) {
+            if (canUseGallerySwipe()) return;
+            if (!overlay || !overlay.classList.contains('is-visible')) return;
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 8) {
+                e.preventDefault();
+            }
+        }, { passive: false });
 
-            inner.addEventListener('touchmove', function (e) {
-                if (!isDragging || !e.changedTouches || !e.changedTouches.length) return;
-                var dy = e.changedTouches[0].clientY - touchStartY;
-                var dx = e.changedTouches[0].clientX - touchStartX;
-                if (!isVerticalScroll && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
-                    isVerticalScroll = true;
-                }
-            }, { passive: true });
+        inner.addEventListener('touchstart', function (e) {
+            if (!canUseGallerySwipe()) return;
+            if (!e.changedTouches || !e.changedTouches.length) return;
+            if (e.target.closest && e.target.closest('.plyr__controls')) return;
+            touchStartX = e.changedTouches[0].clientX;
+            touchStartY = e.changedTouches[0].clientY;
+            isDragging = true;
+            isVerticalScroll = false;
+        }, { passive: true });
 
-            inner.addEventListener('touchend', function (e) {
-                if (!isDragging) return;
-                isDragging = false;
-                if (isVerticalScroll) return;
-                if (!e.changedTouches || !e.changedTouches.length) return;
-                var dx = e.changedTouches[0].clientX - touchStartX;
-                if (Math.abs(dx) < 55) return;
-                if (currentSlides.length <= 1) return;
-                if (dx < 0) nav(1);
-                else nav(-1);
-            }, { passive: true });
-        }
-    }
+        inner.addEventListener('touchmove', function (e) {
+            if (!canUseGallerySwipe()) return;
+            if (!isDragging || !e.changedTouches || !e.changedTouches.length) return;
+            var dy = e.changedTouches[0].clientY - touchStartY;
+            var dx = e.changedTouches[0].clientX - touchStartX;
+            if (!isVerticalScroll && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+                isVerticalScroll = true;
+            }
+        }, { passive: true });
 
-    function syncVideoGalleryNav() {
-        if (!overlay) return;
-        var navEl = qs('.video-gallery-nav', overlay);
-        var prevBtn = qs('.video-gallery-nav-btn--prev', overlay);
-        var nextBtn = qs('.video-gallery-nav-btn--next', overlay);
-        if (!navEl || !prevBtn || !nextBtn) return;
-        var n = currentSlides.length;
-        if (n <= 1) {
-            navEl.hidden = true;
-            return;
-        }
-        navEl.hidden = false;
-        prevBtn.hidden = curIndex === 0;
-        nextBtn.hidden = curIndex === n - 1;
+        inner.addEventListener('touchend', function (e) {
+            if (!canUseGallerySwipe()) return;
+            if (!isDragging) return;
+            isDragging = false;
+            if (isVerticalScroll) return;
+            if (!e.changedTouches || !e.changedTouches.length) return;
+            var dx = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(dx) < 55) return;
+            if (currentSlides.length <= 1) return;
+            if (dx < 0) nav(1);
+            else nav(-1);
+        }, { passive: true });
     }
 
     function destroyPlyr() {
@@ -218,7 +241,7 @@
         }
     }
 
-    function showCurrent() {
+    function showCurrent(direction) {
         var s = currentSlides[curIndex];
         if (!s) return;
 
@@ -241,17 +264,19 @@
         });
 
         createPlyr(videoEl, qualityOptions, hasMultipleQualities);
-        syncVideoGalleryNav();
+        syncIndicator(direction || 0);
     }
 
     function nav(dir) {
         if (currentSlides.length <= 1) return;
-        curIndex = (curIndex + dir + currentSlides.length) % currentSlides.length;
-        showCurrent();
+        stopIndicatorProgress();
+        curIndex = wrapIndex(curIndex + dir, currentSlides.length);
+        showCurrent(dir);
     }
 
     function hideOverlay() {
         if (!overlay) return;
+        if (indicator) indicator.stop();
         destroyPlyr();
         var wrap = qs('.video-gallery-player-wrap', overlay);
         if (wrap) wrap.innerHTML = '';
@@ -269,10 +294,10 @@
             };
         }).filter(function (s) { return Boolean(s.src); });
         if (!currentSlides.length) return;
-        curIndex = Math.max(0, Math.min(Number(index) || 0, currentSlides.length - 1));
+        curIndex = wrapIndex(Number(index) || 0, currentSlides.length);
         overlay.classList.add('is-visible');
         if (typeof window.lockScroll === 'function') window.lockScroll();
-        showCurrent();
+        showCurrent(0);
     };
 
     window.__videoGallery_close = hideOverlay;

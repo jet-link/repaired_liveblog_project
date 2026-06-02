@@ -314,57 +314,234 @@
   max-width: 100%;
 }
 
-/* —— Lightbox additions (used by image_gallery.js) —— */
-/* Section label above content (same typography as counter) */
-.gallery-overlay .gallery-overlay-title {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: max(1.5rem, env(safe-area-inset-top));
-  z-index: 5;
-  display: block;
-  margin: 0;
-  padding: 0.35rem 0.75rem;
-  box-sizing: border-box;
-  width: 100%;
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: rgba(255, 255, 255, 0.92);
-  text-align: center;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
-  pointer-events: none;
-}
-
-/* Counter docked to bottom of overlay (fixed layer); does not move with image/caption stack */
-.gallery-overlay .gcount {
+/* —— Lightbox progress indicator (gallery_progress_indicator.js) —— */
+.gallery-overlay .gallery-progress-host,
+.video-gallery-overlay .gallery-progress-host {
   position: absolute;
   left: 0;
   right: 0;
   bottom: max(0.85rem, env(safe-area-inset-bottom));
-  z-index: 5;
-  display: block;
-  margin: 0;
+  z-index: 6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 0.35rem 0.75rem;
   box-sizing: border-box;
-  width: 100%;
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: rgba(255, 255, 255, 0.92);
-  text-align: center;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+  pointer-events: auto;
+}
+
+.gallery-progress-host[hidden] {
+  display: none !important;
   pointer-events: none;
 }
 
-.gallery-overlay .gallery-overlay-inner {
+.gallery-progress {
+  --indicator-dot-size: 8px;
+  --indicator-dot-active-size: 5px;
+  --indicator-bar-width: 36px;
+  --indicator-color-active: #ffffff;
+  --indicator-color-dot: rgba(255, 255, 255, 0.5);
+  --indicator-color-dot-viewed: rgba(255, 255, 255, 0.3);
+  --indicator-gap: 8px;
+  --indicator-duration: 7000ms;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--indicator-dot-size);
+}
+
+.gallery-progress__track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--indicator-gap);
+  transition: gap 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-progress__slot {
+  --slot-fade: 1;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 999px;
+  opacity: var(--slot-fade, 1);
+  overflow: hidden;
+  transition:
+    width 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gallery-progress__slot-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.gallery-progress__slot--ghost {
+  max-width: 0;
+  width: 0 !important;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0;
+  opacity: 0 !important;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.gallery-progress__slot--faded .gallery-progress__dot-mark {
+  transform: scale(0.94);
+}
+
+.gallery-progress__slot--near .gallery-progress__dot-mark {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.gallery-progress__slot--far .gallery-progress__dot-mark {
+  transform: scale(0.9);
+}
+
+.gallery-progress__slot:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.gallery-progress__slot:not(:disabled):hover .gallery-progress__dot-mark,
+.gallery-progress__slot:not(:disabled):focus-visible .gallery-progress__dot-mark {
+  background: rgba(255, 255, 255, 0.85);
+  transform: scale(1.12);
+}
+
+.gallery-progress__slot:not(:disabled):focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 3px;
+}
+
+.gallery-progress__dot-mark {
+  display: block;
+  flex-shrink: 0;
+  width: var(--indicator-dot-size);
+  height: var(--indicator-dot-size);
+  border-radius: 50%;
+  background: var(--indicator-color-dot);
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-progress__bar-track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--indicator-color-dot-viewed);
+  overflow: hidden;
+  opacity: 0;
+  transform: scaleX(0.2);
+  transform-origin: center center;
+  pointer-events: none;
+  transition:
+    opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-progress__slot--bar .gallery-progress__dot-mark {
+  opacity: 0;
+  transform: scale(0.4);
+  pointer-events: none;
+}
+
+.gallery-progress__slot--bar .gallery-progress__bar-track {
+  opacity: 1;
+  transform: scaleX(1);
+  pointer-events: auto;
+}
+
+.gallery-progress__slot--viewed,
+.gallery-progress__slot--next {
+  width: var(--indicator-dot-size);
+  max-width: var(--indicator-dot-size);
+  height: var(--indicator-dot-size);
+}
+
+.gallery-progress__slot--viewed .gallery-progress__dot-mark {
+  width: 100%;
+  height: 100%;
+  background: var(--indicator-color-dot-viewed);
+}
+
+.gallery-progress__slot--next .gallery-progress__dot-mark {
+  width: 100%;
+  height: 100%;
+  background: var(--indicator-color-dot);
+}
+
+.gallery-progress__slot--bar {
+  width: var(--indicator-bar-width);
+  max-width: var(--indicator-bar-width);
+  height: var(--indicator-dot-size);
+  cursor: default;
+}
+
+.gallery-progress__bar-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--indicator-color-active);
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+@media (max-width: 480px) {
+  .gallery-progress {
+    --indicator-bar-width: clamp(28px, 10vw, 36px);
+    --indicator-gap: clamp(6px, 2vw, 8px);
+    --indicator-dot-size: clamp(7px, 2.2vw, 8px);
+    --indicator-dot-active-size: clamp(4px, 1.4vw, 5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-progress__track,
+  .gallery-progress__slot,
+  .gallery-progress__dot-mark,
+  .gallery-progress__bar-track {
+    transition: none !important;
+  }
+
+  .gallery-progress__bar-fill {
+    transition: none !important;
+  }
+}
+
+.gallery-overlay .gallery-overlay-inner,
+.video-gallery-overlay .video-gallery-overlay-inner {
   flex-direction: column;
   align-items: center;
   justify-content: center;
   touch-action: pan-y pinch-zoom;
   pointer-events: auto;
-  /* keep tall slides + caption from sitting under docked counter */
-  padding-bottom: 3rem;
+  padding-bottom: 2.5rem;
   box-sizing: border-box;
 }
 

@@ -4,6 +4,10 @@
     function qs(sel, ctx) { return (ctx || document).querySelector(sel); }
     function qsa(sel, ctx) { return Array.from((ctx || document).querySelectorAll(sel)); }
 
+    function canUseGallerySwipe() {
+        return window.matchMedia('(max-width: 767.98px)').matches;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         qsa('.js-gallery').forEach(initGallery);
     });
@@ -79,16 +83,19 @@
         <img src="" alt="" class="gallery-overlay-img gallery-overlay-img--contain" loading="lazy" decoding="async" />
         <p class="gcaption"></p>
       </div>
-      <span class="gallery-overlay-title" aria-hidden="true">Photos</span>
-      <span class="gcount" aria-live="polite"></span>
+      <div class="gallery-progress-host" aria-live="polite"></div>
     `;
         document.body.appendChild(overlay);
 
         const imgEl = qs('.gallery-overlay-img', overlay);
         const captionEl = qs('.gcaption', overlay);
-        const countEl = qs('.gcount', overlay);
         const inner = qs('.gallery-overlay-inner', overlay);
         const closeBtn = qs('.gallery-close-btn', overlay);
+        const progressHost = qs('.gallery-progress-host', overlay);
+        const slideMs = typeof window.GALLERY_SLIDE_MS === 'number' ? window.GALLERY_SLIDE_MS : 7000;
+        const indicator = typeof window.GalleryProgressIndicator !== 'undefined'
+            ? window.GalleryProgressIndicator.create(progressHost)
+            : null;
 
         closeBtn.addEventListener('click', function (e) {
             e.preventDefault();
@@ -100,11 +107,54 @@
         /** @type {{src:string, alt:string, caption:string}[]} */
         let currentSlides = [];
 
+        function wrapIndex(idx, n) {
+            if (n <= 0) return 0;
+            return ((idx % n) + n) % n;
+        }
+
+        function stopIndicatorProgress() {
+            if (indicator && typeof indicator.cancelProgress === 'function') {
+                indicator.cancelProgress();
+            }
+        }
+
+        function syncIndicator(direction) {
+            if (!indicator || !progressHost) return;
+            if (currentSlides.length <= 1) {
+                progressHost.hidden = true;
+                indicator.stop();
+                return;
+            }
+            progressHost.hidden = false;
+            indicator.update({
+                index: curIndex,
+                total: currentSlides.length,
+                direction: direction || 0
+            });
+            indicator.startProgress(slideMs);
+        }
+
+        if (indicator) {
+            indicator.onAutoNext(function () {
+                if (currentSlides.length <= 1) return;
+                curIndex = wrapIndex(curIndex + 1, currentSlides.length);
+                showCurrent('left');
+            });
+            indicator.onSeek(function (targetIndex, dir) {
+                if (!currentSlides.length) return;
+                var nextIdx = wrapIndex(targetIndex, currentSlides.length);
+                if (nextIdx === curIndex) return;
+                stopIndicatorProgress();
+                curIndex = nextIdx;
+                showCurrent(dir < 0 ? 'right' : 'left');
+            });
+        }
+
         function preloadAdjacent() {
             const n = currentSlides.length;
             if (!n) return;
-            const prevIdx = (curIndex - 1 + n) % n;
-            const nextIdx = (curIndex + 1) % n;
+            const prevIdx = wrapIndex(curIndex - 1, n);
+            const nextIdx = wrapIndex(curIndex + 1, n);
             const prevSrc = currentSlides[prevIdx] && currentSlides[prevIdx].src;
             const nextSrc = currentSlides[nextIdx] && currentSlides[nextIdx].src;
             if (prevSrc) { var i = new Image(); i.src = prevSrc; }
@@ -114,23 +164,24 @@
         function showCurrent(direction) {
             const s = currentSlides[curIndex];
             if (!s || !s.src) return;
+            var navDir = direction === 'left' ? 1 : direction === 'right' ? -1 : 0;
 
             if (direction) {
                 var cls = direction === 'left' ? 'gallery-slide-out-left' : 'gallery-slide-out-right';
                 imgEl.classList.add(cls);
                 setTimeout(function () {
                     imgEl.classList.remove(cls);
-                    applySlide(s);
+                    applySlide(s, navDir);
                     var inCls = direction === 'left' ? 'gallery-slide-in-right' : 'gallery-slide-in-left';
                     imgEl.classList.add(inCls);
                     setTimeout(function () { imgEl.classList.remove(inCls); }, 280);
                 }, 180);
             } else {
-                applySlide(s);
+                applySlide(s, 0);
             }
         }
 
-        function applySlide(s) {
+        function applySlide(s, navDir) {
             imgEl.classList.add('gallery-overlay-loading');
             imgEl.onload = function () {
                 imgEl.classList.remove('gallery-overlay-loading');
@@ -140,7 +191,7 @@
             };
             imgEl.alt = s.alt || '';
             captionEl.textContent = s.caption || '';
-            countEl.textContent = (curIndex + 1) + ' / ' + currentSlides.length;
+            syncIndicator(navDir);
             requestAnimationFrame(function () {
                 imgEl.src = s.src;
                 if (imgEl.complete && imgEl.naturalWidth) {
@@ -151,18 +202,19 @@
         }
 
         function nav(dir) {
-            if (!currentSlides.length) return;
-            curIndex = (curIndex + dir + currentSlides.length) % currentSlides.length;
+            if (!currentSlides.length || currentSlides.length <= 1) return;
+            stopIndicatorProgress();
+            curIndex = wrapIndex(curIndex + dir, currentSlides.length);
             showCurrent(dir < 0 ? 'right' : 'left');
         }
 
         function hideOverlay() {
+            if (indicator) indicator.stop();
             overlay.classList.remove('is-visible');
             unlockScroll();
             imgEl.src = '';
             imgEl.alt = '';
             captionEl.textContent = '';
-            countEl.textContent = '';
             currentSlides = [];
         }
 
@@ -185,14 +237,23 @@
             }
         });
 
-        // Swipe handling with drag animation
+        // Swipe navigation: mobile screens only; desktop uses arrow keys
         var touchStartX = 0;
         var touchStartY = 0;
         var touchCurrentX = 0;
         var isDragging = false;
         var isVerticalScroll = false;
 
+        inner.addEventListener('wheel', function (e) {
+            if (canUseGallerySwipe()) return;
+            if (!overlay.classList.contains('is-visible')) return;
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 8) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
         inner.addEventListener('touchstart', function (e) {
+            if (!canUseGallerySwipe()) return;
             if (!e.changedTouches || !e.changedTouches.length) return;
             touchStartX = e.changedTouches[0].clientX;
             touchStartY = e.changedTouches[0].clientY;
@@ -203,6 +264,7 @@
         }, { passive: true });
 
         inner.addEventListener('touchmove', function (e) {
+            if (!canUseGallerySwipe()) return;
             if (!isDragging || !e.changedTouches || !e.changedTouches.length) return;
             var dx = e.changedTouches[0].clientX - touchStartX;
             var dy = e.changedTouches[0].clientY - touchStartY;
@@ -218,6 +280,7 @@
         }, { passive: true });
 
         inner.addEventListener('touchend', function (e) {
+            if (!canUseGallerySwipe()) return;
             if (!isDragging) return;
             isDragging = false;
             if (isVerticalScroll) {
@@ -232,16 +295,18 @@
 
             if (Math.abs(dx) > 50 && currentSlides.length > 1) {
                 var direction = dx < 0 ? 1 : -1;
+                var nextSwipeIdx = wrapIndex(curIndex + direction, currentSlides.length);
                 var exitX = dx < 0 ? -window.innerWidth : window.innerWidth;
                 imgEl.style.transform = 'translateX(' + exitX + 'px)';
                 imgEl.style.opacity = '0';
                 setTimeout(function () {
                     imgEl.style.transition = 'none';
-                    curIndex = (curIndex + direction + currentSlides.length) % currentSlides.length;
+                    stopIndicatorProgress();
+                    curIndex = nextSwipeIdx;
                     imgEl.style.transform = 'translateX(' + (-exitX) + 'px)';
                     imgEl.style.opacity = '0';
                     requestAnimationFrame(function () {
-                        applySlide(currentSlides[curIndex]);
+                        applySlide(currentSlides[curIndex], direction);
                         requestAnimationFrame(function () {
                             imgEl.style.transition = 'transform 0.28s cubic-bezier(.4,0,.2,1), opacity 0.28s ease';
                             imgEl.style.transform = 'translateX(0)';
