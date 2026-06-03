@@ -52,8 +52,8 @@
 
     .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__media {
         width: 42%;
-        max-width: 420px;
-        min-width: 200px;
+        max-width: 300px;
+        min-width: 300px;
         flex-shrink: 0;
         aspect-ratio: auto;
         height: auto;
