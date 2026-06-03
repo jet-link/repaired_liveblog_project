@@ -432,19 +432,29 @@
 
 .gallery-overlay .gallery-progress__dot-mark,
 .video-gallery-overlay .gallery-progress__dot-mark {
+  position: relative;
   display: block;
   width: var(--indicator-dot-size);
   height: var(--indicator-dot-size);
   border-radius: 50%;
-  transition:
-    border-color 0.35s ease,
-    background 0.35s ease,
-    box-shadow 0.35s ease;
+  border: var(--indicator-dot-ring) solid var(--indicator-color-next-ring);
+  background: transparent;
+  transition: none;
 }
 
 .gallery-overlay .gallery-progress__dot-core,
 .video-gallery-overlay .gallery-progress__dot-core {
   display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--indicator-dot-size) - var(--indicator-dot-ring) * 2);
+  height: calc(var(--indicator-dot-size) - var(--indicator-dot-ring) * 2);
+  border-radius: 50%;
+  background: var(--indicator-color-viewed);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: none;
 }
 
 .gallery-overlay .gallery-progress__bar-track,
@@ -458,22 +468,25 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition:
-    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    visibility 0.35s step-end;
+  transition: none;
+}
+
+.gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-core,
+.video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-core {
+  display: block;
+  width: var(--indicator-dot-size);
+  height: var(--indicator-dot-size);
 }
 
 .gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-mark,
 .video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-mark {
-  border: none;
-  background: var(--indicator-color-viewed);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  border-color: transparent;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-.gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-mark,
-.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-mark {
-  border: var(--indicator-dot-ring) solid var(--indicator-color-next-ring);
-  background: transparent;
+.gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-core,
+.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-core {
+  display: none;
 }
 
 .gallery-overlay .gallery-progress__slot--bar .gallery-progress__dot-mark,
@@ -481,6 +494,7 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  transition: none;
 }
 
 .gallery-overlay .gallery-progress__slot--bar .gallery-progress__bar-track,
@@ -529,10 +543,10 @@
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
 }
 
-.gallery-overlay .gallery-progress__slot--viewed:not(:disabled):hover .gallery-progress__dot-mark,
-.video-gallery-overlay .gallery-progress__slot--viewed:not(:disabled):hover .gallery-progress__dot-mark,
-.gallery-overlay .gallery-progress__slot--viewed:not(:disabled):focus-visible .gallery-progress__dot-mark,
-.video-gallery-overlay .gallery-progress__slot--viewed:not(:disabled):focus-visible .gallery-progress__dot-mark {
+.gallery-overlay .gallery-progress__slot--viewed:not(:disabled):hover .gallery-progress__dot-core,
+.video-gallery-overlay .gallery-progress__slot--viewed:not(:disabled):hover .gallery-progress__dot-core,
+.gallery-overlay .gallery-progress__slot--viewed:not(:disabled):focus-visible .gallery-progress__dot-core,
+.video-gallery-overlay .gallery-progress__slot--viewed:not(:disabled):focus-visible .gallery-progress__dot-core {
   background: #ffffff;
 }
 
@@ -541,7 +555,6 @@
 .gallery-overlay .gallery-progress__slot--next:not(:disabled):focus-visible .gallery-progress__dot-mark,
 .video-gallery-overlay .gallery-progress__slot--next:not(:disabled):focus-visible .gallery-progress__dot-mark {
   border-color: #ffffff;
-  background: rgba(255, 255, 255, 0.12);
 }
 
 .gallery-overlay .gallery-progress__slot:not(:disabled):focus-visible,
