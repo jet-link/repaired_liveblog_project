@@ -47,41 +47,7 @@
     }
 }
 
-@media (min-width: 1500px) {
-    .gallery-overlay-img {
-        max-width: calc(100% - 30px);
-        max-height: calc(100% - 20px);
-    }
-}
-
-@media (max-width: 1199px) {
-    .gallery-overlay-img {
-        max-width: calc(100% - 80px);
-        max-height: calc(100% - 80px);
-    }
-}
-
-@media (max-width: 991px) {
-    .gallery-overlay-inner {
-        padding: 28px;
-    }
-
-    .gallery-overlay-img {
-        max-width: calc(100% - 30px);
-        max-height: calc(100% - 30px);
-    }
-}
-
-@media (max-width: 767px) {
-    .gallery-overlay-inner {
-        padding: 16px;
-    }
-
-    .gallery-overlay-img {
-        max-width: calc(100% - 30px);
-        max-height: calc(100% - 30px);
-    }
-}
+/* Lightbox image sizing: see post_media_gallery.css (--gallery-indicator-reserve) */
 
 @media (max-width: 991px) {
     .gallery-grid,

@@ -1,4 +1,4 @@
-// Gallery progress indicator: one slot per slide; active = bar, others = uniform dots.
+// Gallery progress indicator: one slot per slide; viewed = solid dot, next = ring, active = bar.
 (function (global) {
     'use strict';
 
@@ -17,8 +17,11 @@
         var slots = [];
         var i;
         for (i = 0; i < total; i++) {
+            var type = 'next';
+            if (i === currentIndex) type = 'bar';
+            else if (i < currentIndex) type = 'viewed';
             slots.push({
-                type: i === currentIndex ? 'bar' : 'dot',
+                type: type,
                 slideIndex: i
             });
         }
@@ -117,6 +120,9 @@
 
         var dot = document.createElement('span');
         dot.className = 'gallery-progress__dot-mark';
+        var dotCore = document.createElement('span');
+        dotCore.className = 'gallery-progress__dot-core';
+        dot.appendChild(dotCore);
 
         var track = document.createElement('span');
         track.className = 'gallery-progress__bar-track';
@@ -132,12 +138,20 @@
     GalleryProgressIndicator.prototype._ensureSlotVisual = function (btn) {
         if (!btn.querySelector('.gallery-progress__slot-visual')) {
             btn.appendChild(this._buildSlotVisual());
+            return;
+        }
+        var dot = btn.querySelector('.gallery-progress__dot-mark');
+        if (dot && !dot.querySelector('.gallery-progress__dot-core')) {
+            var core = document.createElement('span');
+            core.className = 'gallery-progress__dot-core';
+            dot.appendChild(core);
         }
     };
 
     GalleryProgressIndicator.prototype._setSlotType = function (btn, type) {
         btn.classList.remove(
-            'gallery-progress__slot--dot',
+            'gallery-progress__slot--viewed',
+            'gallery-progress__slot--next',
             'gallery-progress__slot--bar'
         );
         btn.classList.add('gallery-progress__slot--' + type);

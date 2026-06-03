@@ -335,13 +335,18 @@
   pointer-events: none;
 }
 
-.gallery-progress {
-  --indicator-dot-size: 8px;
-  --indicator-bar-width: 36px;
+.gallery-overlay .gallery-progress,
+.video-gallery-overlay .gallery-progress {
+  --indicator-dot-size: 10px;
+  --indicator-dot-ring: 2px;
+  --indicator-bar-width: 40px;
+  --indicator-bar-height: 10px;
+  --indicator-hit-size: 28px;
   --indicator-color-active: #ffffff;
-  --indicator-color-dot: rgba(255, 255, 255, 0.5);
-  --indicator-color-dot-viewed: rgba(255, 255, 255, 0.3);
-  --indicator-gap: 8px;
+  --indicator-color-viewed: #ffffff;
+  --indicator-color-next-ring: rgba(255, 255, 255, 0.88);
+  --indicator-color-bar-track: rgba(255, 255, 255, 0.28);
+  --indicator-gap: 5px;
   --indicator-duration: 7000ms;
 
   display: flex;
@@ -349,10 +354,15 @@
   align-items: center;
   justify-content: center;
   max-width: min(100%, calc(100vw - 1.5rem));
-  min-height: var(--indicator-dot-size);
+  padding: 0.35rem 0.55rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-height: var(--indicator-hit-size);
 }
 
-.gallery-progress__track {
+.gallery-overlay .gallery-progress__track,
+.video-gallery-overlay .gallery-progress__track {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -364,121 +374,191 @@
   overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  box-sizing: border-box;
 }
 
-.gallery-progress__track::-webkit-scrollbar {
+.gallery-overlay .gallery-progress__track::-webkit-scrollbar,
+.video-gallery-overlay .gallery-progress__track::-webkit-scrollbar {
   display: none;
 }
 
-.gallery-progress__slot {
+.gallery-overlay button.gallery-progress__slot,
+.video-gallery-overlay button.gallery-progress__slot {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   padding: 0;
   margin: 0;
   border: none;
   background: transparent;
+  font: inherit;
+  line-height: 1;
+  appearance: none;
+  -webkit-appearance: none;
   cursor: pointer;
   border-radius: 999px;
   opacity: 1;
   overflow: hidden;
-  transition:
-    width 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-    height 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-    max-width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
-.gallery-progress__slot-visual {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.gallery-overlay .gallery-progress__slot-visual,
+.video-gallery-overlay .gallery-progress__slot-visual {
+  position: relative;
+  display: block;
   width: 100%;
   height: 100%;
-  position: relative;
 }
 
-.gallery-progress__slot:disabled {
+.gallery-overlay .gallery-progress__slot:disabled,
+.video-gallery-overlay .gallery-progress__slot:disabled {
   cursor: default;
   pointer-events: none;
 }
 
-.gallery-progress__slot:not(:disabled):hover .gallery-progress__dot-mark,
-.gallery-progress__slot:not(:disabled):focus-visible .gallery-progress__dot-mark {
-  background: rgba(255, 255, 255, 0.85);
-  transform: scale(1.12);
+.gallery-overlay .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__dot-mark,
+.gallery-overlay .gallery-progress__bar-track,
+.video-gallery-overlay .gallery-progress__bar-track {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
 }
 
-.gallery-progress__slot:not(:disabled):focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.75);
-  outline-offset: 3px;
-}
-
-.gallery-progress__dot-mark {
+.gallery-overlay .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__dot-mark {
   display: block;
-  flex-shrink: 0;
   width: var(--indicator-dot-size);
   height: var(--indicator-dot-size);
   border-radius: 50%;
-  background: var(--indicator-color-dot);
-  opacity: 1;
-  transform: scale(1);
   transition:
-    opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-    background 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    border-color 0.35s ease,
+    background 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
-.gallery-progress__bar-track {
-  position: absolute;
-  inset: 0;
+.gallery-overlay .gallery-progress__dot-core,
+.video-gallery-overlay .gallery-progress__dot-core {
+  display: none;
+}
+
+.gallery-overlay .gallery-progress__bar-track,
+.video-gallery-overlay .gallery-progress__bar-track {
   width: 100%;
-  height: 100%;
+  max-width: var(--indicator-bar-width);
+  height: var(--indicator-bar-height);
   border-radius: 999px;
-  background: var(--indicator-color-dot-viewed);
+  background: var(--indicator-color-bar-track);
   overflow: hidden;
   opacity: 0;
-  transform: scaleX(0.2);
-  transform-origin: center center;
+  visibility: hidden;
   pointer-events: none;
   transition:
-    opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.35s step-end;
 }
 
-.gallery-progress__slot--bar .gallery-progress__dot-mark {
+.gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-mark {
+  border: none;
+  background: var(--indicator-color-viewed);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-mark {
+  border: var(--indicator-dot-ring) solid var(--indicator-color-next-ring);
+  background: transparent;
+}
+
+.gallery-overlay .gallery-progress__slot--bar .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot--bar .gallery-progress__dot-mark {
   opacity: 0;
-  transform: scale(0.4);
+  visibility: hidden;
   pointer-events: none;
 }
 
-.gallery-progress__slot--bar .gallery-progress__bar-track {
+.gallery-overlay .gallery-progress__slot--bar .gallery-progress__bar-track,
+.video-gallery-overlay .gallery-progress__slot--bar .gallery-progress__bar-track {
   opacity: 1;
-  transform: scaleX(1);
+  visibility: visible;
   pointer-events: auto;
 }
 
-.gallery-progress__slot--dot {
-  width: var(--indicator-dot-size);
-  max-width: var(--indicator-dot-size);
-  height: var(--indicator-dot-size);
+.gallery-overlay .gallery-progress__slot--viewed,
+.video-gallery-overlay .gallery-progress__slot--viewed,
+.gallery-overlay .gallery-progress__slot--next,
+.video-gallery-overlay .gallery-progress__slot--next {
+  width: var(--indicator-hit-size);
+  max-width: var(--indicator-hit-size);
+  height: var(--indicator-hit-size);
 }
 
-.gallery-progress__slot--dot .gallery-progress__dot-mark {
-  width: 100%;
-  height: 100%;
-  background: var(--indicator-color-dot);
-}
-
-.gallery-progress__slot--bar {
+.gallery-overlay .gallery-progress__slot--bar,
+.video-gallery-overlay .gallery-progress__slot--bar {
   width: var(--indicator-bar-width);
+  min-width: var(--indicator-bar-width);
   max-width: var(--indicator-bar-width);
-  height: var(--indicator-dot-size);
+  height: var(--indicator-hit-size);
   cursor: default;
 }
 
-.gallery-progress__bar-fill {
+.gallery-overlay .gallery-progress__slot--viewed .gallery-progress__slot-visual,
+.video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__slot-visual,
+.gallery-overlay .gallery-progress__slot--next .gallery-progress__slot-visual,
+.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__slot-visual {
+  width: var(--indicator-dot-size);
+  height: var(--indicator-dot-size);
+}
+
+.gallery-overlay .gallery-progress__slot--bar .gallery-progress__slot-visual,
+.video-gallery-overlay .gallery-progress__slot--bar .gallery-progress__slot-visual {
+  width: var(--indicator-bar-width);
+  height: var(--indicator-bar-height);
+}
+
+.gallery-overlay .gallery-progress__slot:not(:disabled):hover .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot:not(:disabled):hover .gallery-progress__dot-mark,
+.gallery-overlay .gallery-progress__slot:not(:disabled):focus-visible .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot:not(:disabled):focus-visible .gallery-progress__dot-mark {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.gallery-overlay .gallery-progress__slot--viewed:not(:disabled):hover .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot--viewed:not(:disabled):hover .gallery-progress__dot-mark,
+.gallery-overlay .gallery-progress__slot--viewed:not(:disabled):focus-visible .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot--viewed:not(:disabled):focus-visible .gallery-progress__dot-mark {
+  background: #ffffff;
+}
+
+.gallery-overlay .gallery-progress__slot--next:not(:disabled):hover .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot--next:not(:disabled):hover .gallery-progress__dot-mark,
+.gallery-overlay .gallery-progress__slot--next:not(:disabled):focus-visible .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot--next:not(:disabled):focus-visible .gallery-progress__dot-mark {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.gallery-overlay .gallery-progress__slot:not(:disabled):focus-visible,
+.video-gallery-overlay .gallery-progress__slot:not(:disabled):focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 2px;
+}
+
+.gallery-overlay .gallery-progress__slot--viewed .gallery-progress__bar-track,
+.video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__bar-track,
+.gallery-overlay .gallery-progress__slot--next .gallery-progress__bar-track,
+.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__bar-track {
+  display: none;
+}
+
+.gallery-overlay .gallery-progress__bar-fill,
+.video-gallery-overlay .gallery-progress__bar-fill {
   display: block;
   width: 100%;
   height: 100%;
@@ -490,24 +570,41 @@
 }
 
 @media (max-width: 480px) {
-  .gallery-progress {
-    --indicator-bar-width: clamp(28px, 10vw, 36px);
-    --indicator-gap: clamp(6px, 2vw, 8px);
-    --indicator-dot-size: clamp(7px, 2.2vw, 8px);
+  .gallery-overlay .gallery-progress,
+  .video-gallery-overlay .gallery-progress {
+    --indicator-bar-width: clamp(34px, 10vw, 40px);
+    --indicator-bar-height: clamp(9px, 2.6vw, 10px);
+    --indicator-gap: 4px;
+    --indicator-dot-size: clamp(9px, 2.6vw, 10px);
+    --indicator-hit-size: clamp(26px, 7.5vw, 28px);
+    padding: 0.3rem 0.45rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gallery-progress__track,
-  .gallery-progress__slot,
-  .gallery-progress__dot-mark,
-  .gallery-progress__bar-track {
+  .gallery-overlay .gallery-progress__track,
+  .video-gallery-overlay .gallery-progress__track,
+  .gallery-overlay .gallery-progress__slot,
+  .video-gallery-overlay .gallery-progress__slot,
+  .gallery-overlay .gallery-progress__dot-mark,
+  .video-gallery-overlay .gallery-progress__dot-mark,
+  .gallery-overlay .gallery-progress__bar-track,
+  .video-gallery-overlay .gallery-progress__bar-track {
     transition: none !important;
   }
 
-  .gallery-progress__bar-fill {
+  .gallery-overlay .gallery-progress__bar-fill,
+  .video-gallery-overlay .gallery-progress__bar-fill {
     transition: none !important;
   }
+}
+
+.gallery-overlay {
+  --gallery-indicator-reserve: 5.75rem;
+}
+
+.video-gallery-overlay {
+  --gallery-indicator-reserve: 5.75rem;
 }
 
 .gallery-overlay .gallery-overlay-inner,
@@ -517,8 +614,28 @@
   justify-content: center;
   touch-action: pan-y pinch-zoom;
   pointer-events: auto;
-  padding-bottom: 2.5rem;
+  padding:
+    max(1.25rem, env(safe-area-inset-top, 0px))
+    1.25rem
+    calc(var(--gallery-indicator-reserve) + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
+  max-height: 100%;
+}
+
+.gallery-overlay .gallery-overlay-img,
+.video-gallery-overlay .video-gallery-overlay-inner .plyr,
+.video-gallery-overlay .video-gallery-overlay-inner video {
+  max-height: calc(
+    100dvh
+    - var(--gallery-indicator-reserve)
+    - 3.25rem
+    - env(safe-area-inset-top, 0px)
+    - env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.gallery-overlay .gallery-overlay-img {
+  max-width: min(88vw, calc(100% - 2.5rem));
 }
 
 .gallery-overlay .gcaption {
@@ -538,4 +655,62 @@
 .gallery-overlay-img.gallery-overlay-img--contain {
   object-fit: contain;
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* Keep lightbox image clear of indicator (overrides responsive.css load order) */
+@media (min-width: 1500px) {
+  .gallery-overlay .gallery-overlay-img {
+    max-width: min(88vw, calc(100% - 2.5rem));
+    max-height: calc(
+      100dvh
+      - var(--gallery-indicator-reserve, 5.75rem)
+      - 3.25rem
+      - env(safe-area-inset-top, 0px)
+      - env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
+@media (max-width: 1199px) {
+  .gallery-overlay .gallery-overlay-img {
+    max-width: min(88vw, calc(100% - 2.5rem));
+    max-height: calc(
+      100dvh
+      - var(--gallery-indicator-reserve, 5.75rem)
+      - 3rem
+      - env(safe-area-inset-top, 0px)
+      - env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
+@media (max-width: 991px) {
+  .gallery-overlay .gallery-overlay-inner {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .gallery-overlay .gallery-overlay-img {
+    max-width: min(90vw, calc(100% - 1.5rem));
+    max-height: calc(
+      100dvh
+      - var(--gallery-indicator-reserve, 5.75rem)
+      - 2.75rem
+      - env(safe-area-inset-top, 0px)
+      - env(safe-area-inset-bottom, 0px)
+    );
+  }
+}
+
+@media (max-width: 767px) {
+  .gallery-overlay .gallery-overlay-img {
+    max-width: min(92vw, calc(100% - 1rem));
+    max-height: calc(
+      100dvh
+      - var(--gallery-indicator-reserve, 5.5rem)
+      - 2.5rem
+      - env(safe-area-inset-top, 0px)
+      - env(safe-area-inset-bottom, 0px)
+    );
+  }
 }
