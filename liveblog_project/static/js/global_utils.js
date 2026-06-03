@@ -24,14 +24,38 @@ lbInitBootstrapDataToggleTooltips();
    Keeps track of nested lock/unlock calls via a counter. */
 var _scrollLockCount = 0;
 var _scrollLockY = 0;
+
+/* On item_detail, .item-detail-head is position:sticky. While scroll is locked the body
+   becomes position:fixed (shifted up by --scroll-y), which cancels sticky and makes the
+   head fly off-screen. We measure how far it jumps and counter-translate it back, so it
+   stays exactly where it was while a modal (post or comment) is open. */
+function _getLockPinnableHead() {
+    if (!document.body || !document.body.classList.contains('page-item-detail')) return null;
+    return document.querySelector('.item-detail-head');
+}
+function _unpinItemDetailHead() {
+    var head = document.querySelector('.item-detail-head--lock-pinned');
+    if (!head) return;
+    head.classList.remove('item-detail-head--lock-pinned');
+    head.style.removeProperty('--item-detail-head-lock-shift');
+}
+
 function lockScroll() {
     if (_scrollLockCount === 0) {
+        var head = _getLockPinnableHead();
+        var headTopBefore = head ? head.getBoundingClientRect().top : 0;
         var se = document.scrollingElement || document.documentElement;
         var st = se ? Math.round(se.scrollTop) : 0;
         var wy = Math.round(window.scrollY || window.pageYOffset || 0);
         _scrollLockY = Math.max(0, st, wy);
         document.documentElement.style.setProperty('--scroll-y', '-' + _scrollLockY + 'px');
         document.documentElement.classList.add('scroll-locked');
+        if (head) {
+            var headTopAfter = head.getBoundingClientRect().top;
+            var shift = Math.round(headTopBefore - headTopAfter);
+            head.style.setProperty('--item-detail-head-lock-shift', shift + 'px');
+            head.classList.add('item-detail-head--lock-pinned');
+        }
     }
     _scrollLockCount++;
 }
@@ -42,6 +66,7 @@ function unlockScroll() {
     _scrollLockCount -= 1;
     if (_scrollLockCount === 0) {
         const y = Math.max(0, Number(_scrollLockY) || 0);
+        _unpinItemDetailHead();
         document.documentElement.classList.remove('scroll-locked');
         document.documentElement.style.removeProperty('--scroll-y');
         /* Synchronous restore: deferring scrollTo one frame lets the browser paint at scroll 0 (visible jump). */
@@ -71,6 +96,7 @@ function resetScrollLockAfterTurboNavigation() {
         return;
     }
     _scrollLockCount = 0;
+    _unpinItemDetailHead();
     document.documentElement.classList.remove('scroll-locked');
     document.documentElement.style.removeProperty('--scroll-y');
 }

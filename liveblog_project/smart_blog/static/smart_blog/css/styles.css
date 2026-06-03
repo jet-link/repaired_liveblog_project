@@ -5038,6 +5038,60 @@ html[data-theme="dark"] .comment-menu--actions-bar .comment-actions::after {
     text-align: center;
 }
 
+/* Item detail: sticky title row (parent scope + head, like listing-filter-sticky-scope / filter-segment-sticky-wrap) */
+.item-detail-sticky-scope {
+    min-width: 0;
+    position: relative;
+}
+
+/* Zero-size marker just above the head: IntersectionObserver toggles .is-stuck when it leaves the top. */
+.item-detail-stuck-sentinel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.page-item-detail .item-detail-head {
+    position: sticky;
+    top: 0;
+    z-index: 1040;
+    padding: 30px 0;
+    background: var(--bg-default);
+    box-sizing: border-box;
+}
+
+@media (max-width: 575px) {
+    .page-item-detail .item-detail-head {
+        padding-top: max(30px, calc(30px + env(safe-area-inset-top, 0px)));
+    }
+}
+
+/* Scroll lock (modals) turns body position:fixed and cancels sticky — JS counter-translates
+   the head so it visually stays put instead of disappearing. */
+.page-item-detail .item-detail-head.item-detail-head--lock-pinned {
+    transform: translateY(var(--item-detail-head-lock-shift, 0px));
+}
+
+/* Smooth title de-emphasis on stick: h2 (in markup) visually shrinks to the h3 size.
+   !important is required to beat the global `h2 { font-size: 1.8rem !important; }`. */
+.page-item-detail .item-detail-title {
+    transition: font-size 0.3s ease;
+}
+
+.page-item-detail .item-detail-head.is-stuck .item-detail-title {
+    font-size: 1.4rem !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-item-detail .item-detail-title {
+        transition: none;
+    }
+}
+
 .item-detail-head-menu .comment-menu-action {
     flex-direction: row;
     justify-content: flex-start;

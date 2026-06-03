@@ -15,8 +15,10 @@
     <div id="commentsContext" class="d-none" data-item-slug="{{ item.slug }}"></div>
     {% include 'includes/breadcrumbs.html' %}
 
-    <!-- ===== Title + images + likes + views + bookmarks ===== -->
-    <div class="d-flex align-items-center gap-2 min-w-0 flex-nowrap item-detail-head">
+    <div class="item-detail-sticky-scope">
+    <span class="item-detail-stuck-sentinel" aria-hidden="true"></span>
+    <!-- ===== Title (sticky on scroll, same pattern as filter-segment-sticky-wrap) ===== -->
+    <div class="d-flex align-items-center gap-2 min-w-0 flex-nowrap item-detail-head mb-5">
       <h2 class="text-muted m-0 item-detail-title min-w-0 flex-grow-1 flex-shrink-1">{{ item.title }}</h2>
       <div class="comment-menu comment-menu--actions-bar item-detail-head-menu flex-shrink-0">
         {% include 'includes/overflow_more_button.html' with aria_label='More post actions' %}
@@ -286,6 +288,7 @@
     <div id="detailCommentsEmpty" class="pt-3"{% if has_comments %} hidden{% endif %}>
       <p class="text-muted mb-0">There are not comments yet</p>
     </div>
+    </div>
   </div>
 {% endblock %}
 
@@ -363,6 +366,32 @@
   <script defer src="{% static 'smart_blog/js/mobile_comment_dock.js' %}"></script>
   <script defer src="{% static 'smart_blog/js/liked_users_overlay.js' %}"></script>
   <script defer src="{% static 'smart_blog/js/report_modal.js' %}"></script>
+  <script>
+  (function () {
+    function initStickyHead() {
+      var scope = document.querySelector('.item-detail-sticky-scope');
+      if (!scope) return;
+      var head = scope.querySelector('.item-detail-head');
+      var sentinel = scope.querySelector('.item-detail-stuck-sentinel');
+      if (!head || !sentinel || head.__stickyHeadInit) return;
+      head.__stickyHeadInit = true;
+      if (!('IntersectionObserver' in window)) return;
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          var stuck = !entry.isIntersecting && entry.boundingClientRect.top <= 0;
+          head.classList.toggle('is-stuck', stuck);
+        });
+      }, { threshold: [0] });
+      io.observe(sentinel);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initStickyHead);
+    } else {
+      initStickyHead();
+    }
+    (document.documentElement || document).addEventListener('turbo:load', initStickyHead);
+  })();
+  </script>
   <script>
   (function () {
     var MOBILE_BP = 767;
