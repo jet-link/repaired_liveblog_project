@@ -147,6 +147,18 @@
       ?.split('=')[1];
   }
 
+  function setBookmarkBtnState(btn, bookmarked) {
+    if (!btn) return;
+    var icon = btn.querySelector('i');
+    var on = !!bookmarked;
+    btn.classList.toggle('is-bookmarked', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (icon) {
+      icon.classList.toggle('fa-bookmark', on);
+      icon.classList.toggle('fa-bookmark-o', !on);
+    }
+  }
+
   function setReadingBadgeForItem(itemId, visible) {
     if (itemId) {
       const cardBadge = document.getElementById('reading-badge-' + itemId);
@@ -166,6 +178,7 @@
     if (!btn) return;
 
     e.preventDefault();
+    e.stopPropagation();
 
     const url = btn.dataset.url;
     const itemId = btn.dataset.itemId;
@@ -173,10 +186,9 @@
 
     if (!url || !icon) return;
 
-    const wasBookmarked = icon.classList.contains('fa-bookmark');
+    const wasBookmarked = btn.classList.contains('is-bookmarked');
     setReadingBadgeForItem(itemId, !wasBookmarked);
-    icon.classList.toggle('fa-bookmark', !wasBookmarked);
-    icon.classList.toggle('fa-bookmark-o', !!wasBookmarked);
+    setBookmarkBtnState(btn, !wasBookmarked);
     icon.classList.remove('btn-bounce');
     icon.offsetWidth;
     icon.classList.add('btn-bounce');
@@ -202,14 +214,12 @@
       const data = await resp.json().catch(() => null);
       if (!resp.ok || !data) {
         setReadingBadgeForItem(itemId, wasBookmarked);
-        icon.classList.toggle('fa-bookmark', wasBookmarked);
-        icon.classList.toggle('fa-bookmark-o', !wasBookmarked);
+        setBookmarkBtnState(btn, wasBookmarked);
         console.error('BOOKMARK ERROR', resp.status);
         return;
       }
 
-      icon.classList.toggle('fa-bookmark', !!data.bookmarked);
-      icon.classList.toggle('fa-bookmark-o', !data.bookmarked);
+      setBookmarkBtnState(btn, !!data.bookmarked);
       setReadingBadgeForItem(itemId, !!data.bookmarked);
 
       // if we came from profile listing, ensure it refreshes on return
@@ -243,11 +253,9 @@
       if (cardBookmarks && data.bookmarks_count != null) {
         cardBookmarks.textContent = humanCount(data.bookmarks_count);
       }
-
     } catch (err) {
       setReadingBadgeForItem(itemId, wasBookmarked);
-      icon.classList.toggle('fa-bookmark', wasBookmarked);
-      icon.classList.toggle('fa-bookmark-o', !wasBookmarked);
+      setBookmarkBtnState(btn, wasBookmarked);
     } finally {
       btn.disabled = false;
     }

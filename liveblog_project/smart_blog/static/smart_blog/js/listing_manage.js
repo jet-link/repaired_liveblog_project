@@ -835,6 +835,13 @@
             }
 
             if (data.bookmarked != null && isSameUser) {
+                const bookmarkBtn = document.querySelector(
+                    '.bookmark-btn[data-item-id="' + itemId + '"]'
+                );
+                if (bookmarkBtn) {
+                    bookmarkBtn.classList.toggle('is-bookmarked', !!data.bookmarked);
+                    bookmarkBtn.setAttribute('aria-pressed', data.bookmarked ? 'true' : 'false');
+                }
                 const icon = document.getElementById('bookmark-icon-' + itemId);
                 if (icon) {
                     icon.classList.toggle('fa-bookmark', data.bookmarked);

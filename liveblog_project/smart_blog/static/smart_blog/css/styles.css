@@ -4454,6 +4454,11 @@ html[data-theme="dark"] .bottom-menu-nav a.header-menu-item.active {
     transition: transform 0.1s ease, opacity 0.1s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
+.bookmark-btn.is-bookmarked > .fa,
+.bookmark-btn.is-bookmarked > i {
+    color: var(--text-link);
+}
+
 .like-btn:active:not(:disabled),
 .bookmark-btn:active:not(:disabled) {
     transform: scale(0.93);

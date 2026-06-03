@@ -16,7 +16,7 @@
     {% include 'includes/breadcrumbs.html' %}
 
     <!-- ===== Title + images + likes + views + bookmarks ===== -->
-    <div class="d-flex align-items-start gap-2 min-w-0 flex-nowrap item-detail-head">
+    <div class="d-flex align-items-center gap-2 min-w-0 flex-nowrap item-detail-head">
       <h2 class="text-muted m-0 item-detail-title min-w-0 flex-grow-1 flex-shrink-1">{{ item.title }}</h2>
       <div class="comment-menu comment-menu--actions-bar item-detail-head-menu flex-shrink-0">
         {% include 'includes/overflow_more_button.html' with aria_label='More post actions' %}
@@ -184,7 +184,7 @@
         {% if user.is_authenticated %}
           {% if user != item.author %}
             <button class="like-btn fs-6 round" data-url="{% url 'smart_blog:toggle_like' item.slug %}" data-item-id="{{ item.pk }}" title="Like post"><i class="fa fa-{{ user_liked|yesno:'heart,heart-o' }}"></i></button>
-            <button class="bookmark-btn fs-6 round" data-url="{% url 'smart_blog:toggle_bookmark' item.slug %}" data-item-id="{{ item.pk }}" title="I'm reading"><i class="fa fa-{{ user_bookmarked|yesno:'bookmark,bookmark-o' }}"></i></button>
+            <button class="bookmark-btn fs-6 round{% if user_bookmarked %} is-bookmarked{% endif %}" data-url="{% url 'smart_blog:toggle_bookmark' item.slug %}" data-item-id="{{ item.pk }}" title="I'm reading" aria-pressed="{{ user_bookmarked|yesno:'true,false' }}"><i class="fa fa-{{ user_bookmarked|yesno:'bookmark,bookmark-o' }}"></i></button>
           {% endif %}
         {% endif %}
       </div>

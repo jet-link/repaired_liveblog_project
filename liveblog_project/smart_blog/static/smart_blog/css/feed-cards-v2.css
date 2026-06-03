@@ -431,6 +431,33 @@ html[data-theme="dark"] .brain-card__category--lifehacking { color: #22d3ee; }
     flex-shrink: 0;
 }
 
+.brain-card__stat--bookmark.bookmark-btn {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.12s ease;
+}
+
+.brain-card__stat--bookmark.bookmark-btn.is-bookmarked > .fa {
+    color: var(--text-link);
+    opacity: 1;
+}
+
+.brain-card__stat--bookmark.bookmark-btn.is-bookmarked > span {
+    color: inherit;
+}
+
+.brain-card__stat--bookmark.bookmark-btn:active:not(:disabled) {
+    transform: scale(0.93);
+}
+
 /* --- Mobile: horizontal card --- */
 @media (max-width: 767.98px) {
     .feed-cards-grid-v2 {

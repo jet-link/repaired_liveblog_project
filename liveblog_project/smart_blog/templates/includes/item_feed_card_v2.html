@@ -39,10 +39,24 @@
         <i class="fa fa-retweet" aria-hidden="true"></i>
         <span id="reposts-count-{{ item.pk }}">{{ item.reposts_count|human }}</span>
       </span>
-      <span class="brain-card__stat" title="Bookmarks">
-        <i class="fa fa-bookmark" aria-hidden="true"></i>
-        <span id="bookmarks-count-{{ item.pk }}">{{ item.bookmarks_count|human }}</span>
-      </span>
+      {% if user.is_authenticated %}
+        <button
+          type="button"
+          class="brain-card__stat brain-card__stat--bookmark bookmark-btn{% if item.user_bookmarked %} is-bookmarked{% endif %}"
+          data-url="{% url 'smart_blog:toggle_bookmark' item.slug %}"
+          data-item-id="{{ item.pk }}"
+          title="{% if item.user_bookmarked %}Remove bookmark{% else %}Bookmark{% endif %}"
+          aria-pressed="{% if item.user_bookmarked %}true{% else %}false{% endif %}"
+          aria-label="{% if item.user_bookmarked %}Remove bookmark{% else %}Bookmark{% endif %}">
+          <i id="bookmark-icon-{{ item.pk }}" class="fa fa-{% if item.user_bookmarked %}bookmark{% else %}bookmark-o{% endif %}" aria-hidden="true"></i>
+          <span id="bookmarks-count-{{ item.pk }}">{{ item.bookmarks_count|human }}</span>
+        </button>
+      {% else %}
+        <span class="brain-card__stat brain-card__stat--bookmark" title="Bookmarks">
+          <i class="fa fa-bookmark" aria-hidden="true"></i>
+          <span id="bookmarks-count-{{ item.pk }}">{{ item.bookmarks_count|human }}</span>
+        </span>
+      {% endif %}
       </div>
     </div>
   </div>
