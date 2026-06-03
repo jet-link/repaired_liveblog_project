@@ -341,7 +341,10 @@
   --indicator-dot-ring: 2px;
   --indicator-bar-width: 40px;
   --indicator-bar-height: 10px;
+  --indicator-slot-size: var(--indicator-bar-width);
   --indicator-hit-size: 28px;
+  --indicator-morph-ms: 0.42s;
+  --indicator-morph-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --indicator-color-active: #ffffff;
   --indicator-color-viewed: #ffffff;
   --indicator-color-next-ring: rgba(255, 255, 255, 0.88);
@@ -432,108 +435,152 @@
 
 .gallery-overlay .gallery-progress__dot-mark,
 .video-gallery-overlay .gallery-progress__dot-mark {
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
   display: block;
   width: var(--indicator-dot-size);
   height: var(--indicator-dot-size);
   border-radius: 50%;
   border: var(--indicator-dot-ring) solid var(--indicator-color-next-ring);
   background: transparent;
-  transition: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.4);
+  pointer-events: none;
+  transition:
+    opacity var(--indicator-morph-ms) var(--indicator-morph-ease),
+    transform var(--indicator-morph-ms) var(--indicator-morph-ease),
+    visibility 0s linear var(--indicator-morph-ms),
+    border-color 0.2s ease;
 }
 
 .gallery-overlay .gallery-progress__dot-core,
 .video-gallery-overlay .gallery-progress__dot-core {
-  display: none;
   position: absolute;
   top: 50%;
   left: 50%;
-  width: calc(var(--indicator-dot-size) - var(--indicator-dot-ring) * 2);
-  height: calc(var(--indicator-dot-size) - var(--indicator-dot-ring) * 2);
+  display: block;
+  width: var(--indicator-dot-size);
+  height: var(--indicator-dot-size);
   border-radius: 50%;
   background: var(--indicator-color-viewed);
-  transform: translate(-50%, -50%);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.35);
   pointer-events: none;
-  transition: none;
+  transition:
+    opacity var(--indicator-morph-ms) var(--indicator-morph-ease),
+    transform var(--indicator-morph-ms) var(--indicator-morph-ease);
 }
 
 .gallery-overlay .gallery-progress__bar-track,
 .video-gallery-overlay .gallery-progress__bar-track {
-  width: 100%;
-  max-width: var(--indicator-bar-width);
+  width: var(--indicator-bar-width);
   height: var(--indicator-bar-height);
   border-radius: 999px;
   background: var(--indicator-color-bar-track);
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
+  transform: translate(-50%, -50%) scaleX(0.22);
   pointer-events: none;
-  transition: none;
-}
-
-.gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-core,
-.video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-core {
-  display: block;
-  width: var(--indicator-dot-size);
-  height: var(--indicator-dot-size);
+  transition:
+    opacity var(--indicator-morph-ms) var(--indicator-morph-ease),
+    transform var(--indicator-morph-ms) var(--indicator-morph-ease),
+    visibility 0s linear var(--indicator-morph-ms);
 }
 
 .gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-mark,
 .video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-mark {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
   border-color: transparent;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  transition:
+    opacity var(--indicator-morph-ms) var(--indicator-morph-ease),
+    transform var(--indicator-morph-ms) var(--indicator-morph-ease),
+    visibility 0s,
+    border-color 0.2s ease;
+}
+
+.gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-core,
+.video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__dot-core {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-mark,
+.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-mark {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: none;
+  transition:
+    opacity var(--indicator-morph-ms) var(--indicator-morph-ease),
+    transform var(--indicator-morph-ms) var(--indicator-morph-ease),
+    visibility 0s,
+    border-color 0.2s ease;
 }
 
 .gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-core,
 .video-gallery-overlay .gallery-progress__slot--next .gallery-progress__dot-core {
-  display: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.35);
 }
 
 .gallery-overlay .gallery-progress__slot--bar .gallery-progress__dot-mark,
 .video-gallery-overlay .gallery-progress__slot--bar .gallery-progress__dot-mark {
   opacity: 0;
   visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.4);
   pointer-events: none;
-  transition: none;
+}
+
+.gallery-overlay .gallery-progress__slot--bar .gallery-progress__dot-core,
+.video-gallery-overlay .gallery-progress__slot--bar .gallery-progress__dot-core {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.35);
 }
 
 .gallery-overlay .gallery-progress__slot--bar .gallery-progress__bar-track,
 .video-gallery-overlay .gallery-progress__slot--bar .gallery-progress__bar-track {
   opacity: 1;
   visibility: visible;
+  transform: translate(-50%, -50%) scaleX(1);
   pointer-events: auto;
+  transition:
+    opacity var(--indicator-morph-ms) var(--indicator-morph-ease),
+    transform var(--indicator-morph-ms) var(--indicator-morph-ease),
+    visibility 0s;
 }
 
 .gallery-overlay .gallery-progress__slot--viewed,
 .video-gallery-overlay .gallery-progress__slot--viewed,
 .gallery-overlay .gallery-progress__slot--next,
-.video-gallery-overlay .gallery-progress__slot--next {
-  width: var(--indicator-hit-size);
-  max-width: var(--indicator-hit-size);
+.video-gallery-overlay .gallery-progress__slot--next,
+.gallery-overlay .gallery-progress__slot--bar,
+.video-gallery-overlay .gallery-progress__slot--bar {
+  width: var(--indicator-slot-size);
+  min-width: var(--indicator-slot-size);
+  max-width: var(--indicator-slot-size);
   height: var(--indicator-hit-size);
 }
 
 .gallery-overlay .gallery-progress__slot--bar,
 .video-gallery-overlay .gallery-progress__slot--bar {
-  width: var(--indicator-bar-width);
-  min-width: var(--indicator-bar-width);
-  max-width: var(--indicator-bar-width);
-  height: var(--indicator-hit-size);
   cursor: default;
 }
 
 .gallery-overlay .gallery-progress__slot--viewed .gallery-progress__slot-visual,
 .video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__slot-visual,
 .gallery-overlay .gallery-progress__slot--next .gallery-progress__slot-visual,
-.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__slot-visual {
-  width: var(--indicator-dot-size);
-  height: var(--indicator-dot-size);
-}
-
+.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__slot-visual,
 .gallery-overlay .gallery-progress__slot--bar .gallery-progress__slot-visual,
 .video-gallery-overlay .gallery-progress__slot--bar .gallery-progress__slot-visual {
-  width: var(--indicator-bar-width);
-  height: var(--indicator-bar-height);
+  width: 100%;
+  height: 100%;
 }
 
 .gallery-overlay .gallery-progress__slot:not(:disabled):hover .gallery-progress__dot-mark,
@@ -563,13 +610,6 @@
   outline-offset: 2px;
 }
 
-.gallery-overlay .gallery-progress__slot--viewed .gallery-progress__bar-track,
-.video-gallery-overlay .gallery-progress__slot--viewed .gallery-progress__bar-track,
-.gallery-overlay .gallery-progress__slot--next .gallery-progress__bar-track,
-.video-gallery-overlay .gallery-progress__slot--next .gallery-progress__bar-track {
-  display: none;
-}
-
 .gallery-overlay .gallery-progress__bar-fill,
 .video-gallery-overlay .gallery-progress__bar-fill {
   display: block;
@@ -590,6 +630,7 @@
     --indicator-gap: 4px;
     --indicator-dot-size: clamp(9px, 2.6vw, 10px);
     --indicator-hit-size: clamp(26px, 7.5vw, 28px);
+    --indicator-slot-size: var(--indicator-bar-width);
     padding: 0.3rem 0.45rem;
   }
 }
