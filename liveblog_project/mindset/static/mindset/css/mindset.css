@@ -923,7 +923,7 @@ html[data-theme="dark"] .mindset-reply {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: .8rem;
+  gap: .825rem;
 }
 
 .mindset-sidebar-item {
