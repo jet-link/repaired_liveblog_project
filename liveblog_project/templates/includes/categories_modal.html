@@ -49,7 +49,17 @@
                     <div class="d-block h-100 categories-modal-card__media">
                       {% comment %}
                       {% if row.item.images.first %}
-                        <img src="{{ row.item.images.first.get_thumbnail_url }}" alt="" class="trending-card__img" loading="lazy" decoding="async" />
+                        {% with img=row.item.images.first %}
+                        <img
+                          src="{{ img.get_thumbnail_url }}"
+                          {% if img.get_srcset %}srcset="{{ img.get_srcset }}"{% endif %}
+                          sizes="120px"
+                          alt=""
+                          class="trending-card__img"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        {% endwith %}
                       {% else %}
                         <div class="categories-modal-card__media-empty" aria-hidden="true"></div>
                       {% endif %}

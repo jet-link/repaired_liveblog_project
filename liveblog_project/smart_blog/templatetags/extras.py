@@ -139,3 +139,22 @@ def feed_grid_slot_class(counter, total):
     kind = slots[idx]
     return f"feed-grid-slot feed-grid-slot--{kind}"
 
+
+_FEED_MEDIA_SIZES = {
+    "hero": "(min-width: 768px) 300px, 100vw",
+    "triple": "(min-width: 1200px) 440px, (min-width: 768px) 33vw, 100vw",
+    "double": "(min-width: 1200px) 660px, (min-width: 768px) 50vw, 100vw",
+}
+
+
+@register.simple_tag
+def feed_grid_media_sizes(counter, total):
+    """Responsive img sizes for feed card media (matches feed_grid_slot_class slot)."""
+    slots = _feed_grid_slots_for_total(total)
+    idx = max(int(counter), 1) - 1
+    if idx >= len(slots):
+        kind = "triple"
+    else:
+        kind = slots[idx]
+    return _FEED_MEDIA_SIZES.get(kind, "100vw")
+

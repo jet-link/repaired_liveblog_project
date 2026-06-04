@@ -7,7 +7,7 @@
 <article id="item-{{ item.pk }}"
   class="brain-card item_block item-feed-card-v2 position-relative"
   data-item-id="{{ item.pk }}">
-  {% include 'includes/category_card_media.html' %}
+  {% include 'includes/category_card_media.html' with media_sizes=feed_media_sizes %}
   <div class="brain-card__body">
     <div class="brain-card__meta">
       <div class="brain-card__author">

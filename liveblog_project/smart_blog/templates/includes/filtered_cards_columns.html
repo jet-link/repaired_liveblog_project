@@ -4,6 +4,7 @@
 {% load extras %}
 {% for item in items %}
   <div class="item-card search-item {% feed_grid_slot_class forloop.counter items|length %}">
-    {% include 'includes/item_feed_card_v2.html' %}
+    {% feed_grid_media_sizes forloop.counter items|length as feed_media_sizes %}
+    {% include 'includes/item_feed_card_v2.html' with feed_media_sizes=feed_media_sizes %}
   </div>
 {% endfor %}

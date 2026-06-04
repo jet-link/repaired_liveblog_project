@@ -3,7 +3,7 @@
 Обработка изображений при загрузке:
 - Ограничение ширины (max 1600px)
 - Конвертация в WebP (качество 85-90%)
-- Генерация thumbnail (~300px), medium (~800px), large (~1400-1600px)
+- Генерация thumbnail (~300px), medium (~800px), feed (~1024px), large (~1400-1600px)
 - Проверка MIME и размера файла
 - Несколько файлов могут обрабатываться параллельно (создание поста).
 """
@@ -36,7 +36,9 @@ IMAGE_PROCESS_MAX_WORKERS = 4
 # Размеры для responsive
 SIZE_THUMBNAIL = 300
 SIZE_MEDIUM = 800
+SIZE_FEED = 1024
 SIZE_LARGE = 1600
+WEBP_QUALITY_PREVIEW = 85
 
 # Display / layout hints for post galleries (derived from pixel dimensions).
 ORIENTATION_LANDSCAPE = "landscape"
@@ -161,14 +163,20 @@ def process_image_bytes(raw: bytes, content_type: str, original_name: str, item_
     large_path = _unique_storage_rel_path(item_id, "large", original_name, sample)
     large_file = ContentFile(large_data, name=large_path)
 
-    medium_data, _, _ = _save_webp(
-        img, SIZE_MEDIUM, resample=Image.Resampling.BILINEAR
+    medium_data, medium_w, _ = _save_webp(
+        img, SIZE_MEDIUM, quality=WEBP_QUALITY_PREVIEW, resample=Image.Resampling.BILINEAR
     )
     medium_path = _unique_storage_rel_path(item_id, "medium", original_name, sample)
     medium_file = ContentFile(medium_data, name=medium_path)
 
+    feed_data, feed_w, _ = _save_webp(
+        img, SIZE_FEED, quality=WEBP_QUALITY_PREVIEW, resample=Image.Resampling.BILINEAR
+    )
+    feed_path = _unique_storage_rel_path(item_id, "feed", original_name, sample)
+    feed_file = ContentFile(feed_data, name=feed_path)
+
     thumb_data, thumb_w, thumb_h = _save_webp(
-        img, SIZE_THUMBNAIL, resample=Image.Resampling.BILINEAR
+        img, SIZE_THUMBNAIL, quality=WEBP_QUALITY_PREVIEW, resample=Image.Resampling.BILINEAR
     )
     thumb_path = _unique_storage_rel_path(item_id, "thumbnails", original_name, sample)
     thumb_file = ContentFile(thumb_data, name=thumb_path)
@@ -177,10 +185,13 @@ def process_image_bytes(raw: bytes, content_type: str, original_name: str, item_
         "image": large_file,
         "image_thumbnail": thumb_file,
         "image_medium": medium_file,
+        "image_feed": feed_file,
         "width": large_w,
         "height": large_h,
         "thumbnail_width": thumb_w,
         "thumbnail_height": thumb_h,
+        "medium_width": medium_w,
+        "feed_width": feed_w,
     }
 
 
@@ -188,7 +199,7 @@ def process_image(ufile, item_id):
     """
     Обрабатывает загруженное изображение:
     1. Проверяет MIME и размер
-    2. Генерирует thumbnail, medium, large в WebP
+    2. Генерирует thumbnail, medium, feed, large в WebP
     3. Удаляет оригинал после успешной конвертации (если временный файл)
     """
     _validate_file(ufile)
@@ -242,6 +253,90 @@ def process_uploaded_files_parallel(uploaded_files, item_id, max_workers=IMAGE_P
         return [_one(bundles[0])]
     with ThreadPoolExecutor(max_workers=workers) as ex:
         return list(ex.map(_one, bundles))
+
+
+def process_variants_from_bytes(raw: bytes, item_id, original_name: str = "image.webp"):
+    """
+    Regenerate thumbnail, medium, and feed WebP variants from an existing large image (bytes).
+    Does not replace the large/master file.
+    """
+    buf = io.BytesIO(raw)
+    img = _open_image(buf)
+    sample = raw[:65536] if len(raw) > 65536 else raw
+
+    medium_data, medium_w, _ = _save_webp(
+        img, SIZE_MEDIUM, quality=WEBP_QUALITY_PREVIEW, resample=Image.Resampling.BILINEAR
+    )
+    medium_path = _unique_storage_rel_path(item_id, "medium", original_name, sample)
+    medium_file = ContentFile(medium_data, name=medium_path)
+
+    feed_data, feed_w, _ = _save_webp(
+        img, SIZE_FEED, quality=WEBP_QUALITY_PREVIEW, resample=Image.Resampling.BILINEAR
+    )
+    feed_path = _unique_storage_rel_path(item_id, "feed", original_name, sample)
+    feed_file = ContentFile(feed_data, name=feed_path)
+
+    thumb_data, thumb_w, thumb_h = _save_webp(
+        img, SIZE_THUMBNAIL, quality=WEBP_QUALITY_PREVIEW, resample=Image.Resampling.BILINEAR
+    )
+    thumb_path = _unique_storage_rel_path(item_id, "thumbnails", original_name, sample)
+    thumb_file = ContentFile(thumb_data, name=thumb_path)
+
+    return {
+        "image_thumbnail": thumb_file,
+        "image_medium": medium_file,
+        "image_feed": feed_file,
+        "thumbnail_width": thumb_w,
+        "thumbnail_height": thumb_h,
+        "medium_width": medium_w,
+        "feed_width": feed_w,
+    }
+
+
+def _delete_item_image_variant_fields(item_image, field_names):
+    for fn in field_names:
+        try:
+            field = getattr(item_image, fn, None)
+            if field and getattr(field, "name", None):
+                field.delete(save=False)
+        except Exception:
+            logger.exception("Failed to delete %s for ItemImage %s", fn, getattr(item_image, "pk", None))
+
+
+def regenerate_item_image_variants(item_image, *, save=True):
+    """
+    Rebuild thumbnail / medium / feed from the stored large image.
+    Returns True on success, False if there is no source image or processing failed.
+    """
+    if not item_image.image or not getattr(item_image.image, "name", None):
+        return False
+    try:
+        with item_image.image.open("rb") as fh:
+            raw = fh.read()
+    except Exception:
+        logger.exception("Could not read large image for ItemImage %s", item_image.pk)
+        return False
+    if not raw:
+        return False
+
+    original_name = Path(item_image.image.name).name or "image.webp"
+    try:
+        processed = process_variants_from_bytes(raw, item_image.item_id, original_name)
+    except Exception:
+        logger.exception("Variant regeneration failed for ItemImage %s", item_image.pk)
+        return False
+
+    _delete_item_image_variant_fields(
+        item_image, ("image_thumbnail", "image_medium", "image_feed")
+    )
+    item_image.image_thumbnail = processed["image_thumbnail"]
+    item_image.image_medium = processed["image_medium"]
+    item_image.image_feed = processed["image_feed"]
+    if save:
+        item_image.save(
+            update_fields=["image_thumbnail", "image_medium", "image_feed"]
+        )
+    return True
 
 
 def process_image_legacy_safe(ufile, item_id):

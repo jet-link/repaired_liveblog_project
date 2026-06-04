@@ -2,7 +2,19 @@
 {% category_card_theme item.category as cat_theme %}
 <div class="brain-card__media{% if media_modifier %} {{ media_modifier }}{% endif %}">
   {% if item.images.first %}
-    <img src="{{ item.images.first.get_thumbnail_url }}" alt="" class="brain-card__img" loading="lazy" decoding="async" />
+    {% with img=item.images.first %}
+      <img
+        src="{{ img.get_medium_url }}"
+        {% if img.get_srcset %}srcset="{{ img.get_srcset }}"{% endif %}
+        sizes="{{ media_sizes|default:'100vw' }}"
+        alt=""
+        class="brain-card__img"
+        loading="lazy"
+        decoding="async"
+        {% if img.width %}width="{{ img.width }}"{% endif %}
+        {% if img.height %}height="{{ img.height }}"{% endif %}
+      />
+    {% endwith %}
   {% elif item.videos.first %}
     {% with vid=item.videos.first %}
       {% if vid.thumbnail %}

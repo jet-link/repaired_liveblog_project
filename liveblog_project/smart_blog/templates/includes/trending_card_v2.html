@@ -5,7 +5,11 @@
          data-item-id="{{ item.pk }}">
   <div class="trending-card-v2__layout">
     <div class="trending-card-v2__media-col">
-      {% include 'includes/category_card_media.html' with rank=rank media_modifier='trending-card-v2__media' %}
+      {% if hero %}
+        {% include 'includes/category_card_media.html' with rank=rank media_modifier='trending-card-v2__media' media_sizes='(min-width: 768px) 300px, 100vw' %}
+      {% else %}
+        {% include 'includes/category_card_media.html' with rank=rank media_modifier='trending-card-v2__media' media_sizes='100vw' %}
+      {% endif %}
     </div>
     <div class="trending-card-v2__content">
       <div class="trending-card-v2__head">

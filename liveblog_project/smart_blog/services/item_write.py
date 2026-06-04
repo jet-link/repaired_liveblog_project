@@ -105,7 +105,7 @@ def validate_edit_image_totals(item: Item, files: Sequence[Any], delete_raw: Seq
 
 
 def _strip_item_image_files(img: ItemImage) -> None:
-    for fn in ("image", "image_thumbnail", "image_medium"):
+    for fn in ("image", "image_thumbnail", "image_medium", "image_feed"):
         try:
             field = getattr(img, fn, None)
             if field and getattr(field, "name", None):
@@ -142,6 +142,7 @@ def attach_item_images_from_uploads(item: Item, files: Sequence[Any]) -> None:
                 image=processed["image"],
                 image_thumbnail=processed["image_thumbnail"],
                 image_medium=processed["image_medium"],
+                image_feed=processed["image_feed"],
                 width=processed.get("width"),
                 height=processed.get("height"),
                 sort_order=order,

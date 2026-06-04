@@ -467,7 +467,7 @@ def delete_item_image(request, pk):
         return JsonResponse({"success": False, "error": "Permission denied."}, status=403)
 
     try:
-        for field_name in ("image", "image_thumbnail", "image_medium"):
+        for field_name in ("image", "image_thumbnail", "image_medium", "image_feed"):
             try:
                 field = getattr(img, field_name, None)
                 if field and getattr(field, "name", None):

@@ -432,8 +432,8 @@ class Item(models.Model):
 
 class ItemImage(models.Model):
     """Хранит одно изображение, связанное с публикацией.
-       Поддерживает responsive: thumbnail (~300px), medium (~800px), large (~1600px).
-       image — основное (large); image_thumbnail, image_medium — для списков и srcset."""
+       Поддерживает responsive: thumbnail (~300px), medium (~800px), feed (~1024px), large (~1600px).
+       image — основное (large); image_thumbnail, image_medium, image_feed — для списков и srcset."""
     ORIENTATION_CHOICES = (
         ("landscape", "Landscape"),
         ("portrait", "Portrait"),
@@ -444,6 +444,7 @@ class ItemImage(models.Model):
     image = models.ImageField(upload_to="items/%Y/%m/%d/")
     image_thumbnail = models.ImageField(upload_to="items/", blank=True, null=True)
     image_medium = models.ImageField(upload_to="items/", blank=True, null=True)
+    image_feed = models.ImageField(upload_to="items/", blank=True, null=True)
     external_url = models.URLField(max_length=500, blank=True, help_text="External CDN URL for the full image")
     width = models.PositiveIntegerField(blank=True, null=True)
     height = models.PositiveIntegerField(blank=True, null=True)
@@ -486,12 +487,14 @@ class ItemImage(models.Model):
         return self.get_url()
 
     def get_srcset(self):
-        """Строка srcset для responsive img (thumbnail 300w, medium 800w, large 1600w)."""
+        """Строка srcset для responsive img (thumbnail 300w, medium 800w, feed 1024w, large)."""
         parts = []
         if self.image_thumbnail:
             parts.append(f"{self.image_thumbnail.url} 300w")
         if self.image_medium:
             parts.append(f"{self.image_medium.url} 800w")
+        if self.image_feed:
+            parts.append(f"{self.image_feed.url} 1024w")
         full_url = self.get_url()
         if full_url:
             parts.append(f"{full_url} {self.width or 1600}w")
