@@ -25,6 +25,7 @@
                 <tr>
                     <th><input type="checkbox" class="admin-bulk-select-all" aria-label="Select all on page"></th>
                     <th>Username</th>
+                    <th>Online</th>
                     <th>Status</th>
                     <th>Posts</th>
                     <th>Comments</th>
@@ -38,6 +39,7 @@
                 <tr data-is-active="{% if u.is_active %}1{% else %}0{% endif %}">
                     <td>{% if u.is_staff %}<span class="admin-badge admin-badge-danger">Admin</span>{% else %}<input type="checkbox" class="admin-bulk-row-check" value="{{ u.pk }}" aria-label="Select">{% endif %}</td>
                     <td><a href="{% url 'admin_panel:user_profile' u.pk %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="admin-link">{{ u.username }}</a></td>
+                    <td class="admin-cell-online">{% user_online_indicator u %}</td>
                     <td><span class="admin-badge {% if u.is_active %}admin-badge-success{% else %}admin-badge-danger{% endif %}">{% if u.is_active %}Active{% else %}Banned{% endif %}</span></td>
                     <td>{{ u.posts_count }}</td>
                     <td>{{ u.comments_count }}</td>
@@ -59,7 +61,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" class="admin-empty">No users.</td></tr>
+                <tr><td colspan="9" class="admin-empty">No users.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

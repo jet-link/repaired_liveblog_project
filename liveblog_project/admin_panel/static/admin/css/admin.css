@@ -803,6 +803,30 @@ html:not([data-theme="light"]) .admin-body .admin-header-overflow-menu .comment-
   min-width: 1ch;
 }
 
+/* Users table: online/offline dot (no animation) */
+.admin-cell-online {
+  text-align: center;
+  vertical-align: middle;
+  width: 4rem;
+}
+
+.admin-user-online-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.admin-user-online-dot--online {
+  background: var(--admin-success);
+}
+
+.admin-user-online-dot--offline {
+  background: var(--admin-danger);
+}
+
 .admin-user-name {
   color: var(--admin-text-muted);
   font-size: 13px;
@@ -2280,6 +2304,7 @@ a.admin-link {
 /* Profile lists */
 .admin-profile-list-card {
   padding: 20px;
+  overflow: visible;
 }
 
 .admin-profile-list {
@@ -2654,31 +2679,70 @@ a.admin-link {
   cursor: pointer;
 }
 
+/* Comment bubble on user profile — caret points right toward post title (bordered, both themes) */
 .recent-comment-text {
+  --recent-comment-bubble-bg: var(--admin-bg-hover);
+  --recent-comment-bubble-border: var(--admin-border);
+  position: relative;
   display: inline-block;
   max-width: 100%;
-  padding: 13px 20px;
-  background: transparent;
+  margin-right: 12px;
+  padding: 10px 16px;
+  background: var(--recent-comment-bubble-bg);
   color: var(--admin-text);
   font-weight: 500;
+  border: 1px solid var(--recent-comment-bubble-border);
   border-radius: 8px;
-  border-left: 4px solid #0550ae;
-  font-size: .8rem;
+  font-size: 0.8rem;
   word-wrap: break-word;
   box-sizing: border-box;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(31, 35, 40, 0.1);
+  vertical-align: middle;
+  overflow: visible;
+}
+
+/* Rotated square: fill + top/right border = arrow with outline (visible on light + dark) */
+.recent-comment-text::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  background: var(--recent-comment-bubble-bg);
+  border: 1px solid var(--recent-comment-bubble-border);
+  border-left: none;
+  border-bottom: none;
+  transform: translate(50%, -50%) rotate(45deg);
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 1;
+}
+
+[data-theme="light"] .recent-comment-text {
+  --recent-comment-bubble-bg: var(--admin-bg-hover);
+  --recent-comment-bubble-border: var(--admin-border);
+  box-shadow: 0 2px 8px rgba(31, 35, 40, 0.12);
+}
+
+html:not([data-theme="light"]) .recent-comment-text {
+  --recent-comment-bubble-bg: var(--admin-bg-hover);
+  --recent-comment-bubble-border: var(--admin-border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
 
 .admin-profile-list--comments {
   gap: 12px;
+  overflow: visible;
 }
 
 .admin-profile-list--comments li {
   flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
+  overflow: visible;
 }
 
 #assistantProgressBlock{

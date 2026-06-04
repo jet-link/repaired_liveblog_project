@@ -11,6 +11,7 @@
     <p><strong>Email</strong>: {{ user_obj.email|default:"—" }}</p>
     <p><strong>Joined</strong>: {{ user_obj.date_joined|date:"M d, Y" }}</p>
     <p><strong>Status</strong> <span class="admin-badge {% if user_obj.is_active %}admin-badge-success{% else %}admin-badge-danger{% endif %}">{% if user_obj.is_active %}Active{% else %}Banned{% endif %}</span></p>
+    <p><strong>Last seen</strong>: {% if user_obj.profile and user_obj.profile.last_seen %}{{ user_obj.profile.last_seen|date:"M Y" }}{% else %}—{% endif %}</p>
     {% if user_obj.profile %}
     <p><strong>Trust Score</strong> {% trust_score_badge user_obj %} {% with ts=user_obj.profile.trust_score %}{% if ts >= 8 %}(Trusted){% elif ts >= 5 %}(Normal){% elif ts >= 3 %}(Risk){% else %}(Dangerous){% endif %}{% endwith %}</p>
     <p><strong>Can post</strong>: {% if user_obj.profile.can_post %}Yes{% else %}No{% endif %}</p>

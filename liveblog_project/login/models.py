@@ -46,6 +46,12 @@ class Profile(models.Model):
         db_index=True,
         help_text='Account auto-deactivated because trust score fell below site threshold.',
     )
+    last_seen = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='Last site activity (updated while user is browsing; month shown in admin).',
+    )
 
     public_username = models.BooleanField(default=True)
     public_first_name = models.BooleanField(default=True)
