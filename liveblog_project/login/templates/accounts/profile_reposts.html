@@ -12,6 +12,7 @@
 {% block content %}
   <div class="container-main content_block mindset-page profile-reposts-page"
        data-mindset-feed
+       data-profile-is-owner="{% if is_owner %}1{% else %}0{% endif %}"
        data-user-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
        data-user-id="{% if user.is_authenticated %}{{ user.pk }}{% endif %}"
        data-mindset-themes-state-url="{% url 'mindset:api_themes_state' %}"

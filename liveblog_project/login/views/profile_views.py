@@ -279,6 +279,8 @@ def profile_mindset_themes_view(request, username):
     )
     pagination_extra = f"&tab={tab}"
 
+    is_owner = request.user.is_authenticated and request.user == user_obj
+
     context = {
         "user_obj": user_obj,
         "active_tab": tab,
@@ -288,6 +290,7 @@ def profile_mindset_themes_view(request, username):
         "pagination_extra": pagination_extra,
         "repost_rows": repost_rows,
         "sidebar": _sidebar_payload(),
+        "is_owner": is_owner,
     }
     return render(request, "accounts/profile_reposts.html", context)
 

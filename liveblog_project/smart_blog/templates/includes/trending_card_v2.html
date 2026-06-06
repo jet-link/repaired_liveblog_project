@@ -20,6 +20,7 @@
         {% endif %}
         <span class="trending-card-v2__badge">In trend</span>
       </div>
+      <hr class="brain-card__divider trending-card-v2__divider" aria-hidden="true">
       <h3 class="trending-card-v2__title">
         <a href="{{ item.get_absolute_url }}?from=trending&amp;source_url={{ request.get_full_path|urlencode }}" class="text-decoration-none stretched-link">{{ item.title }}</a>
       </h3>

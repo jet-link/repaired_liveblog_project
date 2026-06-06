@@ -259,6 +259,13 @@
     }
   }
 
+  /** Collapse repost row only on the signed-in user's own profile Reposts tab. */
+  function shouldRemoveProfileRepostEntry(feedRoot) {
+    if (!feedRoot || !feedRoot.classList.contains('profile-reposts-page')) return false;
+    if (getActiveProfileTab() !== 'reposts') return false;
+    return feedRoot.getAttribute('data-profile-is-owner') === '1';
+  }
+
   function maybeShowProfileEmpty(feedRoot) {
     if (!feedRoot) return;
     if (!feedRoot.classList.contains('profile-reposts-page')) return;
@@ -680,7 +687,8 @@
             applyThemeState(resp.data.theme);
             if (
               themeRepostBlock &&
-              resp.data.theme.user_reposted === false
+              resp.data.theme.user_reposted === false &&
+              shouldRemoveProfileRepostEntry(btn.closest('[data-mindset-feed]'))
             ) {
               animatedRemove(themeRepostBlock);
             }
@@ -703,7 +711,8 @@
             applyReplyState(resp.data.reply);
             if (
               replyRepostBlock &&
-              resp.data.reply.user_reposted === false
+              resp.data.reply.user_reposted === false &&
+              shouldRemoveProfileRepostEntry(btn.closest('[data-mindset-feed]'))
             ) {
               animatedRemove(replyRepostBlock);
             }

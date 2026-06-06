@@ -1,7 +1,7 @@
 {% load mindset_extras %}
 {% load counters %}
 <article class="mindset-theme" data-mindset-theme="{{ theme.pk }}" data-mindset-author="{{ theme.author.username }}" id="mindset-theme-{{ theme.pk }}">
-  <header class="mindset-theme__head mb-4">
+  <header class="mindset-theme__head pb-3">
     <div class="mindset-theme__author-row">
       {% include 'mindset/_author_identity.html' with author=theme.author %}
       {% if user.is_authenticated and user.id != theme.author_id and theme.author.is_active %}
@@ -24,7 +24,7 @@
       <span class="ms-1">{{ theme.human_published }}</span>
     </small>
   </header>
-  {% comment %} <hr class="mindset-theme__sep" /> {% endcomment %}
+  <hr class="mindset-card__divider" aria-hidden="true">
   <div class="mindset-theme__body" data-mindset-body>{{ theme.body|mindset_body }}</div>
 
   {% with imgs=theme.images.all %}

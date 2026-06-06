@@ -180,7 +180,7 @@ html[data-theme="dark"] .brain-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(145deg, #d5dbe0 0%, #b2bec3 52%, #9ca8af 100%);
+    background: linear-gradient(145deg, #818a8d 0%, #636e72 52%, #51595c 100%);
 }
 
 .brain-card__placeholder-icon {

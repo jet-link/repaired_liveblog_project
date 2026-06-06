@@ -3529,7 +3529,7 @@ html:not([data-theme="light"]) .recent-comment-text {
 }
 
 .admin-modal-dialog--view-notif {
-  max-width: 520px;
+  max-width: 600px;
   width: 100%;
 }
 
@@ -3600,6 +3600,6 @@ html:not([data-theme="light"]) .recent-comment-text {
 }
 
 .admin-modal-dialog--manual-notif {
-  max-width: 520px;
+  max-width: 600px;
   width: 100%;
 }

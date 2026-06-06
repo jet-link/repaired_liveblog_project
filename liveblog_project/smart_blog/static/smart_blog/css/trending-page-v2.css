@@ -107,6 +107,19 @@
     gap: 0.5rem;
 }
 
+/* Full-width divider under head (same pattern as .brain-card__divider on feed cards) */
+.trending-card-v2__content .trending-card-v2__divider {
+    width: calc(100% + 2.25rem);
+    margin-left: -1.125rem;
+    margin-right: -1.125rem;
+}
+
+.trending-card-v2--hero .trending-card-v2__content .trending-card-v2__divider {
+    width: calc(100% + 3rem);
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+}
+
 .trending-card-v2__category {
     font-size: 0.6875rem;
     font-weight: 700;
