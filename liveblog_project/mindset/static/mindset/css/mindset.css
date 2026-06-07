@@ -875,7 +875,7 @@ html[data-theme="dark"] .mindset-reply__pinned-picture:hover {
   padding: 0.8rem;
   border-left: 2px solid var(--border-default, #e5e7eb);
   background: rgba(0, 0, 0, 0.04);
-  border-radius: 10px;
+  border-radius: 14px;
 }
 
 .mindset-reply--standalone {
