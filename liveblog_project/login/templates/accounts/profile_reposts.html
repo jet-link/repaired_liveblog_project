@@ -83,17 +83,17 @@
       {% else %}
         <section class="mindset-feed" data-mindset-feed-list>
           {% for row in repost_rows %}
+            {% if row.kind == 'theme' %}
             <div class="profile-mindset-repost-block">
               <div class="small text-muted my-3">
                 <i class="fa fa-clock-o me-1"></i>
                 Reposted <span class="text-muted fw-semibold">{{ row.reposted_human }}</span>
               </div>
-              {% if row.kind == 'theme' %}
-                {% include 'mindset/_theme_card.html' with theme=row.theme %}
-              {% else %}
-                {% include 'mindset/_reply.html' with reply=row.reply %}
-              {% endif %}
+              {% include 'mindset/_theme_card.html' with theme=row.theme %}
             </div>
+            {% else %}
+              {% include 'mindset/_profile_reply_repost_block.html' with reply=row.reply reposted_human=row.reposted_human %}
+            {% endif %}
           {% empty %}
             <div class="mindset-empty text-muted py-5">
               <p class="m-0 text-center">No reposts yet.</p>

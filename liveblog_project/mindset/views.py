@@ -34,7 +34,7 @@ from smart_blog.notification_utils import (
     notify_mindset_theme_reply,
     notify_or_bump_mindset_theme_repost,
 )
-from smart_blog.utils import breadcrumb, build_breadcrumbs, count_convert
+from smart_blog.utils import breadcrumb, build_breadcrumbs, count_convert, human_time_relative_youtube
 
 from .body_html import (
     extract_hashtags,
@@ -272,6 +272,25 @@ def _render_reply(reply: Reply, request) -> str:
     return render_to_string(
         'mindset/_reply.html',
         {'reply': annotated or reply, 'request': request, 'user': request.user},
+        request=request,
+    )
+
+
+def _render_profile_reply_repost_block(reply: Reply, request, *, reposted_human: str) -> str:
+    annotated = _annotate_user_state(
+        Reply.objects.filter(pk=reply.pk).select_related(
+            'author', 'author__profile', 'image', 'theme'
+        ),
+        request.user,
+    ).first()
+    return render_to_string(
+        'mindset/_profile_reply_repost_block.html',
+        {
+            'reply': annotated or reply,
+            'reposted_human': reposted_human,
+            'request': request,
+            'user': request.user,
+        },
         request=request,
     )
 
@@ -810,11 +829,20 @@ def api_reply_like(request, pk):
 def api_reply_repost(request, pk):
     reply = get_object_or_404(Reply.objects.filter(is_deleted=False), pk=pk)
     created = _toggle(ReplyRepost, lookup_kwargs={'reply': reply}, user=request.user)
-    return JsonResponse({
+    payload = {
         'ok': True,
         'reposted': created,
         'reply': _fresh_reply_state(reply.pk, request),
-    })
+    }
+    if created:
+        repost_row = ReplyRepost.objects.filter(user=request.user, reply=reply).first()
+        if repost_row:
+            payload['profile_repost_row_html'] = _render_profile_reply_repost_block(
+                reply,
+                request,
+                reposted_human=human_time_relative_youtube(repost_row.created_at),
+            )
+    return JsonResponse(payload)
 
 
 # ---------------------------------------------------------------------------

@@ -266,6 +266,66 @@
     return feedRoot.getAttribute('data-profile-is-owner') === '1';
   }
 
+  function isReplyNestedInThemeRepostBlock(btn) {
+    if (!btn) return false;
+    return !!btn.closest('.profile-mindset-repost-block .mindset-theme .mindset-reply');
+  }
+
+  function findStandaloneReplyRepostBlock(feedList, replyId) {
+    if (!feedList || !replyId) return null;
+    var blocks = feedList.querySelectorAll(':scope > .profile-mindset-repost-block');
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
+      if (block.querySelector(':scope > article.mindset-theme')) continue;
+      if (String(block.getAttribute('data-profile-repost-reply-id') || '') === String(replyId)) {
+        return block;
+      }
+      var directReply = block.querySelector(':scope > .mindset-reply[data-mindset-reply="' + replyId + '"]');
+      if (directReply) return block;
+    }
+    return null;
+  }
+
+  function findReplyRepostRemovalTarget(btn) {
+    if (!shouldRemoveProfileRepostEntry(btn.closest('[data-mindset-feed]'))) return null;
+    var replyNode = btn.closest('[data-mindset-reply]');
+    var replyId = replyNode ? replyNode.getAttribute('data-mindset-reply') : null;
+    var feedList = btn.closest('[data-mindset-feed-list]');
+
+    if (isReplyNestedInThemeRepostBlock(btn)) {
+      return replyId ? findStandaloneReplyRepostBlock(feedList, replyId) : null;
+    }
+
+    var block = btn.closest('.profile-mindset-repost-block');
+    if (block && !block.querySelector(':scope > article.mindset-theme')) {
+      return block;
+    }
+    return null;
+  }
+
+  function insertProfileReplyRepostRow(feedList, html) {
+    if (!feedList || !html) return;
+    var empty = feedList.querySelector(':scope > .mindset-empty');
+    if (empty) empty.remove();
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html.trim();
+    var block = wrap.firstElementChild;
+    if (!block) return;
+    var firstEntry = feedList.querySelector(
+      ':scope > .profile-mindset-repost-block, :scope > .mindset-theme, :scope > .profile-reposts-reply-wrap'
+    );
+    if (firstEntry) {
+      feedList.insertBefore(block, firstEntry);
+    } else {
+      var pag = feedList.querySelector(':scope > .w-100');
+      if (pag) {
+        feedList.insertBefore(block, pag);
+      } else {
+        feedList.appendChild(block);
+      }
+    }
+  }
+
   function maybeShowProfileEmpty(feedRoot) {
     if (!feedRoot) return;
     if (!feedRoot.classList.contains('profile-reposts-page')) return;
@@ -357,18 +417,20 @@
   function applyReplyState(state, opts) {
     if (!state || !state.id) return;
     opts = opts || {};
-    var node = document.querySelector('[data-mindset-reply="' + state.id + '"]');
-    if (!node) return;
-    setCounter(node, 'replies', state.replies_count_human != null ? state.replies_count_human : state.replies_count);
-    setCounter(node, 'likes', state.likes_count_human != null ? state.likes_count_human : state.likes_count);
-    setCounter(node, 'reposts', state.reposts_count_human != null ? state.reposts_count_human : state.reposts_count);
+    var nodes = document.querySelectorAll('[data-mindset-reply="' + state.id + '"]');
+    if (!nodes.length) return;
+    nodes.forEach(function (node) {
+      setCounter(node, 'replies', state.replies_count_human != null ? state.replies_count_human : state.replies_count);
+      setCounter(node, 'likes', state.likes_count_human != null ? state.likes_count_human : state.likes_count);
+      setCounter(node, 'reposts', state.reposts_count_human != null ? state.reposts_count_human : state.reposts_count);
 
-    if (!opts.skipLike && state.user_liked !== undefined) {
-      paintLikeButton(node.querySelector('[data-action="reply-like"]'), state.user_liked);
-    }
-    if (!opts.skipRepost && state.user_reposted !== undefined) {
-      paintRepostButton(node.querySelector('[data-action="reply-repost"]'), state.user_reposted);
-    }
+      if (!opts.skipLike && state.user_liked !== undefined) {
+        paintLikeButton(node.querySelector('[data-action="reply-like"]'), state.user_liked);
+      }
+      if (!opts.skipRepost && state.user_reposted !== undefined) {
+        paintRepostButton(node.querySelector('[data-action="reply-repost"]'), state.user_reposted);
+      }
+    });
   }
 
   function findVisibleThemeIds() {
@@ -702,19 +764,29 @@
       if (action === 'reply-like' || action === 'reply-repost') {
         var rurl = btn.getAttribute('data-url');
         if (!rurl || btn.disabled) return;
-        var replyRepostBlock =
-          action === 'reply-repost' ? btn.closest('.profile-mindset-repost-block') : null;
         btn.disabled = true;
         postForm(rurl).then(function (resp) {
           btn.disabled = false;
           if (resp.ok && resp.data && resp.data.ok && resp.data.reply) {
             applyReplyState(resp.data.reply);
-            if (
-              replyRepostBlock &&
-              resp.data.reply.user_reposted === false &&
-              shouldRemoveProfileRepostEntry(btn.closest('[data-mindset-feed]'))
-            ) {
-              animatedRemove(replyRepostBlock);
+            if (action === 'reply-repost') {
+              var feedRoot = btn.closest('[data-mindset-feed]');
+              var feedList = btn.closest('[data-mindset-feed-list]');
+              if (resp.data.reply.user_reposted === false) {
+                var removalTarget = findReplyRepostRemovalTarget(btn);
+                if (removalTarget) {
+                  animatedRemove(removalTarget);
+                }
+              } else if (
+                resp.data.reposted &&
+                shouldRemoveProfileRepostEntry(feedRoot) &&
+                isReplyNestedInThemeRepostBlock(btn) &&
+                feedList &&
+                resp.data.profile_repost_row_html &&
+                !findStandaloneReplyRepostBlock(feedList, String(resp.data.reply.id))
+              ) {
+                insertProfileReplyRepostRow(feedList, resp.data.profile_repost_row_html);
+              }
             }
           } else if (resp.data && resp.data.error) {
             console.warn('Mindset:', resp.data.error);

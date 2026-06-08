@@ -1,0 +1,7 @@
+<div class="profile-mindset-repost-block" data-profile-repost-reply-id="{{ reply.pk }}">
+  <div class="small text-muted my-3">
+    <i class="fa fa-clock-o me-1"></i>
+    Reposted <span class="text-muted fw-semibold">{{ reposted_human }}</span>
+  </div>
+  {% include 'mindset/_reply.html' with reply=reply %}
+</div>
