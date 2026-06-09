@@ -160,78 +160,112 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Notifications bell count (sync from localStorage)
+// Notifications bell count.
+// Source of truth = server-rendered data-notifications-count (fresh every request,
+// 30s cache invalidated on read/read-all). localStorage only carries the latest
+// client action (read-all / mark read) across the SAME user's tabs and bfcache
+// restores, where the restored DOM still shows a stale count.
 (function () {
     'use strict';
 
-    const STALE_MS = 90000;
+    const COUNT_KEY = 'notification_unread_count';
+    const TS_KEY = 'notification_count_updated_at';
+    const USER_KEY = 'notification_count_user';
 
-    function updateBellCountFromStorage(forceCount) {
+    function currentUserId() {
+        return (document.body && document.body.dataset && document.body.dataset.userId) || '';
+    }
+
+    function readStored() {
+        try {
+            const raw = localStorage.getItem(COUNT_KEY);
+            return {
+                count: raw !== null && raw !== '' ? parseInt(raw, 10) : NaN,
+                user: localStorage.getItem(USER_KEY) || '',
+            };
+        } catch (err) {
+            return { count: NaN, user: '' };
+        }
+    }
+
+    function writeStored(count) {
+        try {
+            localStorage.setItem(COUNT_KEY, String(count));
+            localStorage.setItem(TS_KEY, String(Date.now()));
+            localStorage.setItem(USER_KEY, currentUserId());
+        } catch (err) {}
+    }
+
+    function serverCount(btns) {
+        const raw = btns[0].dataset ? btns[0].dataset.notificationsCount : undefined;
+        return raw !== undefined && raw !== null && raw !== '' ? parseInt(raw, 10) : NaN;
+    }
+
+    function paintBell(count) {
+        const on = count > 0;
+        document.querySelectorAll('.notification-btn').forEach(function (btn) {
+            btn.classList.toggle('has-unread', on);
+            // Keep the attr in sync so later restores read a correct baseline.
+            btn.dataset.notificationsCount = String(on ? count : 0);
+        });
+    }
+
+    /**
+     * @param {number} [forceCount] explicit count (notifications.js after read/delete).
+     * @param {object} [opts] { trustStored } — DOM is stale (bfcache / cross-tab),
+     *        so prefer the same user's localStorage value over the frozen attr.
+     */
+    function updateBellCountFromStorage(forceCount, opts) {
         const btns = document.querySelectorAll('.notification-btn');
         if (!btns.length) return;
 
+        // On the notifications page itself notifications.js owns the count.
         if (typeof forceCount !== 'number' && document.getElementById('notificationsState')) {
             return;
         }
 
-        let count;
         if (typeof forceCount === 'number' && !Number.isNaN(forceCount)) {
-            count = Math.max(0, Math.floor(forceCount));
-            try {
-                localStorage.setItem('notification_unread_count', String(count));
-                localStorage.setItem('notification_count_updated_at', String(Date.now()));
-            } catch (err) {}
-        } else {
-            let stored = null;
-            let updatedAt = null;
-            try {
-                stored = localStorage.getItem('notification_unread_count');
-                updatedAt = localStorage.getItem('notification_count_updated_at');
-            } catch (err) {}
-
-            const serverRaw = btns[0].dataset?.notificationsCount;
-            const serverCount = serverRaw !== undefined && serverRaw !== null && serverRaw !== ''
-                ? parseInt(serverRaw, 10)
-                : NaN;
-            const storedCount = stored !== null ? parseInt(stored, 10) : NaN;
-
-            if (!Number.isNaN(serverCount) && !Number.isNaN(storedCount)) {
-                const ts = updatedAt ? parseInt(updatedAt, 10) : 0;
-                const isRecent = ts && (Date.now() - ts) < STALE_MS;
-                if (storedCount === 0 && serverCount > 0) {
-                    count = serverCount;
-                } else {
-                    count = isRecent ? Math.min(serverCount, storedCount) : serverCount;
-                }
-            } else if (!Number.isNaN(serverCount)) {
-                count = serverCount;
-            } else if (!Number.isNaN(storedCount)) {
-                count = storedCount;
-            } else {
-                return;
-            }
-
-            try {
-                localStorage.setItem('notification_unread_count', String(count));
-            } catch (err) {}
+            const count = Math.max(0, Math.floor(forceCount));
+            writeStored(count);
+            paintBell(count);
+            return;
         }
 
-        btns.forEach(function (btn) {
-            if (count > 0) {
-                btn.classList.add('has-unread');
-            } else {
-                btn.classList.remove('has-unread');
-            }
-        });
+        const trustStored = !!(opts && opts.trustStored);
+        const stored = readStored();
+        const sameUser = stored.user === currentUserId();
+        const srv = serverCount(btns);
+
+        let count;
+        if (trustStored && sameUser && !Number.isNaN(stored.count)) {
+            // Stale DOM (restored page / other tab updated): client value is newer.
+            count = stored.count;
+        } else if (!Number.isNaN(srv)) {
+            // Fresh navigation: server attr is authoritative. Reset client cache so a
+            // previous account's value can never suppress this user's red bell.
+            count = srv;
+            writeStored(count);
+        } else if (sameUser && !Number.isNaN(stored.count)) {
+            count = stored.count;
+        } else {
+            return;
+        }
+
+        paintBell(count);
     }
 
     window.updateBellCountFromStorage = updateBellCountFromStorage;
 
-    document.addEventListener('DOMContentLoaded', updateBellCountFromStorage);
-    window.addEventListener('pageshow', updateBellCountFromStorage);
+    document.addEventListener('DOMContentLoaded', function () {
+        updateBellCountFromStorage();
+    });
+    window.addEventListener('pageshow', function (e) {
+        // Restored from bfcache → DOM (and its data-notifications-count) is frozen.
+        updateBellCountFromStorage(undefined, { trustStored: !!(e && e.persisted) });
+    });
     window.addEventListener('storage', function (e) {
-        if (e.key === 'notification_unread_count') {
-            updateBellCountFromStorage();
+        if (e.key === COUNT_KEY) {
+            updateBellCountFromStorage(undefined, { trustStored: true });
         }
     });
 
@@ -239,8 +273,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const a = e.target.closest?.('a[href*="logout"]');
         if (a) {
             try {
-                localStorage.removeItem('notification_unread_count');
-                localStorage.removeItem('notification_count_updated_at');
+                localStorage.removeItem(COUNT_KEY);
+                localStorage.removeItem(TS_KEY);
+                localStorage.removeItem(USER_KEY);
             } catch (err) {}
         }
     }, true);

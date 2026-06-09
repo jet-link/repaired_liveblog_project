@@ -124,10 +124,15 @@
     document.querySelectorAll('.notification-btn').forEach(function (btn) {
       if (count > 0) {
         btn.classList.add('has-unread');
+        btn.dataset.notificationsCount = String(count);
       } else {
         btn.classList.remove('has-unread');
+        delete btn.dataset.notificationsCount;
       }
     });
+    if (stateEl) {
+      stateEl.dataset.unread = String(Math.max(0, count));
+    }
     // Badge возле заголовка "Notifications" на странице notifications.html
     const pageBadgeWrap = document.getElementById('notificationsPageBadgeWrap');
     if (!pageBadgeWrap) return;
@@ -165,6 +170,7 @@
     try {
       localStorage.setItem('notification_unread_count', String(unreadCount));
       localStorage.setItem('notification_count_updated_at', String(Date.now()));
+      localStorage.setItem('notification_count_user', (document.body && document.body.dataset.userId) || '');
       if (typeof window.updateBellCountFromStorage === 'function') {
         window.updateBellCountFromStorage(unreadCount);
       }
@@ -388,8 +394,9 @@
         try {
           localStorage.setItem('notification_unread_count', '0');
           localStorage.setItem('notification_count_updated_at', String(Date.now()));
+          localStorage.setItem('notification_count_user', (document.body && document.body.dataset.userId) || '');
           if (typeof window.updateBellCountFromStorage === 'function') {
-            window.updateBellCountFromStorage();
+            window.updateBellCountFromStorage(0);
           }
         } catch (err) {
           /* ignore */

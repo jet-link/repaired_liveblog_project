@@ -1072,27 +1072,27 @@ html:not([data-theme="light"]) .admin-body .admin-header-overflow-menu .comment-
   overflow: visible;
 }
 
-/* Assistant page: stretch logs block to fill remaining height (only when assistant is present) */
-@media (min-width: 993px) {
-  .admin-layout:has(.admin-assistant-page) {
-    height: 100vh;
-    overflow: hidden;
-  }
+/* Assistant page: stretch analysis/logs to fill the viewport (desktop + mobile) */
+.admin-layout:has(.admin-assistant-page) {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
 
-  .admin-main:has(.admin-assistant-page) {
-    min-height: 0;
-  }
+.admin-main:has(.admin-assistant-page) {
+  min-height: 0;
+}
 
-  .admin-main:has(.admin-assistant-page) > .admin-header,
-  .admin-main:has(.admin-assistant-page) > .admin-breadcrumbs {
-    flex-shrink: 0;
-  }
+.admin-main:has(.admin-assistant-page) > .admin-header,
+.admin-main:has(.admin-assistant-page) > .admin-breadcrumbs {
+  flex-shrink: 0;
+}
 
-  .admin-content:has(.admin-assistant-page) {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
+.admin-content:has(.admin-assistant-page) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .admin-assistant-page {
@@ -1122,6 +1122,7 @@ html:not([data-theme="light"]) .admin-body .admin-header-overflow-menu .comment-
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   font-family: monospace;
   font-size: 0.85rem;
   padding: 1rem;
@@ -1146,14 +1147,6 @@ html:not([data-theme="light"]) .admin-body .admin-header-overflow-menu .comment-
   border-color: var(--admin-border);
 }
 
-/* On small screens, flex height constraints don't apply — add max-height so logs scroll */
-@media (max-width: 992px) {
-  #assistantLogsContent {
-    max-height: min(50vh, 400px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-}
 
 .admin-category-icon-live{
   margin-top: 15px;

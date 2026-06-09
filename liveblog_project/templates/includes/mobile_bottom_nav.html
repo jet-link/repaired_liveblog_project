@@ -63,7 +63,7 @@
       <i class="fa fa-user-circle mobile-nav-account-popover__ico" aria-hidden="true"></i>
       <span class="mobile-nav-account-popover__text">{{ user.username }}</span>
     </a>
-    <a href="{% url 'login_app:notifications' user.username %}" class="mobile-nav-account-popover__row notification-btn{% if notifications_count %} has-unread{% endif %}{% if slug_user == user.username and un == 'notifications' %} mobile-nav-account-popover__row--active{% endif %}"{% if notifications_count %} data-notifications-count="{{ notifications_count }}"{% endif %}>
+    <a href="{% url 'login_app:notifications' user.username %}" class="mobile-nav-account-popover__row notification-btn{% if notifications_count %} has-unread{% endif %}{% if slug_user == user.username and un == 'notifications' %} mobile-nav-account-popover__row--active{% endif %}" data-notifications-count="{{ notifications_count }}">
       <i class="fa fa-bell mobile-nav-account-popover__ico" aria-hidden="true"></i>
       <span class="mobile-nav-account-popover__text">Notifications</span>
     </a>

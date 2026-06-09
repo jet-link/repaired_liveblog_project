@@ -253,8 +253,9 @@ html[data-theme="dark"] .item-text.ck-content td {
 .ck-content blockquote {
     margin: 0 0 1rem;
     padding: .5rem 1rem;
-    border-left: .25rem solid #dee2e6;
-    color: var(--text-muted);
+    border-left: 3px solid 
+    color-mix(in srgb, var(--text-link, var(--bs-primary, #0d6efd)) 38%, var(--border-default, #dee2e6));
+    /* color: var(--text-muted); */
     background: transparent;
 }
 

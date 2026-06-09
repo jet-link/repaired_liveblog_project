@@ -225,7 +225,7 @@ img.avatar-load-failed {
     align-items: center;
     justify-content: center;
     background: var(--bg-subtle);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08); */
 }
 
 .little-avatar img {
@@ -235,7 +235,7 @@ img.avatar-load-failed {
     object-position: 50% 50%;
     display: block;
 }
-
+/* 
 .avatar-ring {
     border: 3px solid var(--text-link);
     border-radius: 50%;
@@ -244,9 +244,9 @@ img.avatar-load-failed {
     justify-content: center;
     position: relative;
     overflow: visible;
-}
+} */
 
-.avatar-ring::before,
+/* .avatar-ring::before,
 .avatar-ring::after {
     content: "";
     position: absolute;
@@ -277,7 +277,7 @@ img.avatar-load-failed {
         transform: scale(1.35);
         opacity: 0;
     }
-}
+} */
 
 .thumb-sm {
     width: 70px;

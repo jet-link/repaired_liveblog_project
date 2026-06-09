@@ -383,8 +383,8 @@ html[data-theme="dark"] .sitemap-html-link:hover {
     text-align: left;
     color: var(--text-default, #1f2328);
     background: var(--bg-default, #fff);
-    border: none;
-    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--border-default, #dee2e6);
+    border-radius: var(--radius-md, 14px);
     cursor: pointer;
     transition: background 0.2s ease;
 }
@@ -455,7 +455,7 @@ html[data-theme="dark"] .sitemap-html-link:hover {
 }
 
 .faq-item.is-open .faq-item-answer {
-    margin-top: 0.25rem;
+    margin-top: 0.6rem;
     max-height: 800px;
 }
 

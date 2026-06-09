@@ -3,7 +3,7 @@
     <div class="footer-links d-flex flex-column flex-sm-row gap-4 gap-sm-4">
       <div class="footer-block">
         <a href="{% url 'pages:sitemap_page' %}" class="footer-link-item text-decoration-none text-muted{% if request.resolver_match and request.resolver_match.namespace == 'pages' and request.resolver_match.url_name == 'sitemap_page' %} active{% endif %}">
-          <i class="fa fa-sitemap me-2"></i>
+          {% comment %} <i class="fa fa-sitemap me-2"></i> {% endcomment %}
           Sitemap
         </a>
       </div>
