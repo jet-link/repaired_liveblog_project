@@ -190,8 +190,10 @@ html[data-theme="dark"] .brain-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.5);
+    /* background: rgba(255, 255, 255, 0.5); */
+    background: transparent;
     color: #ffffff;
+    border: 1px solid #ffffff;
     font-size: 1.2rem;
 }
 
@@ -443,6 +445,33 @@ html[data-theme="dark"] .brain-card__category--lifehacking { color: #22d3ee; }
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: color 0.12s ease;
+}
+
+.brain-card__stat--like.like-btn {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.12s ease;
+}
+
+.brain-card__stat--like.like-btn.is-liked > .fa {
+    color: #c0392b;
+    opacity: 1;
+}
+
+.brain-card__stat--like.like-btn.is-liked > span {
+    color: inherit;
+}
+
+.brain-card__stat--like.like-btn:active:not(:disabled) {
+    transform: scale(0.93);
 }
 
 .brain-card__stat--bookmark.bookmark-btn.is-bookmarked > .fa {

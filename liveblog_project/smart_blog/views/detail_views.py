@@ -23,9 +23,63 @@ from smart_blog.models import (
 )
 from smart_blog.selectors import has_user_reported_item
 from smart_blog.services.report_limits import can_user_report
-from smart_blog.utils import breadcrumb, build_breadcrumbs
+from smart_blog.utils import breadcrumb, build_breadcrumbs, strip_mention_tokens
 
 DETAIL_COMMENT_PREVIEW_LIMIT = 10
+THREAD_CRUMB_MAX_CHARS = 28
+THREAD_ANCESTOR_GUARD = 200
+
+
+def _thread_crumb_label(comment):
+    """Short, link-safe annotation of a comment for the thread breadcrumb trail."""
+    text = strip_mention_tokens(comment.text or "").strip()
+    if len(text) > THREAD_CRUMB_MAX_CHARS:
+        text = text[:THREAD_CRUMB_MAX_CHARS].rstrip() + "\u2026"
+    if not text:
+        author = getattr(comment.author, "username", None)
+        text = author or f"Comment #{comment.pk}"
+    return text
+
+
+def _comment_ancestor_chain(comment):
+    """Return ancestors from the topmost root down to (and including) ``comment``."""
+    chain = []
+    seen = set()
+    node = comment
+    guard = 0
+    while node is not None and node.pk not in seen and guard < THREAD_ANCESTOR_GUARD:
+        seen.add(node.pk)
+        chain.append(node)
+        node = node.parent if node.parent_id else None
+        guard += 1
+    chain.reverse()
+    return chain
+
+
+def _thread_root_path(comment):
+    """Chain of *thread pages* from the post down to ``comment``.
+
+    Only comments that are real "View deep replies" entry points belong here —
+    not every nested ancestor. Replies nest up to ``DEEP_REPLY_DEPTH`` levels per
+    page (see ``replied_comments.html``: a thread link appears at ``depth >= 2``),
+    so a new thread page starts every ``DEEP_REPLY_DEPTH`` levels of nesting.
+
+    Returns thread roots from the shallowest down to (and including) ``comment``.
+    """
+    DEEP_REPLY_DEPTH = 2
+    chain = _comment_ancestor_chain(comment)
+    roots = []
+    local_depth = 0
+    for node in chain:
+        if local_depth >= DEEP_REPLY_DEPTH:
+            roots.append(node)
+            local_depth = 0
+        local_depth += 1
+    # The page itself is always the current (deepest) thread root, even when the
+    # comment was opened directly (e.g. permalink) off a nesting boundary.
+    if not roots or roots[-1].pk != comment.pk:
+        roots.append(comment)
+    return roots
 
 
 def _comments_querysets_for_item(request, item):
@@ -370,9 +424,34 @@ def comment_thread(request, slug, pk):
     else:
         thread_back_url = comment.item.get_comments_absolute_url()
 
+    # Breadcrumbs follow the chain of *thread pages* (deep-reply entry points),
+    # not every nested ancestor:
+    #   brainstorm.news → <post> → <thread…> → <current thread comment>
+    # Depth 1 → brainstorm.news → post → current (annotation).
+    # Depth 2 → brainstorm.news → post → level-1 thread (link) → current (annotation).
+    # Each shallower thread is a link; the current one is a plain annotation.
+    thread_path = _thread_root_path(comment)
+    crumbs = [
+        breadcrumb("brainstorm.news", "/"),
+        breadcrumb(item.title, item.get_absolute_url()),
+    ]
+    for node in thread_path[:-1]:
+        crumbs.append(
+            breadcrumb(
+                _thread_crumb_label(node),
+                reverse(
+                    "smart_blog:comment_thread",
+                    kwargs={"slug": item.slug, "pk": node.pk},
+                ),
+            )
+        )
+    crumbs.append(breadcrumb(_thread_crumb_label(thread_path[-1]), None))
+    breadcrumbs = build_breadcrumbs(*crumbs)
+
     return render(request, "smart_blog/comment_thread.html", {
         "comment": comment,
         "item": comment.item,
         "report_rate_limited": report_rate_limited,
         "thread_back_url": thread_back_url,
+        "breadcrumbs": breadcrumbs,
     })

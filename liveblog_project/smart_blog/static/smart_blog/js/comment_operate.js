@@ -968,9 +968,12 @@
           const isThreadRoot = threadContext && String(data.comment_id) === String(threadContext.parentId);
 
           if (isThreadRoot) {
+            // Always step out one hierarchical level (parent thread / post comments).
+            // The server-rendered backUrl is deterministic and never loops, unlike
+            // a stored "return url" that points back into the deeper thread.
             const leaveUrl =
-              (window.getCommentThreadReturnUrl && window.getCommentThreadReturnUrl()) ||
               threadContext.backUrl ||
+              (window.getCommentThreadReturnUrl && window.getCommentThreadReturnUrl()) ||
               '/';
             try {
               sessionStorage.setItem('thread_back_anchor', 'replies-thread-link-' + threadContext.parentId);
@@ -978,11 +981,7 @@
               sessionStorage.setItem('thread_remove_link_' + threadContext.parentId, '1');
               sessionStorage.setItem('thread_deleted_parent_' + threadContext.parentId, '1');
             } catch { }
-            if (history.length > 1) {
-              history.back();
-            } else {
-              window.location.href = leaveUrl;
-            }
+            window.location.href = leaveUrl;
             return;
           }
 

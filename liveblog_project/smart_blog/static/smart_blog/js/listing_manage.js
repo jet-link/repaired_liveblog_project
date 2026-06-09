@@ -859,10 +859,19 @@
             }
 
             if (data.liked != null && isSameUser) {
-                const icon = document.getElementById('like-icon-' + itemId);
-                if (icon) {
-                    icon.classList.toggle('fa-heart', data.liked);
-                    icon.classList.toggle('fa-heart-o', !data.liked);
+                const likeBtns = document.querySelectorAll(
+                    '.like-btn[data-item-id="' + itemId + '"]'
+                );
+                if (likeBtns.length && typeof window.setLikeBtnState === 'function') {
+                    likeBtns.forEach(function (btn) {
+                        window.setLikeBtnState(btn, !!data.liked);
+                    });
+                } else {
+                    const icon = document.getElementById('like-icon-' + itemId);
+                    if (icon) {
+                        icon.classList.toggle('fa-heart', data.liked);
+                        icon.classList.toggle('fa-heart-o', !data.liked);
+                    }
                 }
             }
         });

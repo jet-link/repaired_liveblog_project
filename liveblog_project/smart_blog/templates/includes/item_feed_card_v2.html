@@ -31,10 +31,24 @@
         <i class="fa fa-eye" aria-hidden="true"></i>
         <span id="views-count-{{ item.pk }}">{{ item.views_count|human }}</span>
       </span>
-      <span class="brain-card__stat" title="Likes">
-        <i class="fa fa-heart" aria-hidden="true"></i>
-        <span id="likes-count-{{ item.pk }}">{{ item.likes_count|human }}</span>
-      </span>
+      {% if user.is_authenticated %}
+        <button
+          type="button"
+          class="brain-card__stat brain-card__stat--like like-btn{% if item.user_liked %} is-liked{% endif %}"
+          data-url="{% url 'smart_blog:toggle_like' item.slug %}"
+          data-item-id="{{ item.pk }}"
+          title="{% if item.user_liked %}Unlike{% else %}Like{% endif %}"
+          aria-pressed="{% if item.user_liked %}true{% else %}false{% endif %}"
+          aria-label="{% if item.user_liked %}Unlike{% else %}Like{% endif %}">
+          <i id="like-icon-{{ item.pk }}" class="fa fa-{% if item.user_liked %}heart{% else %}heart-o{% endif %}" aria-hidden="true"></i>
+          <span id="likes-count-{{ item.pk }}">{{ item.likes_count|human }}</span>
+        </button>
+      {% else %}
+        <span class="brain-card__stat" title="Likes">
+          <i class="fa fa-heart" aria-hidden="true"></i>
+          <span id="likes-count-{{ item.pk }}">{{ item.likes_count|human }}</span>
+        </span>
+      {% endif %}
       <span class="brain-card__stat" title="Reposts">
         <i class="fa fa-retweet" aria-hidden="true"></i>
         <span id="reposts-count-{{ item.pk }}">{{ item.reposts_count|human }}</span>

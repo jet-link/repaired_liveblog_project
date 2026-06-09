@@ -25,6 +25,19 @@
       ?.split('=')[1];
   }
 
+  function setLikeBtnState(btn, liked) {
+    if (!btn) return;
+    var icon = btn.querySelector('i');
+    var on = !!liked;
+    btn.classList.toggle('is-liked', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (icon) {
+      icon.classList.toggle('fa-heart', on);
+      icon.classList.toggle('fa-heart-o', !on);
+    }
+  }
+  window.setLikeBtnState = setLikeBtnState;
+
   document.addEventListener('click', async function (e) {
     const btn = e.target.closest('.like-btn');
     if (!btn) return;
@@ -38,9 +51,8 @@
 
     if (!url || !icon) return;
 
-    const wasLiked = icon.classList.contains('fa-heart');
-    icon.classList.toggle('fa-heart', !wasLiked);
-    icon.classList.toggle('fa-heart-o', !!wasLiked);
+    const wasLiked = btn.classList.contains('is-liked');
+    setLikeBtnState(btn, !wasLiked);
     icon.classList.remove('btn-bounce');
     icon.offsetWidth;
     icon.classList.add('btn-bounce');
@@ -65,14 +77,15 @@
 
       const data = await resp.json().catch(() => null);
       if (!resp.ok || !data) {
-        icon.classList.toggle('fa-heart', wasLiked);
-        icon.classList.toggle('fa-heart-o', !wasLiked);
+        setLikeBtnState(btn, wasLiked);
         console.error('LIKE ERROR', resp.status);
         return;
       }
 
-      icon.classList.toggle('fa-heart', !!data.liked);
-      icon.classList.toggle('fa-heart-o', !data.liked);
+      setLikeBtnState(btn, !!data.liked);
+      document.querySelectorAll('.like-btn[data-item-id="' + itemId + '"]').forEach(function (otherBtn) {
+        if (otherBtn !== btn) setLikeBtnState(otherBtn, !!data.liked);
+      });
 
       // if we came from profile listing, ensure it refreshes on return
       try {
@@ -109,8 +122,7 @@
         window.updateLikedUsersUI(data);
       }
     } catch (err) {
-      icon.classList.toggle('fa-heart', wasLiked);
-      icon.classList.toggle('fa-heart-o', !wasLiked);
+      setLikeBtnState(btn, wasLiked);
     } finally {
       btn.disabled = false;
     }

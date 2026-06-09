@@ -21,6 +21,9 @@
 
   let dockRevealed = false;
   let scrollRevealBound = false;
+  let viewportSyncBound = false;
+  let commentsZoneLatched = false;
+  let dockFocusPinned = false;
 
   const form = dock.querySelector('.mobile-comment-dock__form');
   const field = dock.querySelector('.mobile-comment-dock__field');
@@ -60,31 +63,99 @@
     return document.body.classList.contains('thread-comment-page');
   }
 
-  /** Item detail: whole comments block (stays “active” while reading the list). */
-  function getCommentsRevealTarget() {
-    const section = document.getElementById('detailCommentsSection');
-    if (section && !section.hasAttribute('hidden')) return section;
-    return document.getElementById('detailCommentsEmpty');
+  /** Visual viewport metrics — layout viewport height lies when the keyboard is open. */
+  function getViewportMetrics() {
+    const vv = window.visualViewport;
+    if (!vv) {
+      return { top: 0, bottom: window.innerHeight, height: window.innerHeight };
+    }
+    return {
+      top: vv.offsetTop,
+      bottom: vv.offsetTop + vv.height,
+      height: vv.height,
+    };
   }
 
+  function isDockInteractionPinned() {
+    return dockFocusPinned || mode !== 'comment' || document.activeElement === textarea;
+  }
+
+  /** Item detail: latch once the reader reaches comments; stay on through footer. */
   function shouldRevealDockFromScroll() {
     if (!isMobile()) return false;
     if (isThreadCommentPage()) return true;
-    const target = getCommentsRevealTarget();
-    if (!target) return false;
-    const rect = target.getBoundingClientRect();
-    /* Not reached comments yet (block still below the fold). */
-    if (rect.top > window.innerHeight) return false;
-    /* Scrolled back above the whole comments block. */
-    if (rect.bottom < 0) return false;
-    return true;
+    if (isDockInteractionPinned()) return true;
+
+    const list = document.getElementById('commentsList');
+    if (!list) return false;
+
+    const metrics = getViewportMetrics();
+    const listRect = list.getBoundingClientRect();
+    const empty = document.getElementById('detailCommentsEmpty');
+    const emptyRect =
+      empty && !empty.hasAttribute('hidden') ? empty.getBoundingClientRect() : null;
+
+    const zoneTop = listRect.top;
+    const zoneBottom = emptyRect
+      ? Math.max(listRect.bottom, emptyRect.bottom)
+      : listRect.bottom;
+
+    const ENTER_PX = 80;
+    const EXIT_ABOVE_PX = 48;
+
+    if (zoneTop <= metrics.bottom - ENTER_PX) {
+      commentsZoneLatched = true;
+    }
+    if (zoneBottom < metrics.top + EXIT_ABOVE_PX) {
+      const footer = document.querySelector('.footer');
+      const footerVisible =
+        footer && footer.getBoundingClientRect().top < metrics.bottom;
+      if (!footerVisible) {
+        commentsZoneLatched = false;
+      }
+    }
+
+    return commentsZoneLatched;
+  }
+
+  /** Pin the fixed dock to the visual viewport bottom (above the iOS keyboard). */
+  function syncDockViewportPosition() {
+    if (!isMobile() || !dockRevealed) {
+      dock.style.removeProperty('bottom');
+      dock.classList.remove('is-keyboard-adjusted');
+      document.body.classList.remove('is-dock-keyboard-open');
+      return;
+    }
+
+    const vv = window.visualViewport;
+    if (!vv) {
+      dock.style.removeProperty('bottom');
+      dock.classList.remove('is-keyboard-adjusted');
+      document.body.classList.remove('is-dock-keyboard-open');
+      return;
+    }
+
+    const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    if (inset > 0) {
+      dock.style.bottom = inset + 'px';
+      dock.classList.add('is-keyboard-adjusted');
+      document.body.classList.add('is-dock-keyboard-open');
+    } else {
+      dock.style.removeProperty('bottom');
+      dock.classList.remove('is-keyboard-adjusted');
+      document.body.classList.remove('is-dock-keyboard-open');
+    }
   }
 
   function setDockRevealed(reveal) {
-    if (reveal === dockRevealed) return;
+    if (reveal === dockRevealed) {
+      syncDockViewportPosition();
+      return;
+    }
     dockRevealed = reveal;
     dock.classList.toggle('is-revealed', reveal);
     document.body.classList.toggle('is-dock-revealed', reveal);
+    syncDockViewportPosition();
   }
 
   function updateDockRevealFromScroll() {
@@ -109,6 +180,25 @@
     };
     window.addEventListener('scroll', onScrollOrResize, { passive: true });
     window.addEventListener('resize', onScrollOrResize, { passive: true });
+  }
+
+  function bindDockViewportSync() {
+    if (viewportSyncBound) return;
+    viewportSyncBound = true;
+    const onViewportChange = () => {
+      syncDockViewportPosition();
+      if (dockFocusPinned) {
+        setDockRevealed(true);
+        return;
+      }
+      updateDockRevealFromScroll();
+    };
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener('resize', onViewportChange);
+      vv.addEventListener('scroll', onViewportChange);
+    }
+    window.addEventListener('orientationchange', onViewportChange);
   }
 
   /** Smooth scroll so the new comment sits above the dock (mobile only). */
@@ -476,6 +566,20 @@
   function exceedsLimit() {
     return String(textarea.value || '').replace(/\r?\n/g, '').length > COMMENT_MAX_CHARS;
   }
+
+  textarea.addEventListener('focus', () => {
+    dockFocusPinned = true;
+    setDockRevealed(true);
+    syncDockViewportPosition();
+  });
+
+  textarea.addEventListener('blur', () => {
+    dockFocusPinned = false;
+    syncDockViewportPosition();
+    requestAnimationFrame(() => {
+      updateDockRevealFromScroll();
+    });
+  });
 
   textarea.addEventListener('input', () => {
     autoGrow();
@@ -914,6 +1018,7 @@
 
   // Init
   bindDockScrollReveal();
+  bindDockViewportSync();
   setMode('comment');
   applySendCooldownUI();
   attachDesktopSync();

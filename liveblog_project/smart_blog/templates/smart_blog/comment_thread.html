@@ -7,9 +7,12 @@
 
 {% block content %}
   <div class="container-main content_block">
+    {% include 'includes/breadcrumbs.html' %}
+    {% comment %} Back button temporarily disabled — breadcrumbs cover thread navigation.
     <div class="thread-page-back mb-3">
-      <button type="button" class="btn-back-link back-btn btn btn-sm thread-back-btn d-inline-flex align-items-center gap-1" data-return-key="comment_thread_return_url" data-fallback="{% url 'smart_blog:post_comments' comment.item.slug %}" title="Back to previous page"><i class="fa fa-angle-left me-2" aria-hidden="true"></i>Back</button>
+      <a href="{{ thread_back_url }}" class="btn-back-link back-btn btn btn-sm thread-back-btn d-inline-flex align-items-center gap-1" data-fallback="{{ thread_back_url }}" title="Back one level"><i class="fa fa-angle-left me-2" aria-hidden="true"></i>Back</a>
     </div>
+    {% endcomment %}
     <div id="threadViewMarker" class="d-none" data-parent-id="{{ comment.pk }}" data-item-slug="{{ comment.item.slug }}" data-back-url="{{ thread_back_url }}"></div>
 
     <div id="commentsList" class="mb-3">

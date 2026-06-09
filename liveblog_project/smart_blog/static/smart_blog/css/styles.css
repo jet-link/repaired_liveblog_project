@@ -3328,7 +3328,7 @@ a.filter-reason-btn.topic-category-link:hover {
 html[data-theme="light"] .filter-segment-shell {
     /* Плоская плашка как на Topics / BraiNews: без glass и без box-shadow на белом фоне */
     background: var(--card-bg, #fff);
-    border: 2px solid var(--border-subtle, #e8e8ec);
+    border: 1px solid var(--border-subtle, #e8e8ec);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: none;
@@ -3340,7 +3340,7 @@ html[data-theme="light"] .filter-segment-shell::before {
 
 html[data-theme="dark"] .filter-segment-shell {
     background: rgba(20, 20, 20, 0.4);
-    border: 2px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     /* box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.6),
         inset 0 1px 0 rgba(255, 255, 255, 0.05); */
@@ -4457,6 +4457,11 @@ html[data-theme="dark"] .bottom-menu-nav a.header-menu-item.active {
 .bookmark-btn.is-bookmarked > .fa,
 .bookmark-btn.is-bookmarked > i {
     color: var(--text-link);
+}
+
+.like-btn.is-liked > .fa,
+.like-btn.is-liked > i {
+    color: #c0392b;
 }
 
 .like-btn:active:not(:disabled),
@@ -8958,7 +8963,7 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
         align-items: center;
         gap: 5px;
         /* Keep viewport scrollbar off the send/close buttons (desktop narrow). */
-        padding: 25px calc(10px + (100vw - 100%)) 25px 15px;
+        padding: 30px calc(10px + (100vw - 100%)) 30px 15px;
         margin: 0;
     }
 
@@ -9146,6 +9151,13 @@ html[data-theme="dark"] .comment-form-body textarea.form-control:focus {
     body.page-item-detail.has-mobile-comment-dock.is-dock-revealed,
     body.thread-comment-page.has-mobile-comment-dock.is-dock-revealed {
         padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Keyboard open: dock is lifted via visualViewport — skip extra body padding
+       to avoid scroll/layout thrash that flickers the composer at page bottom. */
+    body.page-item-detail.has-mobile-comment-dock.is-dock-keyboard-open,
+    body.thread-comment-page.has-mobile-comment-dock.is-dock-keyboard-open {
+        padding-bottom: 0;
     }
 
     /* === Hide inline composer/reply/edit UI on mobile === */
