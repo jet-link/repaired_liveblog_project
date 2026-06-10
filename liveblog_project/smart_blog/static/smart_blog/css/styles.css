@@ -6625,7 +6625,7 @@ html[data-theme="dark"] .comment_likes_badge {
     display: flex;
 }
 
-/* Gallery custom close button (two rotated lines forming an X) */
+/* Gallery custom close button (two rotated lines forming an X) — mobile only */
 .gallery-close-btn {
     position: fixed;
     top: max(0.75rem, env(safe-area-inset-top, 0px));
@@ -6639,11 +6639,17 @@ html[data-theme="dark"] .comment_likes_badge {
     background: rgba(0, 0, 0, 0.45);
     border-radius: 50%;
     cursor: pointer;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
     transition: background 0.15s ease;
+}
+
+@media (max-width: 767.98px) {
+    .gallery-close-btn {
+        display: flex;
+    }
 }
 
 .gallery-close-btn:hover,

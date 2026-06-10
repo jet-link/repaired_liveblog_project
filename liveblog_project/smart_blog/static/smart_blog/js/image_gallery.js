@@ -106,6 +106,7 @@
         let curIndex = 0;
         /** @type {{src:string, alt:string, caption:string}[]} */
         let currentSlides = [];
+        var galleryScrollLockDepth = 0;
 
         function wrapIndex(idx, n) {
             if (n <= 0) return 0;
@@ -208,18 +209,39 @@
             showCurrent(dir < 0 ? 'right' : 'left');
         }
 
+        function releaseGalleryScrollLock() {
+            while (galleryScrollLockDepth > 0) {
+                unlockScroll();
+                galleryScrollLockDepth -= 1;
+            }
+        }
+
         function hideOverlay() {
             if (indicator) indicator.stop();
             overlay.classList.remove('is-visible');
-            unlockScroll();
+            releaseGalleryScrollLock();
             imgEl.src = '';
             imgEl.alt = '';
             captionEl.textContent = '';
             currentSlides = [];
         }
 
+        function isGalleryOverlayButton(el) {
+            if (!el || !overlay.contains(el)) return false;
+            var btn = el.closest('button');
+            return Boolean(btn && overlay.contains(btn) && !btn.disabled);
+        }
+
         document.addEventListener('keydown', function (e) {
             if (!overlay.classList.contains('is-visible')) return;
+
+            if (e.key === ' ' || e.key === 'Enter') {
+                if (!isGalleryOverlayButton(document.activeElement)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                return;
+            }
             if (e.key === 'Escape') {
                 e.preventDefault();
                 hideOverlay();
@@ -235,7 +257,7 @@
                 nav(1);
                 return;
             }
-        });
+        }, true);
 
         // Swipe navigation: mobile screens only; desktop uses arrow keys
         var touchStartX = 0;
@@ -345,12 +367,25 @@
 
             if (!currentSlides.length) return;
             curIndex = Math.max(0, Math.min(Number(index) || 0, currentSlides.length - 1));
-            overlay.classList.add('is-visible');
-            lockScroll();
+            var opening = !overlay.classList.contains('is-visible');
+            if (opening) {
+                overlay.classList.add('is-visible');
+                lockScroll();
+                galleryScrollLockDepth += 1;
+            }
             showCurrent();
+            requestAnimationFrame(function () {
+                if (!canUseGallerySwipe()) return;
+                try {
+                    closeBtn.focus({ preventScroll: true });
+                } catch (err) { /* ignore */ }
+            });
         };
 
         window.__gallery_close = hideOverlay;
+
+        window.addEventListener('pagehide', hideOverlay);
+        (document.documentElement || document).addEventListener('turbo:before-visit', hideOverlay);
     }
 
     function openOverlayAt(index, galleryRoot) {
