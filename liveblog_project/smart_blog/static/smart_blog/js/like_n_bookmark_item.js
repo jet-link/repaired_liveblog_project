@@ -38,6 +38,17 @@
   }
   window.setLikeBtnState = setLikeBtnState;
 
+  function setCardLikeStat(itemId, liked) {
+    const card = document.getElementById('item-' + itemId);
+    const stat = card?.querySelector('.brain-card__stat--like');
+    const icon = document.getElementById('like-icon-' + itemId);
+    if (stat) stat.classList.toggle('is-liked', !!liked);
+    if (icon) {
+      icon.classList.toggle('fa-heart', !!liked);
+      icon.classList.toggle('fa-heart-o', !liked);
+    }
+  }
+
   document.addEventListener('click', async function (e) {
     const btn = e.target.closest('.like-btn');
     if (!btn) return;
@@ -86,6 +97,7 @@
       document.querySelectorAll('.like-btn[data-item-id="' + itemId + '"]').forEach(function (otherBtn) {
         if (otherBtn !== btn) setLikeBtnState(otherBtn, !!data.liked);
       });
+      setCardLikeStat(itemId, !!data.liked);
 
       // if we came from profile listing, ensure it refreshes on return
       try {
@@ -171,6 +183,17 @@
     }
   }
 
+  function setCardBookmarkStat(itemId, bookmarked) {
+    const card = document.getElementById('item-' + itemId);
+    const stat = card?.querySelector('.brain-card__stat--bookmark');
+    const icon = document.getElementById('bookmark-icon-' + itemId);
+    if (stat) stat.classList.toggle('is-bookmarked', !!bookmarked);
+    if (icon) {
+      icon.classList.toggle('fa-bookmark', !!bookmarked);
+      icon.classList.toggle('fa-bookmark-o', !bookmarked);
+    }
+  }
+
   function setReadingBadgeForItem(itemId, visible) {
     if (itemId) {
       const cardBadge = document.getElementById('reading-badge-' + itemId);
@@ -232,6 +255,7 @@
       }
 
       setBookmarkBtnState(btn, !!data.bookmarked);
+      setCardBookmarkStat(itemId, !!data.bookmarked);
       setReadingBadgeForItem(itemId, !!data.bookmarked);
 
       // if we came from profile listing, ensure it refreshes on return

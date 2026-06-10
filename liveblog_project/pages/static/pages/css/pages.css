@@ -9,16 +9,24 @@
     gap: 7px;
     font-size: 0.9rem;
     color: var(--text-muted);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
     scrollbar-width: thin;
-    min-width: 0;
     padding-bottom: 2px;
 }
 
 .breadcrumb-trail > * {
     flex-shrink: 0;
+}
+
+.breadcrumb-link,
+.breadcrumb-current {
+    white-space: nowrap;
 }
 
 .breadcrumb-link {
@@ -59,6 +67,12 @@
     .breadcrumb-brand-short {
         display: inline;
     }
+}
+
+/* Thread pages: deep breadcrumb trails scroll inside the content column */
+body.thread-comment-page .container-main.content_block {
+    min-width: 0;
+    overflow-x: clip;
 }
 
 /* h1,
@@ -461,9 +475,8 @@ html[data-theme="dark"] .sitemap-html-link:hover {
 
 @media (max-width: 768px) {
     .faq-item.is-open .faq-item-answer {
-        max-height: 70vh;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        max-height: 3000px;
+        overflow: visible;
     }
 }
 

@@ -842,6 +842,11 @@
                     bookmarkBtn.classList.toggle('is-bookmarked', !!data.bookmarked);
                     bookmarkBtn.setAttribute('aria-pressed', data.bookmarked ? 'true' : 'false');
                 }
+                const card = document.getElementById('item-' + itemId);
+                const bookmarkStat = card?.querySelector('.brain-card__stat--bookmark');
+                if (bookmarkStat) {
+                    bookmarkStat.classList.toggle('is-bookmarked', !!data.bookmarked);
+                }
                 const icon = document.getElementById('bookmark-icon-' + itemId);
                 if (icon) {
                     icon.classList.toggle('fa-bookmark', data.bookmarked);
@@ -866,12 +871,16 @@
                     likeBtns.forEach(function (btn) {
                         window.setLikeBtnState(btn, !!data.liked);
                     });
-                } else {
-                    const icon = document.getElementById('like-icon-' + itemId);
-                    if (icon) {
-                        icon.classList.toggle('fa-heart', data.liked);
-                        icon.classList.toggle('fa-heart-o', !data.liked);
-                    }
+                }
+                const card = document.getElementById('item-' + itemId);
+                const likeStat = card?.querySelector('.brain-card__stat--like');
+                if (likeStat) {
+                    likeStat.classList.toggle('is-liked', !!data.liked);
+                }
+                const icon = document.getElementById('like-icon-' + itemId);
+                if (icon) {
+                    icon.classList.toggle('fa-heart', data.liked);
+                    icon.classList.toggle('fa-heart-o', !data.liked);
                 }
             }
         });
