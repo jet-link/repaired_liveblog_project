@@ -59,7 +59,18 @@
         height: auto;
         min-height: 220px;
         align-self: stretch;
+        border-bottom: none;
         border-right: 1px solid var(--border-default);
+    }
+
+    /* Large horizontal hero without image: border-right on elongated placeholder column */
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__media:has(.brain-card__placeholder) {
+        border-right: 1px solid var(--border-default);
+        border-bottom: none;
+    }
+
+    html[data-theme="dark"] .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__media:has(.brain-card__placeholder) {
+        border-right-color: var(--border-strong, var(--border-default));
     }
 
     .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__img {
@@ -143,7 +154,7 @@ html[data-theme="dark"] .brain-card {
     background: var(--bg-muted);
     /* Isolate paints so grid-track resizing doesn't repaint/flicker the image */
     contain: paint;
-    border-bottom: 1px solid var(--border-default);
+    /* border-bottom: 1px solid var(--border-default); */
 }
 
 .brain-card__img {
@@ -199,6 +210,25 @@ html[data-theme="dark"] .brain-card {
     font-size: 1.5rem;
 }
 
+/* No-image cards: divider between placeholder zone and content (matches .brain-card__divider) */
+.feed-cards-grid-v2 .brain-card__media:has(.brain-card__placeholder) {
+    border-color: var(--border-default);
+}
+
+html[data-theme="dark"] .feed-cards-grid-v2 .brain-card__media:has(.brain-card__placeholder) {
+    border-color: var(--border-strong, var(--border-default));
+}
+
+/* Column layout (placeholder above body): border-bottom */
+.feed-cards-grid-v2 .brain-card__media:has(.brain-card__placeholder) {
+    border-bottom: 1px solid var(--border-default);
+    border-right: none;
+}
+
+html[data-theme="dark"] .feed-cards-grid-v2 .brain-card__media:has(.brain-card__placeholder) {
+    border-bottom-color: var(--border-strong, var(--border-default));
+}
+
 /* --- Body --- */
 .brain-card__body {
     display: flex;
@@ -226,7 +256,7 @@ html[data-theme="dark"] .brain-card {
     min-width: 0;
 }
 
-.brain-card__divider {
+/* .brain-card__divider {
     display: block;
     width: calc(100% + 2.5rem);
     margin: 0 -1.25rem;
@@ -240,7 +270,7 @@ html[data-theme="dark"] .brain-card {
 html[data-theme="dark"] .brain-card__divider {
     border-top-color: var(--border-strong, var(--border-default));
     opacity: 1;
-}
+} */
 
 .brain-card__author {
     display: flex;
@@ -464,6 +494,17 @@ html[data-theme="dark"] .brain-card__category--lifehacking { color: #22d3ee; }
         align-self: stretch;
         height: auto;
         min-height: 128px;
+        border-bottom: none;
+    }
+
+    /* Compact horizontal card without image: border-right on placeholder column */
+    .feed-cards-grid-v2--pattern > .item-card:not(.feed-grid-slot--hero) .brain-card__media:has(.brain-card__placeholder) {
+        border-right: 1px solid var(--border-default);
+        border-bottom: none;
+    }
+
+    html[data-theme="dark"] .feed-cards-grid-v2--pattern > .item-card:not(.feed-grid-slot--hero) .brain-card__media:has(.brain-card__placeholder) {
+        border-right-color: var(--border-strong, var(--border-default));
     }
 
     .feed-cards-grid-v2--pattern > .item-card:not(.feed-grid-slot--hero) .brain-card__body {
@@ -539,6 +580,17 @@ html[data-theme="dark"] .brain-card__category--lifehacking { color: #22d3ee; }
         aspect-ratio: 16 / 10;
         min-height: 180px;
         align-self: auto;
+        border-right: none;
+    }
+
+    /* Large stacked hero without image: border-bottom between placeholder and body */
+    .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__media:has(.brain-card__placeholder) {
+        border-bottom: 1px solid var(--border-default);
+        border-right: none;
+    }
+
+    html[data-theme="dark"] .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__media:has(.brain-card__placeholder) {
+        border-bottom-color: var(--border-strong, var(--border-default));
     }
 
     .feed-cards-grid-v2--pattern > .feed-grid-slot--hero .brain-card__img {

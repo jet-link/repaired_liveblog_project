@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.http import JsonResponse
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import Count, Q, Subquery, OuterRef, Case, When, Value, IntegerField
 
 from admin_panel.decorators import admin_required
@@ -12,6 +13,26 @@ from smart_blog.models import ContentReport, Item, Comment
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+_VALID_REPORT_REASONS = {choice[0] for choice in ContentReport.REASON_CHOICES}
+
+
+def _filter_reports_by_reason(queryset, reason):
+    """Match primary reason or any entry in reasons JSON (SQLite + PostgreSQL)."""
+    if not reason or reason not in _VALID_REPORT_REASONS:
+        return queryset
+
+    if connection.vendor == 'postgresql':
+        return queryset.filter(Q(reason=reason) | Q(reasons__contains=[reason]))
+
+    table = ContentReport._meta.db_table
+    return queryset.extra(
+        where=[
+            f"({table}.reason = %s OR EXISTS "
+            f"(SELECT 1 FROM json_each({table}.reasons) WHERE json_each.value = %s))"
+        ],
+        params=[reason, reason],
+    )
 
 # Subqueries for target reports count (exclude admin_hidden and soft-deleted)
 _item_reports_subq = ContentReport.objects.filter(
@@ -40,7 +61,7 @@ def reports_list(request):
     # Reason filter
     reason = request.GET.get('reason')
     if reason:
-        qs = qs.filter(Q(reason=reason) | Q(reasons__contains=[reason]))
+        qs = _filter_reports_by_reason(qs, reason)
 
     # Annotate target reports count
     qs = qs.annotate(

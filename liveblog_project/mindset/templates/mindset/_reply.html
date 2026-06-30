@@ -1,7 +1,7 @@
 {% load mindset_extras %}
 {% load counters %}
 <div class="mindset-reply{% if standalone %} mindset-reply--standalone{% endif %}" data-mindset-reply="{{ reply.pk }}" id="mindset-reply-{{ reply.pk }}">
-  <div class="mindset-reply__head pb-4">
+  <div class="mindset-reply__head pb-2">
     {% include 'mindset/_author_identity.html' with author=reply.author %}
     {% comment %} Follow/Followed on replies — disabled for now (main themes only).
     <div class="mindset-theme__author-row">
@@ -29,7 +29,7 @@
       <span>{{ reply.human_published }}</span>
     </small>
   </div>
-  {% comment %} <hr class="mindset-card__divider" aria-hidden="true"> {% endcomment %}
+  <hr class="mindset-card__divider" aria-hidden="true">
   <div class="mindset-reply__body" data-mindset-body>{{ reply.body|mindset_body }}</div>
   {% if reply.image %}
     <a href="{{ reply.image.get_url }}"
